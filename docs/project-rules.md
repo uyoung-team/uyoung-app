@@ -1,4 +1,4 @@
-# Project Rules
+# Uyoung App Project Rules
 
 ## 1. Goal
 - Rebuild the app as a clean Flutter + Supabase project.
@@ -44,8 +44,9 @@
 
 Each feature currently follows this structure:
 
-- `data/service`
-- `data/repository`
+- `data/`
+  - `*_service.dart`
+  - `*_repository.dart`
 - `presentation/viewmodels`
 - `presentation/pages`
 
@@ -78,6 +79,7 @@ Role of each layer:
 - Feature screen state uses `ChangeNotifier`
 - App-wide registration belongs in `lib/app/providers/app_providers.dart`
 - Do not register unused providers early
+- Keep one logical change per commit whenever possible.
 - Add provider wiring only when the feature is actually connected to the app flow
 
 ## 5. Routing Rules

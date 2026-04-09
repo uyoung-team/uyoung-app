@@ -14,14 +14,16 @@
 ## Working Rules
 - Keep changes small and compile-safe.
 - Prefer one focused commit per step.
+- Keep one logical change per commit whenever possible.
 - Follow the current project structure rather than proposing a new architecture mid-stream.
 - Use `provider` for state wiring and `ChangeNotifier` for feature view models.
 - Keep direct Supabase access inside the network/service layer, not in widgets.
 
 ## Feature Rules
 - Default feature structure:
-  - `data/service`
-  - `data/repository`
+  - `data/`
+  - `*_service.dart`
+  - `*_repository.dart`
   - `presentation/viewmodels`
   - `presentation/pages`
 - Add more folders only when real complexity appears.
