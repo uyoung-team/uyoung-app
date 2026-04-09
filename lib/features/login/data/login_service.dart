@@ -1,0 +1,3 @@
+class LoginService {
+  const LoginService();
+}

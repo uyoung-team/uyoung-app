@@ -1,0 +1,3 @@
+class CalendarService {
+  const CalendarService();
+}

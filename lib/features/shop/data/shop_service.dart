@@ -1,0 +1,3 @@
+class ShopService {
+  const ShopService();
+}

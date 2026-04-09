@@ -1,0 +1,3 @@
+class MyPageService {
+  const MyPageService();
+}
