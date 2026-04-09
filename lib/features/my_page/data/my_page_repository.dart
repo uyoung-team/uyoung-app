@@ -22,6 +22,51 @@ class MyPageRepository {
     );
   }
 
+  Future<List<FriendItem>> fetchFriends() async {
+    final friendRows = await service.fetchFriendRows();
+    final friendIds = friendRows
+        .map((row) => row['friend_id']?.toString() ?? '')
+        .where((id) => id.isNotEmpty)
+        .toList();
+
+    if (friendIds.isEmpty) {
+      return const [];
+    }
+
+    final profileRows = await service.fetchProfilesByIds(friendIds);
+    final profileMap = {
+      for (final row in profileRows) row['id']?.toString() ?? '': row,
+    };
+
+    return friendRows.map((row) {
+      final friendId = row['friend_id']?.toString() ?? '';
+      final profile = profileMap[friendId] ?? const <String, dynamic>{};
+
+      return FriendItem(
+        id: friendId,
+        nickname: (profile['nickname'] ?? '친구').toString(),
+        userCode: (profile['user_code'] ?? '-').toString(),
+        profileImageUrl: profile['profile_image_url']?.toString(),
+        createdAt: DateTime.tryParse((row['created_at'] ?? '').toString()),
+      );
+    }).toList();
+  }
+
+  Future<FriendItem?> findFriendByCode(String userCode) async {
+    final profile = await service.fetchProfileByUserCode(userCode.trim());
+    if (profile == null) {
+      return null;
+    }
+
+    return FriendItem(
+      id: (profile['id'] ?? '').toString(),
+      nickname: (profile['nickname'] ?? '친구').toString(),
+      userCode: (profile['user_code'] ?? '-').toString(),
+      profileImageUrl: profile['profile_image_url']?.toString(),
+      createdAt: null,
+    );
+  }
+
   int _extractPearlCount(List<Map<String, dynamic>> assetRows) {
     for (final row in assetRows) {
       final type = (row['asset_type'] ?? row['name'] ?? '').toString().toLowerCase();

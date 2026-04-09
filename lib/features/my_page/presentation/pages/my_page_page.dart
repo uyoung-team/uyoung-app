@@ -5,6 +5,7 @@ import 'package:uyoung_app/core/theme/app_radius.dart';
 import 'package:uyoung_app/core/theme/app_spacing.dart';
 import 'package:uyoung_app/features/my_page/data/my_page_repository.dart';
 import 'package:uyoung_app/features/my_page/data/my_page_service.dart';
+import 'package:uyoung_app/features/my_page/presentation/pages/friends_page.dart';
 import 'package:uyoung_app/features/my_page/presentation/viewmodels/my_page_view_model.dart';
 import 'package:uyoung_app/shared/widgets/app_scaffold.dart';
 import 'package:uyoung_app/shared/widgets/app_surface_card.dart';
@@ -110,20 +111,27 @@ class _MyPageView extends StatelessWidget {
           AppSurfaceCard(
             padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
             child: Column(
-              children: const [
-                _MenuTile(
+              children: [
+                const _MenuTile(
                   icon: Icons.notifications_none_rounded,
                   title: '공지사항',
                   subtitle: '공지 목록으로 이동할 준비가 된 진입 메뉴',
                 ),
-                _MenuDivider(),
+                const _MenuDivider(),
                 _MenuTile(
                   icon: Icons.people_outline_rounded,
                   title: '친구',
                   subtitle: '친구 목록과 관계 기능으로 이어질 진입 메뉴',
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => const FriendsPage(),
+                      ),
+                    );
+                  },
                 ),
-                _MenuDivider(),
-                _MenuTile(
+                const _MenuDivider(),
+                const _MenuTile(
                   icon: Icons.support_agent_outlined,
                   title: '문의 내역',
                   subtitle: '문의 목록과 작성 흐름으로 이어질 진입 메뉴',
@@ -230,24 +238,27 @@ class _MenuTile extends StatelessWidget {
     required this.icon,
     required this.title,
     required this.subtitle,
+    this.onTap,
   });
 
   final IconData icon;
   final String title;
   final String subtitle;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
     return InkWell(
-      onTap: () {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('$title 기능은 다음 단계에서 연결됩니다.'),
-          ),
-        );
-      },
+      onTap: onTap ??
+          () {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('$title 기능은 다음 단계에서 연결됩니다.'),
+              ),
+            );
+          },
       borderRadius: BorderRadius.circular(AppRadius.lg),
       child: Padding(
         padding: const EdgeInsets.symmetric(
