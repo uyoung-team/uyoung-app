@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:uyoung_app/shared/widgets/app_scaffold.dart';
-import 'package:uyoung_app/shared/widgets/feature_placeholder.dart';
+import 'package:uyoung_app/features/calendar/presentation/pages/calendar_page.dart';
+import 'package:uyoung_app/features/home/presentation/pages/home_page.dart';
+import 'package:uyoung_app/features/memory/presentation/pages/memory_page.dart';
+import 'package:uyoung_app/features/my_page/presentation/pages/my_page_page.dart';
+import 'package:uyoung_app/features/shop/presentation/pages/shop_page.dart';
 
 class MainTabShell extends StatefulWidget {
   const MainTabShell({super.key});
@@ -17,46 +20,31 @@ class _MainTabShellState extends State<MainTabShell> {
       label: '홈',
       icon: Icons.home_outlined,
       activeIcon: Icons.home,
-      page: _TabPage(
-        title: '홈',
-        description: '홈 화면 골격이 들어올 자리입니다.',
-      ),
+      page: HomePage(),
     ),
     const _TabItem(
       label: '기억섬',
       icon: Icons.landscape_outlined,
       activeIcon: Icons.landscape,
-      page: _TabPage(
-        title: '기억섬',
-        description: '기억섬 화면 골격이 들어올 자리입니다.',
-      ),
+      page: MemoryPage(),
     ),
     const _TabItem(
       label: '캘린더',
       icon: Icons.calendar_month_outlined,
       activeIcon: Icons.calendar_month,
-      page: _TabPage(
-        title: '캘린더',
-        description: '캘린더 화면 골격이 들어올 자리입니다.',
-      ),
+      page: CalendarPage(),
     ),
     const _TabItem(
       label: '상점',
       icon: Icons.storefront_outlined,
       activeIcon: Icons.storefront,
-      page: _TabPage(
-        title: '상점',
-        description: '상점 화면 골격이 들어올 자리입니다.',
-      ),
+      page: ShopPage(),
     ),
     const _TabItem(
       label: '마이',
       icon: Icons.person_outline,
       activeIcon: Icons.person,
-      page: _TabPage(
-        title: '마이페이지',
-        description: '마이페이지 화면 골격이 들어올 자리입니다.',
-      ),
+      page: MyPagePage(),
     ),
   ];
 
@@ -100,25 +88,4 @@ class _TabItem {
   final IconData icon;
   final IconData activeIcon;
   final Widget page;
-}
-
-class _TabPage extends StatelessWidget {
-  const _TabPage({
-    required this.title,
-    required this.description,
-  });
-
-  final String title;
-  final String description;
-
-  @override
-  Widget build(BuildContext context) {
-    return AppScaffold(
-      title: title,
-      body: FeaturePlaceholder(
-        title: title,
-        description: description,
-      ),
-    );
-  }
 }

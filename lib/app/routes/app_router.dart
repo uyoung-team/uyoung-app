@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:uyoung_app/features/login/presentation/pages/login_page.dart';
+import 'package:uyoung_app/shared/widgets/main_tab_shell.dart';
 
 class AppRouter {
   static const String root = '/';
@@ -8,32 +10,15 @@ class AppRouter {
     switch (settings.name) {
       case login:
         return MaterialPageRoute<void>(
-          builder: (_) => const _RoutePlaceholderPage(title: 'Login'),
+          builder: (_) => const LoginPage(),
           settings: settings,
         );
       case root:
       default:
         return MaterialPageRoute<void>(
-          builder: (_) => const _RoutePlaceholderPage(title: 'Home'),
+          builder: (_) => const MainTabShell(),
           settings: settings,
         );
     }
-  }
-}
-
-class _RoutePlaceholderPage extends StatelessWidget {
-  const _RoutePlaceholderPage({
-    required this.title,
-  });
-
-  final String title;
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: Text(title),
-      ),
-    );
   }
 }
