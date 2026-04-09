@@ -20,3 +20,35 @@ class MyPageProfile {
     );
   }
 }
+
+class NoticeItem {
+  const NoticeItem({
+    required this.id,
+    required this.title,
+    required this.content,
+    required this.isImportant,
+    this.createdAt,
+  });
+
+  final String id;
+  final String title;
+  final String content;
+  final bool isImportant;
+  final DateTime? createdAt;
+}
+
+class InquiryItem {
+  const InquiryItem({
+    required this.id,
+    required this.title,
+    required this.status,
+    this.answer,
+    this.createdAt,
+  });
+
+  final String id;
+  final String title;
+  final String status;
+  final String? answer;
+  final DateTime? createdAt;
+}
