@@ -37,6 +37,22 @@ class NoticeItem {
   final DateTime? createdAt;
 }
 
+class FriendItem {
+  const FriendItem({
+    required this.id,
+    required this.nickname,
+    required this.userCode,
+    this.profileImageUrl,
+    this.createdAt,
+  });
+
+  final String id;
+  final String nickname;
+  final String userCode;
+  final String? profileImageUrl;
+  final DateTime? createdAt;
+}
+
 class InquiryItem {
   const InquiryItem({
     required this.id,
