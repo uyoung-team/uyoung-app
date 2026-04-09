@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:uyoung_app/app/routes/app_router.dart';
+import 'package:uyoung_app/core/theme/app_theme.dart';
 
 class UyoungApp extends StatelessWidget {
   const UyoungApp({super.key});
@@ -8,24 +10,9 @@ class UyoungApp extends StatelessWidget {
     return MaterialApp(
       title: 'Uyoung App',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF2E6B5B)),
-        useMaterial3: true,
-      ),
-      home: const _AppEntryPage(),
-    );
-  }
-}
-
-class _AppEntryPage extends StatelessWidget {
-  const _AppEntryPage();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(
-        child: Text('Uyoung App'),
-      ),
+      theme: AppTheme.light(),
+      initialRoute: AppRouter.root,
+      onGenerateRoute: AppRouter.onGenerateRoute,
     );
   }
 }

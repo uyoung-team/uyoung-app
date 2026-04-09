@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:uyoung_app/app/routes/app_router.dart';
 import 'package:uyoung_app/core/theme/app_colors.dart';
 import 'package:uyoung_app/core/theme/app_radius.dart';
 import 'package:uyoung_app/core/theme/app_spacing.dart';
@@ -151,48 +152,58 @@ class _AttendanceEntryCard extends StatelessWidget {
 
     return AppSurfaceCard(
       backgroundColor: const Color(0xFFFDF6E9),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: const Color(0xFFFFE1A8),
-              borderRadius: BorderRadius.circular(AppRadius.lg),
+      child: InkWell(
+        onTap: () => Navigator.of(context).pushNamed(AppRouter.attendance),
+        borderRadius: BorderRadius.circular(AppRadius.xl),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFE1A8),
+                borderRadius: BorderRadius.circular(AppRadius.lg),
+              ),
+              child: const Icon(
+                Icons.check_circle_outline,
+                color: Color(0xFF8B5E00),
+              ),
             ),
-            child: const Icon(
-              Icons.check_circle_outline,
-              color: Color(0xFF8B5E00),
-            ),
-          ),
-          const SizedBox(width: AppSpacing.md),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('출석체크', style: theme.textTheme.titleLarge),
-                const SizedBox(height: AppSpacing.xs),
-                Text(
-                  '오늘의 출석 상태와 보상 영역으로 이어질 카드 자리입니다.',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: AppColors.textPrimary,
+            const SizedBox(width: AppSpacing.md),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('출석체크', style: theme.textTheme.titleLarge),
+                  const SizedBox(height: AppSpacing.xs),
+                  Text(
+                    '오늘의 출석 상태와 보상 영역으로 이어질 카드 자리입니다.',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: AppColors.textPrimary,
+                    ),
                   ),
-                ),
-                const SizedBox(height: AppSpacing.md),
-                Wrap(
-                  spacing: AppSpacing.xs,
-                  runSpacing: AppSpacing.xs,
-                  children: const [
-                    _StatusChip(label: '오늘 진입 포인트'),
-                    _StatusChip(label: '보드 연결 예정'),
-                    _StatusChip(label: 'RPC 연동 전'),
-                  ],
-                ),
-              ],
+                  const SizedBox(height: AppSpacing.md),
+                  Wrap(
+                    spacing: AppSpacing.xs,
+                    runSpacing: AppSpacing.xs,
+                    children: const [
+                      _StatusChip(label: '오늘 진입 포인트'),
+                      _StatusChip(label: '보드 연결 예정'),
+                      _StatusChip(label: 'RPC 연동 전'),
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+            const SizedBox(width: AppSpacing.sm),
+            const Icon(
+              Icons.arrow_forward_ios_rounded,
+              size: 18,
+              color: AppColors.textSecondary,
+            ),
+          ],
+        ),
       ),
     );
   }
