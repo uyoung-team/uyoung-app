@@ -39,6 +39,8 @@ class BottomNavigationIcons {
   final String calendarOn = 'assets/icons/bottom_navigation/calendar_on.png';
   final String homeOff = 'assets/icons/bottom_navigation/home_off.png';
   final String homeOn = 'assets/icons/bottom_navigation/home_on.png';
+  final String memoryOff = 'assets/icons/bottom_navigation/memory_off.png';
+  final String memoryOn = 'assets/icons/bottom_navigation/memory_on.png';
   final String myPageOff = 'assets/icons/bottom_navigation/my_page_off.png';
   final String myPageOn = 'assets/icons/bottom_navigation/my_page_on.png';
   final String storeOff = 'assets/icons/bottom_navigation/store_off.png';
