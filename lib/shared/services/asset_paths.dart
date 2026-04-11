@@ -11,6 +11,8 @@ class AppIcons {
   const AppIcons._();
 
   final BarIcons bar = const BarIcons();
+  final BottomNavigationIcons bottomNavigation =
+      const BottomNavigationIcons();
   final CommonIcons common = const CommonIcons();
   final PhotoDetailIcons photoDetail = const PhotoDetailIcons();
   final SmallCommonIcons smallCommon = const SmallCommonIcons();
@@ -28,6 +30,19 @@ class BarIcons {
   final String favorite = 'assets/icons/bar/icon_favorite.svg';
   final String location = 'assets/icons/bar/icon_location.svg';
   final String revise = 'assets/icons/bar/icon_revise.svg';
+}
+
+class BottomNavigationIcons {
+  const BottomNavigationIcons();
+
+  final String calendarOff = 'assets/icons/bottom_navigation/calendar_off.png';
+  final String calendarOn = 'assets/icons/bottom_navigation/calendar_on.png';
+  final String homeOff = 'assets/icons/bottom_navigation/home_off.png';
+  final String homeOn = 'assets/icons/bottom_navigation/home_on.png';
+  final String myPageOff = 'assets/icons/bottom_navigation/my_page_off.png';
+  final String myPageOn = 'assets/icons/bottom_navigation/my_page_on.png';
+  final String storeOff = 'assets/icons/bottom_navigation/store_off.png';
+  final String storeOn = 'assets/icons/bottom_navigation/store_on.png';
 }
 
 class CommonIcons {
