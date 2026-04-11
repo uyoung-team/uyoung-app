@@ -46,8 +46,8 @@ class AppFont {
         titleMedium: h7_16,
         titleSmall: h8_14,
         bodyLarge: b7_16,
-        bodyMedium: b8_14.copyWith(color: AppColors.textSecondary),
-        bodySmall: b9_12.copyWith(color: AppColors.textSecondary),
+        bodyMedium: b8_14.copyWith(color: AppColors.g02),
+        bodySmall: b9_12.copyWith(color: AppColors.g02),
         labelLarge: b8_14,
         labelMedium: b9_12,
         labelSmall: b10_10,
@@ -58,7 +58,7 @@ class AppFont {
       fontFamily: fontFamily,
       fontSize: size,
       fontWeight: FontWeight.w400,
-      color: AppColors.textPrimary,
+      color: AppColors.black,
       height: height,
     );
   }
@@ -68,7 +68,7 @@ class AppFont {
       fontFamily: fontFamily,
       fontSize: size,
       fontWeight: FontWeight.w400,
-      color: AppColors.textPrimary,
+      color: AppColors.black,
       height: height,
     );
   }

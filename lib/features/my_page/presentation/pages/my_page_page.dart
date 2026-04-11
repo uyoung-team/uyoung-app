@@ -210,7 +210,7 @@ class _AvatarFallback extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Icon(Icons.person_rounded, color: AppColors.primary, size: 32);
+    return const Icon(Icons.person_rounded, color: AppColors.b01, size: 32);
   }
 }
 
@@ -284,7 +284,7 @@ class _MenuTile extends StatelessWidget {
                 color: const Color(0xFFF3F4F6),
                 borderRadius: BorderRadius.circular(AppRadius.md),
               ),
-              child: Icon(icon, color: AppColors.textPrimary),
+              child: Icon(icon, color: AppColors.black),
             ),
             const SizedBox(width: AppSpacing.md),
             Expanded(
@@ -300,7 +300,7 @@ class _MenuTile extends StatelessWidget {
             const SizedBox(width: AppSpacing.sm),
             const Icon(
               Icons.chevron_right_rounded,
-              color: AppColors.textSecondary,
+              color: AppColors.g02,
             ),
           ],
         ),
@@ -314,6 +314,6 @@ class _MenuDivider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Divider(height: 1, color: AppColors.border);
+    return const Divider(height: 1, color: AppColors.bg02);
   }
 }

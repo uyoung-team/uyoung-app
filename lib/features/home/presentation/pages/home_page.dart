@@ -13,7 +13,7 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: AppColors.back,
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
@@ -180,7 +180,7 @@ class _AttendanceEntryCard extends StatelessWidget {
                   Text(
                     '오늘의 출석 상태와 보상 영역으로 이어질 카드 자리입니다.',
                     style: theme.textTheme.bodyMedium?.copyWith(
-                      color: AppColors.textPrimary,
+                      color: AppColors.black,
                     ),
                   ),
                   const SizedBox(height: AppSpacing.md),
@@ -200,7 +200,7 @@ class _AttendanceEntryCard extends StatelessWidget {
             const Icon(
               Icons.arrow_forward_ios_rounded,
               size: 18,
-              color: AppColors.textSecondary,
+              color: AppColors.g02,
             ),
           ],
         ),
@@ -288,7 +288,7 @@ class _DestinationCard extends StatelessWidget {
               color: const Color(0xFFEEF2FF),
               borderRadius: BorderRadius.circular(AppRadius.lg),
             ),
-            child: Icon(item.icon, color: AppColors.primary),
+            child: Icon(item.icon, color: AppColors.b01),
           ),
           const SizedBox(height: AppSpacing.md),
           Text(item.title, style: theme.textTheme.titleLarge),
@@ -317,14 +317,14 @@ class _StatusChip extends StatelessWidget {
         vertical: AppSpacing.xs,
       ),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: AppColors.white,
         borderRadius: BorderRadius.circular(AppRadius.xl),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: AppColors.bg02),
       ),
       child: Text(
         label,
         style: Theme.of(context).textTheme.labelLarge?.copyWith(
-              color: AppColors.textSecondary,
+              color: AppColors.g02,
             ),
       ),
     );
