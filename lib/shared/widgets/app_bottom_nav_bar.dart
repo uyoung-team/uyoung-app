@@ -21,6 +21,8 @@ class AppBottomNavBar extends StatelessWidget {
         fallbackIcon: Icons.home_rounded,
       ),
       _BottomNavItem(
+        activeAssetPath: 'memoryOn',
+        inactiveAssetPath: 'memoryOff',
         fallbackIcon: Icons.landscape_rounded,
       ),
       _BottomNavItem(
@@ -120,6 +122,10 @@ class _BottomNavIcon extends StatelessWidget {
         return icons.calendarOn;
       case 'calendarOff':
         return icons.calendarOff;
+      case 'memoryOn':
+        return icons.memoryOn;
+      case 'memoryOff':
+        return icons.memoryOff;
       case 'storeOn':
         return icons.storeOn;
       case 'storeOff':
