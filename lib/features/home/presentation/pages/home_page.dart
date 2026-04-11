@@ -62,12 +62,12 @@ class _HomeView extends StatelessWidget {
                   scale: scale,
                   hasUnread: viewModel.hasUnread,
                   onTap: () async {
-                    await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => NotificationPage(viewModel: viewModel),
-                      ),
-                    );
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const NotificationPage(),
+                    ),
+                  );
                     await viewModel.load();
                   },
                 ),

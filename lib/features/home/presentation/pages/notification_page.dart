@@ -6,29 +6,17 @@ import 'package:uyoung_app/core/theme/app_spacing.dart';
 import 'package:uyoung_app/features/home/data/home_models.dart';
 import 'package:uyoung_app/features/home/data/home_repository.dart';
 import 'package:uyoung_app/features/home/data/home_service.dart';
-import 'package:uyoung_app/features/home/presentation/viewmodels/home_view_model.dart';
+import 'package:uyoung_app/features/home/presentation/viewmodels/notification_view_model.dart';
 import 'package:uyoung_app/shared/widgets/app_headline_text.dart';
 
 class NotificationPage extends StatelessWidget {
-  const NotificationPage({
-    super.key,
-    this.viewModel,
-  });
-
-  final HomeViewModel? viewModel;
+  const NotificationPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    if (viewModel != null) {
-      return ChangeNotifierProvider<HomeViewModel>.value(
-        value: viewModel!,
-        child: const _NotificationPageView(),
-      );
-    }
-
     return ChangeNotifierProvider(
       create: (_) =>
-          HomeViewModel(const HomeRepository(HomeService()))..load(),
+          NotificationViewModel(const HomeRepository(HomeService()))..load(),
       child: const _NotificationPageView(),
     );
   }
@@ -39,7 +27,7 @@ class _NotificationPageView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final viewModel = context.watch<HomeViewModel>();
+    final viewModel = context.watch<NotificationViewModel>();
 
     return Scaffold(
       backgroundColor: AppColors.back,
@@ -87,33 +75,139 @@ class _NotificationPageView extends StatelessWidget {
           }
 
           if (viewModel.notifications.isEmpty) {
-            return Center(
-              child: Text(
-                '표시할 알림이 없어요.',
-                style: AppFont.h8_14.copyWith(color: AppColors.g03),
-              ),
+            return Column(
+              children: [
+                const SizedBox(height: AppSpacing.sm),
+                _NotificationFilterBar(
+                  selected: viewModel.filter,
+                  onSelected: viewModel.setFilter,
+                ),
+                Expanded(
+                  child: Center(
+                    child: Text(
+                      '표시할 알림이 없어요.',
+                      style: AppFont.h8_14.copyWith(color: AppColors.g03),
+                    ),
+                  ),
+                ),
+              ],
             );
           }
 
-          return ListView.separated(
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.md,
-              AppSpacing.lg,
-              AppSpacing.md,
-              AppSpacing.lg,
-            ),
-            itemCount: viewModel.notifications.length,
-            separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.md),
-            itemBuilder: (context, index) {
-              final item = viewModel.notifications[index];
-              return _NotificationCard(
-                item: item,
-                timeAgo: viewModel.formatTimeAgo(item.createdAt),
-                onTap: () => viewModel.markAsRead(item.id),
-              );
-            },
+          return Column(
+            children: [
+              const SizedBox(height: AppSpacing.sm),
+              _NotificationFilterBar(
+                selected: viewModel.filter,
+                onSelected: viewModel.setFilter,
+              ),
+              Expanded(
+                child: ListView.separated(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.md,
+                    AppSpacing.lg,
+                    AppSpacing.md,
+                    AppSpacing.lg,
+                  ),
+                  itemCount: viewModel.notifications.length,
+                  separatorBuilder: (_, _) =>
+                      const SizedBox(height: AppSpacing.md),
+                  itemBuilder: (context, index) {
+                    final item = viewModel.notifications[index];
+                    return _NotificationCard(
+                      item: item,
+                      timeAgo: viewModel.formatTimeAgo(item.createdAt),
+                      onTap: () => viewModel.markAsRead(item.id),
+                    );
+                  },
+                ),
+              ),
+            ],
           );
         },
+      ),
+    );
+  }
+}
+
+class _NotificationFilterBar extends StatelessWidget {
+  const _NotificationFilterBar({
+    required this.selected,
+    required this.onSelected,
+  });
+
+  final NotificationFilter selected;
+  final ValueChanged<NotificationFilter> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+      child: Row(
+        children: [
+          _FilterChip(
+            label: '전체',
+            selected: selected == NotificationFilter.all,
+            onTap: () => onSelected(NotificationFilter.all),
+          ),
+          const SizedBox(width: AppSpacing.xs),
+          _FilterChip(
+            label: '초대',
+            selected: selected == NotificationFilter.invite,
+            onTap: () => onSelected(NotificationFilter.invite),
+          ),
+          const SizedBox(width: AppSpacing.xs),
+          _FilterChip(
+            label: '활동',
+            selected: selected == NotificationFilter.activity,
+            onTap: () => onSelected(NotificationFilter.activity),
+          ),
+          const SizedBox(width: AppSpacing.xs),
+          _FilterChip(
+            label: '공지',
+            selected: selected == NotificationFilter.notice,
+            onTap: () => onSelected(NotificationFilter.notice),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _FilterChip extends StatelessWidget {
+  const _FilterChip({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md,
+          vertical: AppSpacing.sm,
+        ),
+        decoration: BoxDecoration(
+          color: selected ? AppColors.b03 : AppColors.white,
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(
+            color: selected ? AppColors.b02 : AppColors.bg02,
+          ),
+        ),
+        child: Text(
+          label,
+          style: AppFont.h8_14.copyWith(
+            color: selected ? AppColors.b01 : AppColors.g02,
+          ),
+        ),
       ),
     );
   }
