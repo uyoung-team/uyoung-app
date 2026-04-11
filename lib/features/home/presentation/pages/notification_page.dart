@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import 'package:uyoung_app/core/theme/app_colors.dart';
 import 'package:uyoung_app/core/theme/app_font.dart';
@@ -7,6 +8,7 @@ import 'package:uyoung_app/features/home/data/home_models.dart';
 import 'package:uyoung_app/features/home/data/home_repository.dart';
 import 'package:uyoung_app/features/home/data/home_service.dart';
 import 'package:uyoung_app/features/home/presentation/viewmodels/notification_view_model.dart';
+import 'package:uyoung_app/shared/services/asset_paths.dart';
 import 'package:uyoung_app/shared/widgets/app_headline_text.dart';
 
 class NotificationPage extends StatelessWidget {
@@ -41,15 +43,20 @@ class _NotificationPageView extends StatelessWidget {
           icon: const Icon(Icons.arrow_back_ios_new_rounded),
           color: AppColors.black,
         ),
-        title: AppHeadlineText('알림', style: AppFont.h4_22),
+        title: AppHeadlineText('알림', style: AppFont.h3_24),
         actions: [
           IconButton(
             onPressed: viewModel.hasUnread && !viewModel.isMarkingAll
                 ? viewModel.markAllAsRead
                 : null,
-            icon: const Icon(
-              Icons.done_all_rounded,
-              color: AppColors.black,
+            icon: SvgPicture.asset(
+              AssetPaths.icons.common.setting,
+              width: 35,
+              height: 35,
+              colorFilter: const ColorFilter.mode(
+                AppColors.black,
+                BlendMode.srcIn,
+              ),
             ),
           ),
           const SizedBox(width: AppSpacing.xs),
@@ -67,7 +74,7 @@ class _NotificationPageView extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
                 child: Text(
                   viewModel.errorText!,
-                  style: AppFont.b8_14.copyWith(color: AppColors.subRed03),
+                  style: AppFont.b6_18.copyWith(color: AppColors.subRed03),
                   textAlign: TextAlign.center,
                 ),
               ),
@@ -86,7 +93,7 @@ class _NotificationPageView extends StatelessWidget {
                   child: Center(
                     child: Text(
                       '표시할 알림이 없어요.',
-                      style: AppFont.h8_14.copyWith(color: AppColors.g03),
+                      style: AppFont.b6_18.copyWith(color: AppColors.g03),
                     ),
                   ),
                 ),
@@ -204,7 +211,7 @@ class _FilterChip extends StatelessWidget {
         ),
         child: Text(
           label,
-          style: AppFont.h8_14.copyWith(
+          style: AppFont.b6_18.copyWith(
             color: selected ? AppColors.b01 : AppColors.g02,
           ),
         ),
@@ -226,7 +233,7 @@ class _NotificationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bodyStyle = AppFont.b8_14.copyWith(
+    final bodyStyle = AppFont.b6_18.copyWith(
       color: AppColors.black,
       height: 1.45,
     );
@@ -246,8 +253,8 @@ class _NotificationCard extends StatelessWidget {
               clipBehavior: Clip.none,
               children: [
                 Container(
-                  width: 44,
-                  height: 44,
+                  width: 52,
+                  height: 52,
                   decoration: const BoxDecoration(
                     color: AppColors.g04,
                     shape: BoxShape.circle,
@@ -255,7 +262,7 @@ class _NotificationCard extends StatelessWidget {
                   child: Icon(
                     _iconForType(item.type),
                     color: AppColors.black,
-                    size: 22,
+                    size: 26,
                   ),
                 ),
                 if (!item.isRead)
@@ -266,7 +273,7 @@ class _NotificationCard extends StatelessWidget {
                   ),
               ],
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: 18),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -279,17 +286,17 @@ class _NotificationCard extends StatelessWidget {
                           item.title,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: AppFont.h7_16.copyWith(color: AppColors.black),
+                          style: AppFont.h3_24.copyWith(color: AppColors.black),
                         ),
                       ),
                       const SizedBox(width: 12),
                       Text(
                         timeAgo,
-                        style: AppFont.h8_14.copyWith(color: AppColors.black),
+                        style: AppFont.b6_18.copyWith(color: AppColors.black),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 6),
                   Text(
                     item.body,
                     maxLines: 2,
