@@ -3,9 +3,11 @@ import 'package:provider/provider.dart';
 import 'package:uyoung_app/core/theme/app_colors.dart';
 import 'package:uyoung_app/core/theme/app_radius.dart';
 import 'package:uyoung_app/core/theme/app_spacing.dart';
+import 'package:uyoung_app/core/theme/app_typography.dart';
 import 'package:uyoung_app/features/my_page/data/my_page_repository.dart';
 import 'package:uyoung_app/features/my_page/data/my_page_service.dart';
 import 'package:uyoung_app/features/my_page/presentation/viewmodels/friends_view_model.dart';
+import 'package:uyoung_app/shared/widgets/app_headline_text.dart';
 import 'package:uyoung_app/shared/widgets/app_scaffold.dart';
 import 'package:uyoung_app/shared/widgets/app_surface_card.dart';
 
@@ -44,8 +46,6 @@ class _AddFriendViewState extends State<_AddFriendView> {
   @override
   Widget build(BuildContext context) {
     final viewModel = context.watch<FriendsViewModel>();
-    final theme = Theme.of(context);
-
     return AppScaffold(
       title: '친구 추가',
       body: ListView(
@@ -56,11 +56,11 @@ class _AddFriendViewState extends State<_AddFriendView> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('코드로 친구 찾기', style: theme.textTheme.titleLarge),
+                AppHeadlineText('코드로 친구 찾기', style: AppTypography.h6_18),
                 const SizedBox(height: AppSpacing.xs),
                 Text(
                   '친구 코드를 입력해 프로필을 확인하는 최소 흐름만 먼저 연결했습니다.',
-                  style: theme.textTheme.bodyMedium,
+                  style: Theme.of(context).textTheme.bodyMedium,
                 ),
               ],
             ),
@@ -105,7 +105,7 @@ class _AddFriendViewState extends State<_AddFriendView> {
             const SizedBox(height: AppSpacing.md),
             Text(
               viewModel.searchMessage!,
-              style: theme.textTheme.bodyMedium?.copyWith(
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: AppColors.textSecondary,
               ),
             ),
@@ -127,8 +127,6 @@ class _SearchResultCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return AppSurfaceCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -152,10 +150,10 @@ class _SearchResultCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(nickname, style: theme.textTheme.titleLarge),
+                    AppHeadlineText(nickname, style: AppTypography.h6_18),
                     const SizedBox(height: AppSpacing.xxs),
                     Text('user_code $userCode',
-                        style: theme.textTheme.bodyMedium),
+                        style: Theme.of(context).textTheme.bodyMedium),
                   ],
                 ),
               ),
@@ -171,7 +169,7 @@ class _SearchResultCard extends StatelessWidget {
             ),
             child: Text(
               '친구 추가 저장 로직은 다음 단계에서 연결됩니다.',
-              style: theme.textTheme.bodyMedium,
+              style: Theme.of(context).textTheme.bodyMedium,
             ),
           ),
         ],

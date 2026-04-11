@@ -3,12 +3,14 @@ import 'package:provider/provider.dart';
 import 'package:uyoung_app/core/theme/app_colors.dart';
 import 'package:uyoung_app/core/theme/app_radius.dart';
 import 'package:uyoung_app/core/theme/app_spacing.dart';
+import 'package:uyoung_app/core/theme/app_typography.dart';
 import 'package:uyoung_app/features/my_page/data/my_page_repository.dart';
 import 'package:uyoung_app/features/my_page/data/my_page_service.dart';
 import 'package:uyoung_app/features/my_page/presentation/pages/inquiries_page.dart';
 import 'package:uyoung_app/features/my_page/presentation/pages/notices_page.dart';
 import 'package:uyoung_app/features/my_page/presentation/pages/friends_page.dart';
 import 'package:uyoung_app/features/my_page/presentation/viewmodels/my_page_view_model.dart';
+import 'package:uyoung_app/shared/widgets/app_headline_text.dart';
 import 'package:uyoung_app/shared/widgets/app_scaffold.dart';
 import 'package:uyoung_app/shared/widgets/app_surface_card.dart';
 
@@ -38,7 +40,6 @@ class _MyPageView extends StatelessWidget {
     final viewModel = context.watch<MyPageViewModel>();
     final profile = viewModel.profile;
     final theme = Theme.of(context);
-
     return AppScaffold(
       title: '마이페이지',
       body: ListView(
@@ -54,7 +55,10 @@ class _MyPageView extends StatelessWidget {
                 if (viewModel.isLoading)
                   const _LoadingTextGroup()
                 else ...[
-                  Text(profile.nickname, style: theme.textTheme.headlineMedium),
+                  AppHeadlineText(
+                    profile.nickname,
+                    style: AppTypography.h4_22,
+                  ),
                   const SizedBox(height: AppSpacing.xs),
                   Text(
                     'user_code ${profile.userCode}',
@@ -94,7 +98,7 @@ class _MyPageView extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('진주', style: theme.textTheme.titleLarge),
+                      AppHeadlineText('진주', style: AppTypography.h6_18),
                       const SizedBox(height: AppSpacing.xxs),
                       Text(
                         viewModel.isLoading
