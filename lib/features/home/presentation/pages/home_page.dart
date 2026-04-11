@@ -149,16 +149,6 @@ class _PearlBox extends StatelessWidget {
                 fit: BoxFit.fill,
               ),
             ),
-            Positioned(
-              left: 6 * scale,
-              top: 4 * scale,
-              child: Image.asset(
-                AssetPaths.images.home.plusPearl,
-                width: 28 * scale,
-                height: 28 * scale,
-                fit: BoxFit.contain,
-              ),
-            ),
             Positioned.fill(
               child: Align(
                 alignment: Alignment.centerRight,
@@ -201,8 +191,8 @@ class _NotificationButton extends StatelessWidget {
         children: [
           SvgPicture.asset(
             AssetPaths.icons.common.notification01,
-            width: 28 * scale,
-            height: 28 * scale,
+            width: 44 * scale,
+            height: 44 * scale,
             colorFilter: const ColorFilter.mode(
               AppColors.black,
               BlendMode.srcIn,
