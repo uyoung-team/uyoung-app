@@ -59,10 +59,16 @@ flutter:
   # the material Icons class.
   uses-material-design: true
   assets:
+    - assets/icons/bar/
+    - assets/icons/bottom_navigation/
     - assets/icons/common/
+    - assets/icons/photodetail/
+    - assets/icons/small_common/
+    - assets/icons/small_mypage/
     - assets/images/common/
     - assets/images/home/
     - assets/images/attendance/
+    - assets/images/character/
     - assets/images/memory/
     - assets/images/calendar/
     - assets/images/shop/
