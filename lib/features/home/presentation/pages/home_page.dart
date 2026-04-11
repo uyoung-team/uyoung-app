@@ -31,131 +31,149 @@ class _HomeView extends StatelessWidget {
     final viewModel = context.watch<HomeViewModel>();
 
     return Scaffold(
-      backgroundColor: AppColors.back,
-      body: Stack(
-        children: [
-          Positioned.fill(
-            child: Container(
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [AppColors.b03, AppColors.white],
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
+      backgroundColor: AppColors.white,
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final width = constraints.maxWidth;
+          final scale = (width / 390).clamp(0.92, 1.15);
+
+          return Stack(
+            children: [
+              Positioned.fill(
+                child: Image.asset(
+                  AssetPaths.images.home.background,
+                  fit: BoxFit.cover,
+                  alignment: Alignment.topCenter,
                 ),
               ),
-            ),
-          ),
-          Positioned(
-            top: 82,
-            left: 90,
-            child: Image.asset(
-              AssetPaths.images.character.character04,
-              width: 211,
-              height: 224,
-              fit: BoxFit.contain,
-            ),
-          ),
-          _PearlBox(
-            pearlCountLabel: viewModel.pearlCountLabel,
-          ),
-          _NotificationButton(
-            hasUnread: viewModel.hasUnread,
-            onTap: () async {
-              await Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => NotificationPage(viewModel: viewModel),
-                ),
-              );
-              await viewModel.load();
-            },
-          ),
-          _AttendanceBadge(
-            onTap: () async {
-              await Navigator.pushNamed(context, AppRouter.attendance);
-              await viewModel.load();
-            },
-          ),
-          if (viewModel.errorText != null)
-            Positioned(
-              left: AppSpacing.md,
-              right: AppSpacing.md,
-              bottom: 120,
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.md,
-                  vertical: AppSpacing.sm,
-                ),
-                decoration: BoxDecoration(
-                  color: AppColors.white,
-                  borderRadius: BorderRadius.circular(AppRadius.lg),
-                ),
-                child: Text(
-                  viewModel.errorText!,
-                  style: AppFont.b8_14.copyWith(color: AppColors.subRed03),
-                  textAlign: TextAlign.center,
+              Positioned(
+                left: 18 * scale,
+                top: 57 * scale,
+                child: _PearlBox(
+                  scale: scale,
+                  pearlCountLabel: viewModel.pearlCount.toString(),
                 ),
               ),
-            ),
-        ],
+              Positioned(
+                top: 53 * scale,
+                right: 20 * scale,
+                child: _NotificationButton(
+                  scale: scale,
+                  hasUnread: viewModel.hasUnread,
+                  onTap: () async {
+                    await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => NotificationPage(viewModel: viewModel),
+                      ),
+                    );
+                    await viewModel.load();
+                  },
+                ),
+              ),
+              Positioned(
+                left: 18 * scale,
+                top: 106 * scale,
+                child: _AttendanceShortcut(
+                  scale: scale,
+                  onTap: () async {
+                    await Navigator.pushNamed(context, AppRouter.attendance);
+                    await viewModel.load();
+                  },
+                ),
+              ),
+              Positioned(
+                left: ((width - (199 * scale)) / 2).clamp(0.0, width),
+                top: 326 * scale,
+                child: Image.asset(
+                  AssetPaths.images.home.character,
+                  width: 199 * scale,
+                  height: 218 * scale,
+                  fit: BoxFit.contain,
+                ),
+              ),
+              if (viewModel.errorText != null)
+                Positioned(
+                  left: AppSpacing.md,
+                  right: AppSpacing.md,
+                  bottom: 120,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.md,
+                      vertical: AppSpacing.sm,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.white.withValues(alpha: 0.92),
+                      borderRadius: BorderRadius.circular(AppRadius.lg),
+                    ),
+                    child: Text(
+                      viewModel.errorText!,
+                      style: AppFont.b8_14.copyWith(color: AppColors.subRed03),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+            ],
+          );
+        },
       ),
     );
   }
 }
 
 class _PearlBox extends StatelessWidget {
-  const _PearlBox({
-    required this.pearlCountLabel,
-  });
+  const _PearlBox({required this.scale, required this.pearlCountLabel});
 
+  final double scale;
   final String pearlCountLabel;
 
   @override
   Widget build(BuildContext context) {
-    return Positioned(
-      top: 60,
-      left: 20,
-      child: GestureDetector(
-        onTap: () {
-          ScaffoldMessenger.of(context)
-            ..hideCurrentSnackBar()
-            ..showSnackBar(
-              const SnackBar(content: Text('진주 충전 화면은 다음 단계에서 연결됩니다.')),
-            );
-        },
-        child: Container(
-          width: 90,
-          height: 40,
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          decoration: BoxDecoration(
-            color: AppColors.white,
-            borderRadius: BorderRadius.circular(999),
-            border: Border.all(color: AppColors.bg02),
-            boxShadow: const [
-              BoxShadow(
-                color: Color(0x14000000),
-                blurRadius: 10,
-                offset: Offset(0, 3),
+    return GestureDetector(
+      onTap: () {
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            const SnackBar(content: Text('진주 충전 화면은 다음 단계에서 연결됩니다.')),
+          );
+      },
+      child: SizedBox(
+        width: 82 * scale,
+        height: 36 * scale,
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: Image.asset(
+                AssetPaths.images.home.myPearl,
+                fit: BoxFit.fill,
               ),
-            ],
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 24,
-                height: 24,
-                decoration: const BoxDecoration(
-                  color: AppColors.subYellow,
-                  shape: BoxShape.circle,
+            ),
+            Positioned(
+              left: 6 * scale,
+              top: 4 * scale,
+              child: Image.asset(
+                AssetPaths.images.home.plusPearl,
+                width: 28 * scale,
+                height: 28 * scale,
+                fit: BoxFit.contain,
+              ),
+            ),
+            Positioned.fill(
+              child: Align(
+                alignment: Alignment.centerRight,
+                child: Padding(
+                  padding: EdgeInsets.only(right: 14 * scale),
+                  child: Text(
+                    pearlCountLabel,
+                    style: AppFont.h4_22.copyWith(
+                      color: AppColors.black,
+                      fontSize: 22 * scale,
+                    ),
+                  ),
                 ),
               ),
-              const SizedBox(width: AppSpacing.xs),
-              Text(
-                pearlCountLabel,
-                style: AppFont.h8_14.copyWith(color: AppColors.black),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -164,98 +182,95 @@ class _PearlBox extends StatelessWidget {
 
 class _NotificationButton extends StatelessWidget {
   const _NotificationButton({
+    required this.scale,
     required this.hasUnread,
     required this.onTap,
   });
 
+  final double scale;
   final bool hasUnread;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Positioned(
-      top: 60,
-      right: 15,
-      child: GestureDetector(
-        onTap: onTap,
-        child: Stack(
-          clipBehavior: Clip.none,
-          children: [
-            Container(
-              width: 30,
-              height: 30,
-              decoration: const BoxDecoration(
-                color: AppColors.white,
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.notifications_none_rounded,
-                size: 20,
-                color: AppColors.black,
-              ),
+    return GestureDetector(
+      onTap: onTap,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Icon(
+            Icons.notifications_none_rounded,
+            size: 28 * scale,
+            color: AppColors.black,
+          ),
+          if (hasUnread)
+            Positioned(
+              top: 1 * scale,
+              right: -2 * scale,
+              child: const _UnreadDot(),
             ),
-            if (hasUnread)
-              const Positioned(
-                top: -2,
-                right: -4,
-                child: _UnreadDot(),
-              ),
-          ],
-        ),
+        ],
       ),
     );
   }
 }
 
-class _AttendanceBadge extends StatelessWidget {
-  const _AttendanceBadge({
-    required this.onTap,
-  });
+class _AttendanceShortcut extends StatelessWidget {
+  const _AttendanceShortcut({required this.scale, required this.onTap});
 
+  final double scale;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Positioned(
-      left: 20,
-      top: 106,
-      child: GestureDetector(
-        behavior: HitTestBehavior.translucent,
-        onTap: onTap,
+    return GestureDetector(
+      behavior: HitTestBehavior.translucent,
+      onTap: onTap,
+      child: SizedBox(
+        width: 72 * scale,
+        height: 75 * scale,
         child: Stack(
           clipBehavior: Clip.none,
           alignment: Alignment.topCenter,
           children: [
-            Container(
-              width: 55,
-              height: 55,
-              decoration: const BoxDecoration(
-                color: AppColors.white,
-                shape: BoxShape.circle,
-              ),
-              child: Center(
-                child: Image.asset(
-                  AssetPaths.images.attendance.itemClam,
-                  width: 35,
-                  height: 35,
-                  fit: BoxFit.contain,
+            Positioned(
+              top: 0,
+              child: Container(
+                width: 56 * scale,
+                height: 56 * scale,
+                decoration: const BoxDecoration(
+                  color: AppColors.white,
+                  shape: BoxShape.circle,
+                ),
+                alignment: Alignment.center,
+                child: Transform.translate(
+                  offset: Offset(0, -2 * scale),
+                  child: Image.asset(
+                    AssetPaths.images.home.iconAttend,
+                    width: 32 * scale,
+                    height: 37 * scale,
+                    fit: BoxFit.contain,
+                  ),
                 ),
               ),
             ),
             Positioned(
-              bottom: -10,
+              bottom: 0,
               child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 2,
+                padding: EdgeInsets.symmetric(
+                  horizontal: 8 * scale,
+                  vertical: 1 * scale,
                 ),
                 decoration: BoxDecoration(
                   color: AppColors.b02,
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(11 * scale),
                 ),
                 child: Text(
-                  '출석 체크',
-                  style: AppFont.b10_10.copyWith(color: AppColors.white),
+                  '출석체크',
+                  style: AppFont.b7_16.copyWith(
+                    color: AppColors.white,
+                    fontSize: 16 * scale,
+                  ),
                 ),
               ),
             ),
@@ -275,7 +290,7 @@ class _UnreadDot extends StatelessWidget {
       width: 10,
       height: 10,
       decoration: const BoxDecoration(
-        color: Color(0xFFFF4D4F),
+        color: AppColors.subRed03,
         shape: BoxShape.circle,
       ),
     );

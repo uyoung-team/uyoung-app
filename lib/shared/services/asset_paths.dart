@@ -120,6 +120,7 @@ class AppImages {
 
   final AttendanceImages attendance = const AttendanceImages();
   final CharacterImages character = const CharacterImages();
+  final HomeImages home = const HomeImages();
 }
 
 class AttendanceImages {
@@ -170,4 +171,14 @@ class CharacterImages {
       'assets/images/character/character_emoticon_05.png';
   final String emoticon06 =
       'assets/images/character/character_emoticon_06.png';
+}
+
+class HomeImages {
+  const HomeImages();
+
+  final String background = 'assets/images/home/home_bg.png';
+  final String character = 'assets/images/home/home_character.png';
+  final String iconAttend = 'assets/images/home/icon_attend.png';
+  final String myPearl = 'assets/images/home/home_my_pearl.png';
+  final String plusPearl = 'assets/images/home/home_plus_pearl.png';
 }
