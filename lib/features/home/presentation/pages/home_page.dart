@@ -17,8 +17,6 @@ class HomePage extends StatelessWidget {
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
-            final isWide = constraints.maxWidth >= 560;
-
             return SingleChildScrollView(
               padding: const EdgeInsets.fromLTRB(
                 AppSpacing.md,
@@ -34,19 +32,7 @@ class HomePage extends StatelessWidget {
                     children: [
                       const _HomeHeaderSection(),
                       const SizedBox(height: AppSpacing.lg),
-                      const _SectionLabel(
-                        title: '오늘의 시작',
-                        subtitle: '가볍게 확인하고 바로 다음 행동으로 넘어갈 수 있도록 정리했습니다.',
-                      ),
-                      const SizedBox(height: AppSpacing.sm),
                       const _AttendanceEntryCard(),
-                      const SizedBox(height: AppSpacing.xl),
-                      const _SectionLabel(
-                        title: '주요 공간',
-                        subtitle: '아직은 최소 골격만 연결하고, 다음 단계에서 각 기능을 채워 넣습니다.',
-                      ),
-                      const SizedBox(height: AppSpacing.sm),
-                      _DestinationGrid(isWide: isWide),
                     ],
                   ),
                 ),
@@ -108,37 +94,13 @@ class _HomeHeaderSection extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.sm),
           Text(
-            '출석체크와 주요 공간 진입을 한 화면에 가볍게 모은 홈 초안입니다.',
+            '오늘 필요한 흐름부터 바로 이어갈 수 있도록 홈을 정리했습니다.',
             style: theme.textTheme.bodyLarge?.copyWith(
               color: Colors.white.withValues(alpha: 0.88),
             ),
           ),
         ],
       ),
-    );
-  }
-}
-
-class _SectionLabel extends StatelessWidget {
-  const _SectionLabel({
-    required this.title,
-    required this.subtitle,
-  });
-
-  final String title;
-  final String subtitle;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        AppHeadlineText(title, style: AppFont.h6_18),
-        const SizedBox(height: AppSpacing.xs),
-        Text(subtitle, style: theme.textTheme.bodyMedium),
-      ],
     );
   }
 }
@@ -183,16 +145,6 @@ class _AttendanceEntryCard extends StatelessWidget {
                       color: AppColors.black,
                     ),
                   ),
-                  const SizedBox(height: AppSpacing.md),
-                  Wrap(
-                    spacing: AppSpacing.xs,
-                    runSpacing: AppSpacing.xs,
-                    children: const [
-                      _StatusChip(label: '오늘 진입 포인트'),
-                      _StatusChip(label: '보드 연결 예정'),
-                      _StatusChip(label: 'RPC 연동 전'),
-                    ],
-                  ),
                 ],
               ),
             ),
@@ -207,138 +159,4 @@ class _AttendanceEntryCard extends StatelessWidget {
       ),
     );
   }
-}
-
-class _DestinationGrid extends StatelessWidget {
-  const _DestinationGrid({
-    required this.isWide,
-  });
-
-  final bool isWide;
-
-  @override
-  Widget build(BuildContext context) {
-    final items = const [
-      _DestinationItem(
-        title: '기억섬',
-        description: '멤버와 사진, 관계 흐름을 정리할 공간입니다.',
-        icon: Icons.landscape_outlined,
-      ),
-      _DestinationItem(
-        title: '캘린더',
-        description: '일정과 기록 흐름을 확인하는 달력 공간입니다.',
-        icon: Icons.calendar_month_outlined,
-      ),
-      _DestinationItem(
-        title: '상점',
-        description: '획득한 자산과 교환 흐름을 담을 예정입니다.',
-        icon: Icons.storefront_outlined,
-      ),
-      _DestinationItem(
-        title: '마이페이지',
-        description: '프로필, 공지, 문의 등 개인 설정의 시작점입니다.',
-        icon: Icons.person_outline,
-      ),
-    ];
-
-    if (!isWide) {
-      return Column(
-        children: [
-          for (final item in items) ...[
-            _DestinationCard(item: item),
-            if (item != items.last) const SizedBox(height: AppSpacing.sm),
-          ],
-        ],
-      );
-    }
-
-    return Wrap(
-      spacing: AppSpacing.md,
-      runSpacing: AppSpacing.md,
-      children: [
-        for (final item in items)
-          SizedBox(
-            width: 356,
-            child: _DestinationCard(item: item),
-          ),
-      ],
-    );
-  }
-}
-
-class _DestinationCard extends StatelessWidget {
-  const _DestinationCard({
-    required this.item,
-  });
-
-  final _DestinationItem item;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return AppSurfaceCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: const Color(0xFFEEF2FF),
-              borderRadius: BorderRadius.circular(AppRadius.lg),
-            ),
-            child: Icon(item.icon, color: AppColors.b01),
-          ),
-          const SizedBox(height: AppSpacing.md),
-          Text(item.title, style: theme.textTheme.titleLarge),
-          const SizedBox(height: AppSpacing.xs),
-          Text(item.description, style: theme.textTheme.bodyMedium),
-          const SizedBox(height: AppSpacing.md),
-          const _StatusChip(label: 'placeholder'),
-        ],
-      ),
-    );
-  }
-}
-
-class _StatusChip extends StatelessWidget {
-  const _StatusChip({
-    required this.label,
-  });
-
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.sm,
-        vertical: AppSpacing.xs,
-      ),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(AppRadius.xl),
-        border: Border.all(color: AppColors.bg02),
-      ),
-      child: Text(
-        label,
-        style: Theme.of(context).textTheme.labelLarge?.copyWith(
-              color: AppColors.g02,
-            ),
-      ),
-    );
-  }
-}
-
-class _DestinationItem {
-  const _DestinationItem({
-    required this.title,
-    required this.description,
-    required this.icon,
-  });
-
-  final String title;
-  final String description;
-  final IconData icon;
 }
