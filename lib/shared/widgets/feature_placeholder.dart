@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:uyoung_app/core/theme/app_font.dart';
+import 'package:uyoung_app/shared/widgets/app_headline_text.dart';
 
 class FeaturePlaceholder extends StatelessWidget {
   const FeaturePlaceholder({
@@ -18,9 +20,10 @@ class FeaturePlaceholder extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
+            AppHeadlineText(
               title,
-              style: Theme.of(context).textTheme.headlineSmall,
+              style: AppFont.h5_20,
+              textAlign: TextAlign.center,
             ),
             const SizedBox(height: 12),
             Text(

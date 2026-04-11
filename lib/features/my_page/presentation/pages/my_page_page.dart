@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:uyoung_app/core/theme/app_colors.dart';
+import 'package:uyoung_app/core/theme/app_font.dart';
 import 'package:uyoung_app/core/theme/app_radius.dart';
 import 'package:uyoung_app/core/theme/app_spacing.dart';
 import 'package:uyoung_app/features/my_page/data/my_page_repository.dart';
@@ -9,6 +10,7 @@ import 'package:uyoung_app/features/my_page/presentation/pages/inquiries_page.da
 import 'package:uyoung_app/features/my_page/presentation/pages/notices_page.dart';
 import 'package:uyoung_app/features/my_page/presentation/pages/friends_page.dart';
 import 'package:uyoung_app/features/my_page/presentation/viewmodels/my_page_view_model.dart';
+import 'package:uyoung_app/shared/widgets/app_headline_text.dart';
 import 'package:uyoung_app/shared/widgets/app_scaffold.dart';
 import 'package:uyoung_app/shared/widgets/app_surface_card.dart';
 
@@ -38,7 +40,6 @@ class _MyPageView extends StatelessWidget {
     final viewModel = context.watch<MyPageViewModel>();
     final profile = viewModel.profile;
     final theme = Theme.of(context);
-
     return AppScaffold(
       title: '마이페이지',
       body: ListView(
@@ -54,7 +55,10 @@ class _MyPageView extends StatelessWidget {
                 if (viewModel.isLoading)
                   const _LoadingTextGroup()
                 else ...[
-                  Text(profile.nickname, style: theme.textTheme.headlineMedium),
+                  AppHeadlineText(
+                    profile.nickname,
+                    style: AppFont.h4_22,
+                  ),
                   const SizedBox(height: AppSpacing.xs),
                   Text(
                     'user_code ${profile.userCode}',
@@ -94,7 +98,7 @@ class _MyPageView extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('진주', style: theme.textTheme.titleLarge),
+                      AppHeadlineText('진주', style: AppFont.h6_18),
                       const SizedBox(height: AppSpacing.xxs),
                       Text(
                         viewModel.isLoading
@@ -206,7 +210,7 @@ class _AvatarFallback extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Icon(Icons.person_rounded, color: AppColors.primary, size: 32);
+    return const Icon(Icons.person_rounded, color: AppColors.b01, size: 32);
   }
 }
 
@@ -280,7 +284,7 @@ class _MenuTile extends StatelessWidget {
                 color: const Color(0xFFF3F4F6),
                 borderRadius: BorderRadius.circular(AppRadius.md),
               ),
-              child: Icon(icon, color: AppColors.textPrimary),
+              child: Icon(icon, color: AppColors.black),
             ),
             const SizedBox(width: AppSpacing.md),
             Expanded(
@@ -296,7 +300,7 @@ class _MenuTile extends StatelessWidget {
             const SizedBox(width: AppSpacing.sm),
             const Icon(
               Icons.chevron_right_rounded,
-              color: AppColors.textSecondary,
+              color: AppColors.g02,
             ),
           ],
         ),
@@ -310,6 +314,6 @@ class _MenuDivider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Divider(height: 1, color: AppColors.border);
+    return const Divider(height: 1, color: AppColors.bg02);
   }
 }

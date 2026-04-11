@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:uyoung_app/core/theme/app_colors.dart';
+import 'package:uyoung_app/core/theme/app_font.dart';
 import 'package:uyoung_app/core/theme/app_spacing.dart';
 import 'package:uyoung_app/features/my_page/data/my_page_repository.dart';
 import 'package:uyoung_app/features/my_page/data/my_page_service.dart';
 import 'package:uyoung_app/features/my_page/presentation/pages/add_friend_page.dart';
 import 'package:uyoung_app/features/my_page/presentation/viewmodels/friends_view_model.dart';
+import 'package:uyoung_app/shared/widgets/app_headline_text.dart';
 import 'package:uyoung_app/shared/widgets/app_scaffold.dart';
 import 'package:uyoung_app/shared/widgets/app_surface_card.dart';
 
@@ -31,8 +33,6 @@ class _FriendsView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final viewModel = context.watch<FriendsViewModel>();
-    final theme = Theme.of(context);
-
     return AppScaffold(
       title: '친구',
       body: ListView(
@@ -43,11 +43,11 @@ class _FriendsView extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('친구 목록', style: theme.textTheme.titleLarge),
+                AppHeadlineText('친구 목록', style: AppFont.h6_18),
                 const SizedBox(height: AppSpacing.xs),
                 Text(
                   'friends와 profiles를 기준으로 친구 목록의 최소 구조를 먼저 연결했습니다.',
-                  style: theme.textTheme.bodyMedium,
+                  style: Theme.of(context).textTheme.bodyMedium,
                 ),
                 const SizedBox(height: AppSpacing.md),
                 FilledButton.icon(
@@ -83,7 +83,7 @@ class _FriendsView extends StatelessWidget {
             const SizedBox(height: AppSpacing.md),
             Text(
               viewModel.errorMessage!,
-              style: theme.textTheme.bodyMedium?.copyWith(
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: const Color(0xFFBE123C),
               ),
             ),
@@ -105,8 +105,6 @@ class _FriendListTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return AppSurfaceCard(
       padding: const EdgeInsets.all(AppSpacing.md),
       child: Row(
@@ -128,10 +126,10 @@ class _FriendListTile extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(nickname, style: theme.textTheme.labelLarge),
+                AppHeadlineText(nickname, style: AppFont.h8_14),
                 const SizedBox(height: AppSpacing.xxs),
                 Text('user_code $userCode',
-                    style: theme.textTheme.bodyMedium),
+                    style: Theme.of(context).textTheme.bodyMedium),
               ],
             ),
           ),
@@ -161,8 +159,7 @@ class _FriendsEmptyCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('아직 친구가 없습니다.',
-              style: Theme.of(context).textTheme.titleLarge),
+          AppHeadlineText('아직 친구가 없습니다.', style: AppFont.h6_18),
           const SizedBox(height: AppSpacing.xs),
           Text(
             '코드로 친구를 찾아 처음 연결을 시작해보세요.',

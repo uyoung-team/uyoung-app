@@ -59,7 +59,6 @@ flutter:
   # the material Icons class.
   uses-material-design: true
   assets:
-    - assets/fonts/
     - assets/icons/common/
     - assets/images/common/
     - assets/images/home/
@@ -68,6 +67,10 @@ flutter:
     - assets/images/calendar/
     - assets/images/shop/
     - assets/images/my_page/
+  fonts:
+    - family: OwnglyphKonghae
+      fonts:
+        - asset: assets/fonts/ownglyph_konghae.ttf
 
   # To add assets to your application, add an assets section, like this:
   # assets:

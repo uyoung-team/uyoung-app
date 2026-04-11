@@ -19,9 +19,9 @@ class AppSurfaceCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: backgroundColor ?? AppColors.surface,
+        color: backgroundColor ?? AppColors.white,
         borderRadius: BorderRadius.circular(AppRadius.xl),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: AppColors.bg02),
         boxShadow: const [
           BoxShadow(
             color: Color(0x120F172A),

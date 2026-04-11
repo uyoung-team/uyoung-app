@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:uyoung_app/core/theme/app_colors.dart';
+import 'package:uyoung_app/core/theme/app_font.dart';
 import 'package:uyoung_app/core/theme/app_spacing.dart';
 import 'package:uyoung_app/features/my_page/data/my_page_repository.dart';
 import 'package:uyoung_app/features/my_page/data/my_page_service.dart';
 import 'package:uyoung_app/features/my_page/presentation/viewmodels/notice_detail_view_model.dart';
+import 'package:uyoung_app/shared/widgets/app_headline_text.dart';
 import 'package:uyoung_app/shared/widgets/app_scaffold.dart';
 import 'package:uyoung_app/shared/widgets/app_surface_card.dart';
 
@@ -36,8 +38,6 @@ class _NoticeDetailView extends StatelessWidget {
   Widget build(BuildContext context) {
     final viewModel = context.watch<NoticeDetailViewModel>();
     final notice = viewModel.notice;
-    final theme = Theme.of(context);
-
     return AppScaffold(
       title: '공지사항 상세',
       body: ListView(
@@ -51,7 +51,7 @@ class _NoticeDetailView extends StatelessWidget {
             AppSurfaceCard(
               child: Text(
                 viewModel.errorMessage ?? '공지사항을 찾을 수 없습니다.',
-                style: theme.textTheme.bodyMedium,
+                style: Theme.of(context).textTheme.bodyMedium,
               ),
             )
           else
@@ -71,23 +71,29 @@ class _NoticeDetailView extends StatelessWidget {
                       ),
                       child: Text(
                         '중요',
-                        style: theme.textTheme.labelLarge?.copyWith(
+                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
                           color: const Color(0xFF9A6700),
                         ),
                       ),
                     ),
                     const SizedBox(height: AppSpacing.md),
                   ],
-                  Text(notice.title, style: theme.textTheme.headlineMedium),
+                  AppHeadlineText(
+                    notice.title,
+                    style: AppFont.h4_22,
+                  ),
                   const SizedBox(height: AppSpacing.sm),
                   Text(
                     notice.createdAt?.toLocal().toString() ?? '',
-                    style: theme.textTheme.bodyMedium?.copyWith(
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: AppColors.textSecondary,
                     ),
                   ),
                   const SizedBox(height: AppSpacing.lg),
-                  Text(notice.content, style: theme.textTheme.bodyLarge),
+                  Text(
+                    notice.content,
+                    style: Theme.of(context).textTheme.bodyLarge,
+                  ),
                 ],
               ),
             ),

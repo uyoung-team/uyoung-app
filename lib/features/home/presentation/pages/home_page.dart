@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:uyoung_app/app/routes/app_router.dart';
 import 'package:uyoung_app/core/theme/app_colors.dart';
+import 'package:uyoung_app/core/theme/app_font.dart';
 import 'package:uyoung_app/core/theme/app_radius.dart';
 import 'package:uyoung_app/core/theme/app_spacing.dart';
+import 'package:uyoung_app/shared/widgets/app_headline_text.dart';
 import 'package:uyoung_app/shared/widgets/app_surface_card.dart';
 
 class HomePage extends StatelessWidget {
@@ -11,7 +13,7 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: AppColors.back,
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
@@ -99,12 +101,10 @@ class _HomeHeaderSection extends StatelessWidget {
             ),
           ),
           const SizedBox(height: AppSpacing.md),
-          Text(
+          AppHeadlineText(
             '안녕하세요,\n오늘의 흐름을 여기서 시작해볼까요?',
-            style: theme.textTheme.headlineMedium?.copyWith(
-              color: Colors.white,
-              fontWeight: FontWeight.w700,
-            ),
+            style: AppFont.h4_22,
+            color: Colors.white,
           ),
           const SizedBox(height: AppSpacing.sm),
           Text(
@@ -135,7 +135,7 @@ class _SectionLabel extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(title, style: theme.textTheme.titleLarge),
+        AppHeadlineText(title, style: AppFont.h6_18),
         const SizedBox(height: AppSpacing.xs),
         Text(subtitle, style: theme.textTheme.bodyMedium),
       ],
@@ -175,12 +175,12 @@ class _AttendanceEntryCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('출석체크', style: theme.textTheme.titleLarge),
+                  AppHeadlineText('출석체크', style: AppFont.h6_18),
                   const SizedBox(height: AppSpacing.xs),
                   Text(
                     '오늘의 출석 상태와 보상 영역으로 이어질 카드 자리입니다.',
                     style: theme.textTheme.bodyMedium?.copyWith(
-                      color: AppColors.textPrimary,
+                      color: AppColors.black,
                     ),
                   ),
                   const SizedBox(height: AppSpacing.md),
@@ -200,7 +200,7 @@ class _AttendanceEntryCard extends StatelessWidget {
             const Icon(
               Icons.arrow_forward_ios_rounded,
               size: 18,
-              color: AppColors.textSecondary,
+              color: AppColors.g02,
             ),
           ],
         ),
@@ -288,7 +288,7 @@ class _DestinationCard extends StatelessWidget {
               color: const Color(0xFFEEF2FF),
               borderRadius: BorderRadius.circular(AppRadius.lg),
             ),
-            child: Icon(item.icon, color: AppColors.primary),
+            child: Icon(item.icon, color: AppColors.b01),
           ),
           const SizedBox(height: AppSpacing.md),
           Text(item.title, style: theme.textTheme.titleLarge),
@@ -317,14 +317,14 @@ class _StatusChip extends StatelessWidget {
         vertical: AppSpacing.xs,
       ),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: AppColors.white,
         borderRadius: BorderRadius.circular(AppRadius.xl),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: AppColors.bg02),
       ),
       child: Text(
         label,
         style: Theme.of(context).textTheme.labelLarge?.copyWith(
-              color: AppColors.textSecondary,
+              color: AppColors.g02,
             ),
       ),
     );
