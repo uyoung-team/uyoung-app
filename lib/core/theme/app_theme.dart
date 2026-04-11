@@ -10,25 +10,32 @@ class AppTheme {
     final base = ThemeData(
       useMaterial3: true,
       colorScheme: const ColorScheme.light(
-        primary: AppColors.primary,
-        surface: AppColors.surface,
+        primary: AppColors.b01,
+        onPrimary: AppColors.white,
+        surface: AppColors.white,
+        onSurface: AppColors.black,
+        outline: AppColors.bg02,
       ),
-      scaffoldBackgroundColor: AppColors.background,
+      scaffoldBackgroundColor: AppColors.back,
+      dividerColor: AppColors.bg02,
+      splashColor: Colors.transparent,
+      highlightColor: Colors.transparent,
+      disabledColor: AppColors.g04,
       textTheme: AppFont.textTheme,
     );
 
     return base.copyWith(
       cardTheme: CardThemeData(
-        color: AppColors.surface,
+        color: AppColors.white,
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppRadius.lg),
-          side: const BorderSide(color: AppColors.border),
+          side: const BorderSide(color: AppColors.bg02),
         ),
       ),
       appBarTheme: const AppBarTheme(
-        backgroundColor: AppColors.background,
-        foregroundColor: AppColors.textPrimary,
+        backgroundColor: AppColors.back,
+        foregroundColor: AppColors.black,
         elevation: 0,
       ),
     );
