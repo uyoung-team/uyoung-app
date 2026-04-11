@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import 'package:uyoung_app/app/routes/app_router.dart';
 import 'package:uyoung_app/core/theme/app_colors.dart';
@@ -198,10 +199,14 @@ class _NotificationButton extends StatelessWidget {
       child: Stack(
         clipBehavior: Clip.none,
         children: [
-          Icon(
-            Icons.notifications_none_rounded,
-            size: 28 * scale,
-            color: AppColors.black,
+          SvgPicture.asset(
+            AssetPaths.icons.common.notification01,
+            width: 28 * scale,
+            height: 28 * scale,
+            colorFilter: const ColorFilter.mode(
+              AppColors.black,
+              BlendMode.srcIn,
+            ),
           ),
           if (hasUnread)
             Positioned(
