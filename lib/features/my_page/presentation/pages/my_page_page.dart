@@ -5,6 +5,8 @@ import 'package:uyoung_app/core/theme/app_radius.dart';
 import 'package:uyoung_app/core/theme/app_spacing.dart';
 import 'package:uyoung_app/features/my_page/data/my_page_repository.dart';
 import 'package:uyoung_app/features/my_page/data/my_page_service.dart';
+import 'package:uyoung_app/features/my_page/presentation/pages/inquiries_page.dart';
+import 'package:uyoung_app/features/my_page/presentation/pages/notices_page.dart';
 import 'package:uyoung_app/features/my_page/presentation/pages/friends_page.dart';
 import 'package:uyoung_app/features/my_page/presentation/viewmodels/my_page_view_model.dart';
 import 'package:uyoung_app/shared/widgets/app_scaffold.dart';
@@ -16,11 +18,8 @@ class MyPagePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (_) => MyPageViewModel(
-        const MyPageRepository(
-          MyPageService(),
-        ),
-      )..load(),
+      create: (_) =>
+          MyPageViewModel(const MyPageRepository(MyPageService()))..load(),
       child: const _MyPageView(),
     );
   }
@@ -29,8 +28,10 @@ class MyPagePage extends StatelessWidget {
 class _MyPageView extends StatelessWidget {
   const _MyPageView();
 
-  static const String _appVersion =
-      String.fromEnvironment('APP_VERSION', defaultValue: '1.0.0+1');
+  static const String _appVersion = String.fromEnvironment(
+    'APP_VERSION',
+    defaultValue: '1.0.0+1',
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -112,10 +113,17 @@ class _MyPageView extends StatelessWidget {
             padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
             child: Column(
               children: [
-                const _MenuTile(
+                _MenuTile(
                   icon: Icons.notifications_none_rounded,
                   title: '공지사항',
                   subtitle: '공지 목록으로 이동할 준비가 된 진입 메뉴',
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => const NoticesPage(),
+                      ),
+                    );
+                  },
                 ),
                 const _MenuDivider(),
                 _MenuTile(
@@ -131,10 +139,17 @@ class _MyPageView extends StatelessWidget {
                   },
                 ),
                 const _MenuDivider(),
-                const _MenuTile(
+                _MenuTile(
                   icon: Icons.support_agent_outlined,
                   title: '문의 내역',
                   subtitle: '문의 목록과 작성 흐름으로 이어질 진입 메뉴',
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => const InquiriesPage(),
+                      ),
+                    );
+                  },
                 ),
               ],
             ),
@@ -145,10 +160,7 @@ class _MyPageView extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text('버전 정보', style: theme.textTheme.labelLarge),
-                Text(
-                  'v$_appVersion',
-                  style: theme.textTheme.bodyMedium,
-                ),
+                Text('v$_appVersion', style: theme.textTheme.bodyMedium),
               ],
             ),
           ),
@@ -159,16 +171,15 @@ class _MyPageView extends StatelessWidget {
 }
 
 class _ProfileAvatar extends StatelessWidget {
-  const _ProfileAvatar({
-    required this.size,
-  });
+  const _ProfileAvatar({required this.size});
 
   final double size;
 
   @override
   Widget build(BuildContext context) {
-    final profileImageUrl =
-        context.select<MyPageViewModel, String?>((vm) => vm.profile.profileImageUrl);
+    final profileImageUrl = context.select<MyPageViewModel, String?>(
+      (vm) => vm.profile.profileImageUrl,
+    );
 
     return Container(
       width: size,
@@ -195,11 +206,7 @@ class _AvatarFallback extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Icon(
-      Icons.person_rounded,
-      color: AppColors.primary,
-      size: 32,
-    );
+    return const Icon(Icons.person_rounded, color: AppColors.primary, size: 32);
   }
 }
 
@@ -251,12 +258,11 @@ class _MenuTile extends StatelessWidget {
     final theme = Theme.of(context);
 
     return InkWell(
-      onTap: onTap ??
+      onTap:
+          onTap ??
           () {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('$title 기능은 다음 단계에서 연결됩니다.'),
-              ),
+              SnackBar(content: Text('$title 기능은 다음 단계에서 연결됩니다.')),
             );
           },
       borderRadius: BorderRadius.circular(AppRadius.lg),
@@ -304,9 +310,6 @@ class _MenuDivider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Divider(
-      height: 1,
-      color: AppColors.border,
-    );
+    return const Divider(height: 1, color: AppColors.border);
   }
 }
