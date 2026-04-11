@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:uyoung_app/app/routes/app_router.dart';
 import 'package:uyoung_app/core/theme/app_colors.dart';
+import 'package:uyoung_app/core/theme/app_font.dart';
 import 'package:uyoung_app/core/theme/app_radius.dart';
 import 'package:uyoung_app/core/theme/app_spacing.dart';
-import 'package:uyoung_app/core/theme/app_typography.dart';
 import 'package:uyoung_app/shared/widgets/app_headline_text.dart';
 import 'package:uyoung_app/shared/widgets/app_surface_card.dart';
 
@@ -103,7 +103,7 @@ class _HomeHeaderSection extends StatelessWidget {
           const SizedBox(height: AppSpacing.md),
           AppHeadlineText(
             '안녕하세요,\n오늘의 흐름을 여기서 시작해볼까요?',
-            style: AppTypography.h4_22,
+            style: AppFont.h4_22,
             color: Colors.white,
           ),
           const SizedBox(height: AppSpacing.sm),
@@ -135,7 +135,7 @@ class _SectionLabel extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        AppHeadlineText(title, style: AppTypography.h6_18),
+        AppHeadlineText(title, style: AppFont.h6_18),
         const SizedBox(height: AppSpacing.xs),
         Text(subtitle, style: theme.textTheme.bodyMedium),
       ],
@@ -175,7 +175,7 @@ class _AttendanceEntryCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  AppHeadlineText('출석체크', style: AppTypography.h6_18),
+                  AppHeadlineText('출석체크', style: AppFont.h6_18),
                   const SizedBox(height: AppSpacing.xs),
                   Text(
                     '오늘의 출석 상태와 보상 영역으로 이어질 카드 자리입니다.',

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:uyoung_app/core/theme/app_colors.dart';
-import 'package:uyoung_app/core/theme/app_typography.dart';
+import 'package:uyoung_app/core/theme/app_font.dart';
 
 class AppHeadlineText extends StatelessWidget {
   const AppHeadlineText(
@@ -33,7 +33,7 @@ class AppHeadlineText extends StatelessWidget {
     return AppHeadlineText(
       text,
       key: key,
-      style: AppTypography.h0_34,
+      style: AppFont.h0_34,
       color: color,
       textAlign: textAlign,
       maxLines: maxLines,
@@ -52,7 +52,7 @@ class AppHeadlineText extends StatelessWidget {
     return AppHeadlineText(
       text,
       key: key,
-      style: AppTypography.h1_28,
+      style: AppFont.h1_28,
       color: color,
       textAlign: textAlign,
       maxLines: maxLines,
@@ -71,7 +71,7 @@ class AppHeadlineText extends StatelessWidget {
     return AppHeadlineText(
       text,
       key: key,
-      style: AppTypography.h2_26,
+      style: AppFont.h2_26,
       color: color,
       textAlign: textAlign,
       maxLines: maxLines,
@@ -90,7 +90,7 @@ class AppHeadlineText extends StatelessWidget {
     return AppHeadlineText(
       text,
       key: key,
-      style: AppTypography.h3_24,
+      style: AppFont.h3_24,
       color: color,
       textAlign: textAlign,
       maxLines: maxLines,
@@ -109,7 +109,7 @@ class AppHeadlineText extends StatelessWidget {
     return AppHeadlineText(
       text,
       key: key,
-      style: AppTypography.h4_22,
+      style: AppFont.h4_22,
       color: color,
       textAlign: textAlign,
       maxLines: maxLines,
@@ -128,7 +128,7 @@ class AppHeadlineText extends StatelessWidget {
     return AppHeadlineText(
       text,
       key: key,
-      style: AppTypography.h5_20,
+      style: AppFont.h5_20,
       color: color,
       textAlign: textAlign,
       maxLines: maxLines,
@@ -148,7 +148,7 @@ class AppHeadlineText extends StatelessWidget {
     return AppHeadlineText(
       text,
       key: key,
-      style: height130 ? AppTypography.h6_18_130 : AppTypography.h6_18,
+      style: height130 ? AppFont.h6_18_130 : AppFont.h6_18,
       color: color,
       textAlign: textAlign,
       maxLines: maxLines,
@@ -167,7 +167,7 @@ class AppHeadlineText extends StatelessWidget {
     return AppHeadlineText(
       text,
       key: key,
-      style: AppTypography.h7_16,
+      style: AppFont.h7_16,
       color: color,
       textAlign: textAlign,
       maxLines: maxLines,
@@ -186,7 +186,7 @@ class AppHeadlineText extends StatelessWidget {
     return AppHeadlineText(
       text,
       key: key,
-      style: AppTypography.h8_14,
+      style: AppFont.h8_14,
       color: color,
       textAlign: textAlign,
       maxLines: maxLines,
@@ -221,7 +221,7 @@ class AppHeadlineText extends StatelessWidget {
           textAlign: textAlign,
           maxLines: maxLines,
           overflow: overflow,
-          style: fillStyle,
+      style: fillStyle,
         ),
       ],
     );

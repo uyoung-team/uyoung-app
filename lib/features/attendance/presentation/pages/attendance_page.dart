@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:uyoung_app/core/theme/app_colors.dart';
+import 'package:uyoung_app/core/theme/app_font.dart';
 import 'package:uyoung_app/core/theme/app_spacing.dart';
-import 'package:uyoung_app/core/theme/app_typography.dart';
 import 'package:uyoung_app/features/attendance/data/attendance_repository.dart';
 import 'package:uyoung_app/features/attendance/data/attendance_service.dart';
 import 'package:uyoung_app/features/attendance/presentation/viewmodels/attendance_view_model.dart';
@@ -43,7 +43,7 @@ class _AttendanceView extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                AppHeadlineText('출석 구조 초안', style: AppTypography.h6_18),
+                AppHeadlineText('출석 구조 초안', style: AppFont.h6_18),
                 const SizedBox(height: AppSpacing.xs),
                 Text(
                   'RPC 호출과 attendance_logs 조회만 먼저 연결한 최소 구조입니다.',
@@ -59,7 +59,7 @@ class _AttendanceView extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                AppHeadlineText('오늘의 액션', style: AppTypography.h6_18),
+                AppHeadlineText('오늘의 액션', style: AppFont.h6_18),
                 const SizedBox(height: AppSpacing.xs),
                 Text(
                   '지금은 daily_check_in_and_draw RPC 호출 결과를 확인하는 단계입니다.',
@@ -97,7 +97,7 @@ class _AttendanceView extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                AppHeadlineText('출석 로그', style: AppTypography.h6_18),
+                AppHeadlineText('출석 로그', style: AppFont.h6_18),
                 const SizedBox(height: AppSpacing.xs),
                 Text(
                   'attendance_logs 조회 결과를 이후 보드 UI의 기반 데이터로 사용합니다.',

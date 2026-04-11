@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:uyoung_app/core/theme/app_colors.dart';
+import 'package:uyoung_app/core/theme/app_font.dart';
 import 'package:uyoung_app/core/theme/app_radius.dart';
 import 'package:uyoung_app/core/theme/app_spacing.dart';
-import 'package:uyoung_app/core/theme/app_typography.dart';
 import 'package:uyoung_app/features/my_page/data/my_page_repository.dart';
 import 'package:uyoung_app/features/my_page/data/my_page_service.dart';
 import 'package:uyoung_app/features/my_page/presentation/viewmodels/friends_view_model.dart';
@@ -56,7 +56,7 @@ class _AddFriendViewState extends State<_AddFriendView> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                AppHeadlineText('코드로 친구 찾기', style: AppTypography.h6_18),
+                AppHeadlineText('코드로 친구 찾기', style: AppFont.h6_18),
                 const SizedBox(height: AppSpacing.xs),
                 Text(
                   '친구 코드를 입력해 프로필을 확인하는 최소 흐름만 먼저 연결했습니다.',
@@ -150,7 +150,7 @@ class _SearchResultCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    AppHeadlineText(nickname, style: AppTypography.h6_18),
+                    AppHeadlineText(nickname, style: AppFont.h6_18),
                     const SizedBox(height: AppSpacing.xxs),
                     Text('user_code $userCode',
                         style: Theme.of(context).textTheme.bodyMedium),

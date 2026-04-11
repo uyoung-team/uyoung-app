@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:uyoung_app/core/theme/app_colors.dart';
+import 'package:uyoung_app/core/theme/app_font.dart';
 import 'package:uyoung_app/core/theme/app_radius.dart';
-import 'package:uyoung_app/core/theme/app_typography.dart';
 
 class AppTheme {
   const AppTheme._();
@@ -14,7 +14,7 @@ class AppTheme {
         surface: AppColors.surface,
       ),
       scaffoldBackgroundColor: AppColors.background,
-      textTheme: AppTypography.textTheme,
+      textTheme: AppFont.textTheme,
     );
 
     return base.copyWith(

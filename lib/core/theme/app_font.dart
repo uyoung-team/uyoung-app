@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:uyoung_app/core/theme/app_colors.dart';
 
-class AppTypography {
-  const AppTypography._();
+class AppFont {
+  const AppFont._();
 
   static const String fontFamily = 'OwnglyphKonghae';
 

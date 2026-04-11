@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:uyoung_app/core/theme/app_colors.dart';
+import 'package:uyoung_app/core/theme/app_font.dart';
 import 'package:uyoung_app/core/theme/app_spacing.dart';
-import 'package:uyoung_app/core/theme/app_typography.dart';
 import 'package:uyoung_app/features/my_page/data/my_page_repository.dart';
 import 'package:uyoung_app/features/my_page/data/my_page_service.dart';
 import 'package:uyoung_app/features/my_page/presentation/viewmodels/notice_detail_view_model.dart';
@@ -80,7 +80,7 @@ class _NoticeDetailView extends StatelessWidget {
                   ],
                   AppHeadlineText(
                     notice.title,
-                    style: AppTypography.h4_22,
+                    style: AppFont.h4_22,
                   ),
                   const SizedBox(height: AppSpacing.sm),
                   Text(

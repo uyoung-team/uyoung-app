@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:uyoung_app/core/theme/app_colors.dart';
+import 'package:uyoung_app/core/theme/app_font.dart';
 import 'package:uyoung_app/core/theme/app_spacing.dart';
-import 'package:uyoung_app/core/theme/app_typography.dart';
 import 'package:uyoung_app/features/my_page/data/my_page_repository.dart';
 import 'package:uyoung_app/features/my_page/data/my_page_service.dart';
 import 'package:uyoung_app/features/my_page/presentation/pages/add_friend_page.dart';
@@ -43,7 +43,7 @@ class _FriendsView extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                AppHeadlineText('친구 목록', style: AppTypography.h6_18),
+                AppHeadlineText('친구 목록', style: AppFont.h6_18),
                 const SizedBox(height: AppSpacing.xs),
                 Text(
                   'friends와 profiles를 기준으로 친구 목록의 최소 구조를 먼저 연결했습니다.',
@@ -126,7 +126,7 @@ class _FriendListTile extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                AppHeadlineText(nickname, style: AppTypography.h8_14),
+                AppHeadlineText(nickname, style: AppFont.h8_14),
                 const SizedBox(height: AppSpacing.xxs),
                 Text('user_code $userCode',
                     style: Theme.of(context).textTheme.bodyMedium),
@@ -159,7 +159,7 @@ class _FriendsEmptyCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          AppHeadlineText('아직 친구가 없습니다.', style: AppTypography.h6_18),
+          AppHeadlineText('아직 친구가 없습니다.', style: AppFont.h6_18),
           const SizedBox(height: AppSpacing.xs),
           Text(
             '코드로 친구를 찾아 처음 연결을 시작해보세요.',

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:uyoung_app/core/theme/app_colors.dart';
+import 'package:uyoung_app/core/theme/app_font.dart';
 import 'package:uyoung_app/core/theme/app_radius.dart';
 import 'package:uyoung_app/core/theme/app_spacing.dart';
-import 'package:uyoung_app/core/theme/app_typography.dart';
 import 'package:uyoung_app/features/my_page/data/my_page_repository.dart';
 import 'package:uyoung_app/features/my_page/data/my_page_service.dart';
 import 'package:uyoung_app/features/my_page/presentation/pages/inquiries_page.dart';
@@ -57,7 +57,7 @@ class _MyPageView extends StatelessWidget {
                 else ...[
                   AppHeadlineText(
                     profile.nickname,
-                    style: AppTypography.h4_22,
+                    style: AppFont.h4_22,
                   ),
                   const SizedBox(height: AppSpacing.xs),
                   Text(
@@ -98,7 +98,7 @@ class _MyPageView extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      AppHeadlineText('진주', style: AppTypography.h6_18),
+                      AppHeadlineText('진주', style: AppFont.h6_18),
                       const SizedBox(height: AppSpacing.xxs),
                       Text(
                         viewModel.isLoading
