@@ -3,6 +3,11 @@ import 'package:uyoung_app/features/my_page/data/my_page_models.dart';
 import 'package:uyoung_app/features/my_page/data/my_page_repository.dart';
 
 class MyPageViewModel extends ChangeNotifier {
+  static const String appVersion = String.fromEnvironment(
+    'APP_VERSION',
+    defaultValue: '1.0.0+1',
+  );
+
   MyPageViewModel(this.repository);
 
   final MyPageRepository repository;
@@ -14,6 +19,15 @@ class MyPageViewModel extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
   MyPageProfile get profile => _profile;
+  String get displayName {
+    final trimmed = _profile.nickname.trim();
+    return trimmed.isEmpty ? '이름 없음' : trimmed;
+  }
+
+  String get userCode {
+    final trimmed = _profile.userCode.trim();
+    return trimmed.isEmpty ? '-' : trimmed;
+  }
 
   Future<void> load() async {
     _isLoading = true;
