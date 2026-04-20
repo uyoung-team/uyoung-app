@@ -51,8 +51,8 @@ class _NotificationPageView extends StatelessWidget {
                 : null,
             icon: SvgPicture.asset(
               AssetPaths.icons.common.setting,
-              width: 35,
-              height: 35,
+              width: 44,
+              height: 44,
               colorFilter: const ColorFilter.mode(
                 AppColors.black,
                 BlendMode.srcIn,
@@ -205,9 +205,7 @@ class _FilterChip extends StatelessWidget {
         decoration: BoxDecoration(
           color: selected ? AppColors.b03 : AppColors.white,
           borderRadius: BorderRadius.circular(999),
-          border: Border.all(
-            color: selected ? AppColors.b02 : AppColors.bg02,
-          ),
+          border: Border.all(color: selected ? AppColors.b02 : AppColors.bg02),
         ),
         child: Text(
           label,
@@ -266,11 +264,7 @@ class _NotificationCard extends StatelessWidget {
                   ),
                 ),
                 if (!item.isRead)
-                  const Positioned(
-                    top: -1,
-                    right: -1,
-                    child: _UnreadDot(),
-                  ),
+                  const Positioned(top: -1, right: -1, child: _UnreadDot()),
               ],
             ),
             const SizedBox(width: 18),
