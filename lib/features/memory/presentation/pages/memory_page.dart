@@ -6,6 +6,8 @@ import 'package:uyoung_app/core/theme/app_font.dart';
 import 'package:uyoung_app/features/memory/data/memory_models.dart';
 import 'package:uyoung_app/features/memory/data/memory_repository.dart';
 import 'package:uyoung_app/features/memory/data/memory_service.dart';
+import 'package:uyoung_app/features/memory/presentation/pages/create_memory_page.dart';
+import 'package:uyoung_app/features/memory/presentation/pages/memory_search_page.dart';
 import 'package:uyoung_app/features/memory/presentation/viewmodels/memory_view_model.dart';
 import 'package:uyoung_app/shared/services/asset_paths.dart';
 import 'package:uyoung_app/shared/widgets/app_headline_text.dart';
@@ -41,7 +43,13 @@ class _MemoryView extends StatelessWidget {
         title: AppHeadlineText('기억섬', style: AppFont.h5_20),
         actions: [
           IconButton(
-            onPressed: () => _showPreparingMessage(context, '기억섬 검색'),
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => MemorySearchPage(items: viewModel.items),
+                ),
+              );
+            },
             icon: SvgPicture.asset(
               AssetPaths.icons.common.search,
               width: 24,
@@ -53,7 +61,13 @@ class _MemoryView extends StatelessWidget {
             ),
           ),
           IconButton(
-            onPressed: () => _showPreparingMessage(context, '기억섬 생성'),
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => const CreateMemoryPage(),
+                ),
+              );
+            },
             icon: SvgPicture.asset(
               AssetPaths.icons.common.chatPlus,
               width: 28,
