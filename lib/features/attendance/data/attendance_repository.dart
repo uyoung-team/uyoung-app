@@ -1,51 +1,33 @@
-import 'package:uyoung_app/features/attendance/data/attendance_models.dart';
-import 'package:uyoung_app/features/attendance/data/attendance_service.dart';
+import 'attendance_models.dart';
+import 'attendance_service.dart';
 
 class AttendanceRepository {
-  const AttendanceRepository(this.service);
+  AttendanceRepository({AttendanceService? service})
+    : _service = service ?? const AttendanceService();
 
-  final AttendanceService service;
+  final AttendanceService _service;
 
-  Future<List<AttendanceLogItem>> fetchLogs() async {
-    final rows = await service.fetchAttendanceLogs();
-
-    return rows.map(_mapLogItem).toList();
+  Future<AttendanceResult> checkInAndDraw() async {
+    try {
+      return await _service.checkInAndDraw();
+    } catch (error) {
+      throw StateError('출석 체크에 실패했어요. $error');
+    }
   }
 
-  Future<AttendanceCheckInResult> runCheckIn() async {
-    final raw = await service.runDailyCheckInAndDraw();
-
-    return AttendanceCheckInResult(
-      raw: raw,
-      summary: _buildSummary(raw),
-    );
+  Future<int> fetchPearlCount() async {
+    try {
+      return await _service.fetchPearlCount();
+    } catch (error) {
+      throw StateError('진주 개수를 불러오지 못했어요. $error');
+    }
   }
 
-  AttendanceLogItem _mapLogItem(Map<String, dynamic> row) {
-    return AttendanceLogItem(
-      id: (row['id'] ?? '').toString(),
-      createdAt: DateTime.tryParse((row['created_at'] ?? '').toString()),
-      status: (row['status'] ?? row['attendance_status'] ?? 'unknown')
-          .toString(),
-    );
-  }
-
-  String _buildSummary(Map<String, dynamic> raw) {
-    final message = raw['message']?.toString();
-    if (message != null && message.isNotEmpty) {
-      return message;
+  Future<List<AttendanceLogEntry>> fetchAttendanceLogs() async {
+    try {
+      return await _service.fetchAttendanceLogs();
+    } catch (error) {
+      throw StateError('출석 보드를 불러오지 못했어요. $error');
     }
-
-    final reward = raw['reward_name']?.toString() ?? raw['reward']?.toString();
-    if (reward != null && reward.isNotEmpty) {
-      return '보상 결과: $reward';
-    }
-
-    final status = raw['status']?.toString();
-    if (status != null && status.isNotEmpty) {
-      return '출석 처리 상태: $status';
-    }
-
-    return '출석 결과가 도착했습니다.';
   }
 }

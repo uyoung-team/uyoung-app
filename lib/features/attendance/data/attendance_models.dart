@@ -1,21 +1,102 @@
-class AttendanceLogItem {
-  const AttendanceLogItem({
-    required this.id,
-    required this.createdAt,
-    required this.status,
-  });
-
-  final String id;
-  final DateTime? createdAt;
-  final String status;
+enum AttendanceFlowStep {
+  idle,
+  loading,
+  reveal,
+  result,
+  board,
 }
 
-class AttendanceCheckInResult {
-  const AttendanceCheckInResult({
-    required this.raw,
-    required this.summary,
+enum AttendanceRewardKind {
+  pearl,
+  trash,
+}
+
+class AttendanceLogEntry {
+  const AttendanceLogEntry({
+    this.date,
+    required this.rewardItem,
   });
 
-  final Map<String, dynamic> raw;
-  final String summary;
+  final DateTime? date;
+  final String rewardItem;
+
+  factory AttendanceLogEntry.fromMap(Map<String, dynamic> map) {
+    return AttendanceLogEntry(
+      date: map['created_at'] == null
+          ? null
+          : DateTime.tryParse(map['created_at'].toString()),
+      rewardItem:
+          (map['reward_item'] ?? map['reward_item_name'] ?? '').toString(),
+    );
+  }
+}
+
+class AttendanceResult {
+  const AttendanceResult({
+    required this.status,
+    required this.isWin,
+    required this.rewardLabel,
+    required this.rewardCount,
+    required this.streak,
+  });
+
+  final String status;
+  final bool isWin;
+  final String rewardLabel;
+  final int rewardCount;
+  final int streak;
+
+  bool get isSuccess => status == 'success';
+  bool get isAlreadyChecked => status == 'already_checked';
+
+  factory AttendanceResult.fromRpc(dynamic response) {
+    final map = _normalize(response);
+
+    return AttendanceResult(
+      status: (map['status'] ?? '').toString(),
+      isWin: _parseBool(map['is_win']),
+      rewardLabel: (map['reward'] ?? map['reward_label'] ?? '').toString(),
+      rewardCount: _parseInt(map['reward_count']),
+      streak: _parseInt(map['streak']),
+    );
+  }
+
+  static Map<String, dynamic> _normalize(dynamic response) {
+    if (response is Map<String, dynamic>) {
+      return response;
+    }
+
+    if (response is Map) {
+      return Map<String, dynamic>.from(response);
+    }
+
+    if (response is List && response.isNotEmpty) {
+      final first = response.first;
+      if (first is Map<String, dynamic>) {
+        return first;
+      }
+      if (first is Map) {
+        return Map<String, dynamic>.from(first);
+      }
+    }
+
+    throw StateError('출석 결과 형식을 해석할 수 없어요.');
+  }
+
+  static bool _parseBool(dynamic value) {
+    if (value is bool) {
+      return value;
+    }
+
+    final raw = value?.toString().toLowerCase();
+    return raw == 'true' || raw == '1';
+  }
+
+  static int _parseInt(dynamic value) {
+    if (value is int) {
+      return value;
+    }
+
+    return int.tryParse(value?.toString() ?? '') ?? 0;
+  }
 }
