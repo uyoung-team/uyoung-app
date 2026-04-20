@@ -1,156 +1,170 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../viewmodels/attendance_view_model.dart';
-import '../../../../shared/services/asset_paths.dart';
+import 'package:uyoung_app/core/theme/app_colors.dart';
+import 'package:uyoung_app/core/theme/app_font.dart';
+import 'package:uyoung_app/core/theme/app_spacing.dart';
+import 'package:uyoung_app/features/attendance/data/attendance_models.dart';
+import 'package:uyoung_app/features/attendance/presentation/pages/attendance_board_page.dart';
+import 'package:uyoung_app/features/attendance/presentation/pages/attendance_result_page.dart';
+import 'package:uyoung_app/features/attendance/presentation/viewmodels/attendance_view_model.dart';
+import 'package:uyoung_app/features/attendance/presentation/widgets/attendance_entry_step.dart';
+import 'package:uyoung_app/features/attendance/presentation/widgets/attendance_reveal_step.dart';
+import 'package:uyoung_app/shared/services/asset_paths.dart';
 
-class AttendancePage extends StatelessWidget {
+class AttendancePage extends StatefulWidget {
   const AttendancePage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => AttendanceViewModel()..loadBoardData(),
-      child: const _AttendanceView(),
-    );
-  }
+  State<AttendancePage> createState() => _AttendancePageState();
 }
 
-class _AttendanceView extends StatelessWidget {
-  const _AttendanceView();
+class _AttendancePageState extends State<AttendancePage> {
+  late final AttendanceViewModel _viewModel;
+
+  @override
+  void initState() {
+    super.initState();
+    _viewModel = AttendanceViewModel();
+    _viewModel.loadBoardData();
+  }
+
+  @override
+  void dispose() {
+    _viewModel.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final vm = context.watch<AttendanceViewModel>();
+    return ChangeNotifierProvider.value(
+      value: _viewModel,
+      builder: (context, child) {
+        final viewModel = context.watch<AttendanceViewModel>();
+        final mediaQuery = MediaQuery.of(context);
+        final size = mediaQuery.size;
+        final safeTop = mediaQuery.padding.top;
+        final safeBottom = mediaQuery.padding.bottom;
+        const horizontalPadding = 16.0;
+        const boxSpacing = 2.0;
+        final boxWidth =
+            ((size.width - (horizontalPadding * 2) - (boxSpacing * 6)) / 7)
+                .clamp(39.0, 44.0);
+        final boxHeight = (boxWidth * 1.52).clamp(58.0, 66.0);
+        final iconSize = (boxWidth * 0.46).clamp(18.0, 22.0);
+        final boardTop = safeTop + 50;
 
-    return Scaffold(
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage(AssetPaths.images.attendance.background01),
-            fit: BoxFit.cover,
-          ),
-        ),
-        child: Stack(
-          children: [
-            // 1. 상단 앱바 (뒤로가기)
-            Positioned(
-              top: 50,
-              left: 10,
-              child: IconButton(
-                icon: const Icon(Icons.close, color: Colors.white, size: 28),
-                onPressed: () => Navigator.pop(context),
+        return Scaffold(
+          body: Stack(
+            children: [
+              Positioned.fill(
+                child: Image.asset(
+                  AssetPaths.images.attendance.background01,
+                  fit: BoxFit.cover,
+                ),
               ),
-            ),
-
-            // 2. 중앙 캐릭터 및 출석부 영역
-            Align(
-              alignment: Alignment.center,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const SizedBox(height: 40),
-                  // 캐릭터 영역
-                  Image.asset(
-                    AssetPaths.images.attendance.character,
-                    width: 200,
+              Positioned(
+                top: safeTop + 8,
+                left: 18,
+                child: IconButton(
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(Icons.chevron_left_rounded, size: 32),
+                  color: AppColors.black,
+                ),
+              ),
+              Positioned(
+                top: safeTop + 14,
+                left: 0,
+                right: 0,
+                child: Center(
+                  child: Text(
+                    '출석체크',
+                    style: AppFont.h4_22.copyWith(color: AppColors.black),
                   ),
-                  const SizedBox(height: 20),
-
-                  // 출석부 보드
-                  _buildAttendanceBoard(vm),
-                ],
+                ),
               ),
-            ),
-
-            // 3. 하단 출석하기 버튼
-            Positioned(
-              bottom: 60,
-              left: 0,
-              right: 0,
-              child: Center(
-                child: GestureDetector(
-                  onTap: vm.hasCheckedToday ? null : () => vm.checkIn(),
+              if (viewModel.isRevealStep)
+                AttendanceRevealStep(
+                  onClamTap: () {
+                    viewModel.showResult();
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => AttendanceResultPage(viewModel: _viewModel),
+                      ),
+                    );
+                  },
+                  top: boardTop,
+                  safeBottom: safeBottom,
+                )
+              else
+                AttendanceEntryStep(
+                  onCheckTap: () => _handleCheckIn(context),
+                  top: boardTop,
+                  safeBottom: safeBottom,
+                  horizontalPadding: horizontalPadding,
+                  boxSpacing: boxSpacing,
+                  boxWidth: boxWidth,
+                  boxHeight: boxHeight,
+                  iconSize: iconSize,
+                  viewModel: viewModel,
+                ),
+              if (viewModel.errorMessage != null)
+                Positioned(
+                  left: AppSpacing.md,
+                  right: AppSpacing.md,
+                  bottom: safeBottom + 84,
                   child: Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 60,
-                      vertical: 16,
+                      horizontal: AppSpacing.md,
+                      vertical: AppSpacing.sm,
                     ),
                     decoration: BoxDecoration(
-                      color: vm.hasCheckedToday
-                          ? Colors.grey
-                          : const Color(0xFF6EA8EB),
-                      borderRadius: BorderRadius.circular(30),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.1),
-                          blurRadius: 10,
-                          offset: const Offset(0, 5),
-                        ),
-                      ],
+                      color: AppColors.white.withValues(alpha: 0.92),
+                      borderRadius: BorderRadius.circular(16),
                     ),
                     child: Text(
-                      vm.hasCheckedToday ? '출석 완료' : '오늘의 조개 줍기',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        fontFamily: 'memomentKkukkkuk',
-                      ),
+                      viewModel.errorMessage!,
+                      textAlign: TextAlign.center,
+                      style: AppFont.b8_14.copyWith(color: AppColors.subRed03),
                     ),
                   ),
                 ),
-              ),
-            ),
-
-            // 4. 로딩 인디케이터
-            if (vm.isLoading)
-              Container(
-                color: Colors.black26,
-                child: const Center(
-                  child: CircularProgressIndicator(color: Colors.white),
+              if (viewModel.isLoading)
+                Positioned.fill(
+                  child: Container(
+                    color: Colors.black.withValues(alpha: 0.08),
+                    child: const Center(child: CircularProgressIndicator()),
+                  ),
                 ),
-              ),
-          ],
-        ),
-      ),
+            ],
+          ),
+        );
+      },
     );
   }
 
-  Widget _buildAttendanceBoard(AttendanceViewModel vm) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      margin: const EdgeInsets.symmetric(horizontal: 30),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.9),
-        borderRadius: BorderRadius.circular(24),
-      ),
-      child: Column(
-        children: [
-          const Text(
-            "7일간의 조개 보드",
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 16),
-          Wrap(
-            spacing: 12,
-            runSpacing: 12,
-            alignment: WrapAlignment.center,
-            children: List.generate(7, (index) {
-              final day = index + 1;
-              final assetPath = vm.boardItemPathForDay(day);
-              return Column(
-                children: [
-                  Image.asset(assetPath, width: 45, height: 45),
-                  const SizedBox(height: 4),
-                  Text("$day일차", style: const TextStyle(fontSize: 10)),
-                ],
-              );
-            }),
-          ),
-        ],
-      ),
-    );
+  Future<void> _handleCheckIn(BuildContext context) async {
+    final viewModel = context.read<AttendanceViewModel>();
+    final nextStep = await viewModel.checkIn();
+
+    if (!context.mounted) {
+      return;
+    }
+
+    if (viewModel.errorMessage != null) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(content: Text(viewModel.errorMessage!)));
+      return;
+    }
+
+    if (nextStep == AttendanceFlowStep.board && viewModel.isAlreadyChecked) {
+      await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => AttendanceBoardPage(viewModel: _viewModel),
+        ),
+      );
+    }
   }
 }
