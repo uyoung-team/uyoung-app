@@ -51,6 +51,49 @@ class MemoryRepository {
     }
   }
 
+  Future<List<InviteeUser>> searchUsers(String keyword) async {
+    try {
+      final rows = await service.searchUsers(keyword);
+      return rows.map(InviteeUser.fromMap).toList();
+    } catch (error) {
+      throw StateError('초대할 사용자를 불러오지 못했어요. $error');
+    }
+  }
+
+  Future<MemoryIslandItem> createIsland({
+    required String islandName,
+    required String color,
+    String? bgUrl,
+    List<String> inviteeIds = const [],
+  }) async {
+    try {
+      final islandId = await service.createIslandWithMembers(
+        islandName: islandName,
+        color: color,
+        bgUrl: bgUrl,
+        inviteeIds: inviteeIds,
+      );
+      final inviteCode = await service.fetchInviteCode(islandId);
+      final islandRows = await service.fetchIslandByIds([islandId]);
+      final memberRows = await service.fetchIslandMemberRows([islandId]);
+      final island = islandRows.isNotEmpty ? islandRows.first : <String, dynamic>{};
+      final members = _groupMembersByIsland(memberRows)[islandId] ?? const [];
+
+      return MemoryIslandItem(
+        id: islandId,
+        title: (island['name'] ?? islandName).toString(),
+        isFavorite: false,
+        isNotificationOn: true,
+        imagePath: island['bg_image_url']?.toString() ?? bgUrl,
+        updatedAt: DateTime.tryParse((island['updated_at'] ?? '').toString()),
+        inviteCode: inviteCode,
+        members: members,
+      );
+    } catch (error) {
+      throw StateError('기억섬 생성에 실패했어요. $error');
+    }
+  }
+
   Map<String, List<MemoryMemberPreview>> _groupMembersByIsland(
     List<Map<String, dynamic>> rows,
   ) {

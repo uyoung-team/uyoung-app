@@ -61,12 +61,15 @@ class _MemoryView extends StatelessWidget {
             ),
           ),
           IconButton(
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute<void>(
+            onPressed: () async {
+              final createdItem = await Navigator.of(context).push<MemoryIslandItem>(
+                MaterialPageRoute<MemoryIslandItem>(
                   builder: (_) => const CreateMemoryPage(),
                 ),
               );
+              if (createdItem != null && context.mounted) {
+                await viewModel.insertCreatedItem(createdItem);
+              }
             },
             icon: SvgPicture.asset(
               AssetPaths.icons.common.chatPlus,

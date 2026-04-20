@@ -39,3 +39,28 @@ class MemoryIslandItem {
   final String? inviteCode;
   final List<MemoryMemberPreview> members;
 }
+
+class InviteeUser {
+  const InviteeUser({
+    required this.id,
+    required this.nickname,
+    this.avatarUrl,
+    required this.userCode,
+  });
+
+  final String id;
+  final String nickname;
+  final String? avatarUrl;
+  final String userCode;
+
+  factory InviteeUser.fromMap(Map<String, dynamic> map) {
+    return InviteeUser(
+      id: (map['id'] ?? '').toString(),
+      nickname: (map['nickname'] ?? '').toString(),
+      avatarUrl: map['avatar_url']?.toString(),
+      userCode: (map['user_code'] ?? '').toString(),
+    );
+  }
+
+  String get displayName => nickname.isNotEmpty ? nickname : userCode;
+}

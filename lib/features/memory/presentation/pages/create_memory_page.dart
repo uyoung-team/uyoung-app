@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import 'package:uyoung_app/core/theme/app_colors.dart';
 import 'package:uyoung_app/core/theme/app_font.dart';
+import 'package:uyoung_app/features/memory/data/memory_repository.dart';
+import 'package:uyoung_app/features/memory/data/memory_service.dart';
+import 'package:uyoung_app/features/memory/presentation/pages/select_member_page.dart';
+import 'package:uyoung_app/features/memory/presentation/viewmodels/create_memory_view_model.dart';
 import 'package:uyoung_app/shared/widgets/app_headline_text.dart';
 
 class CreateMemoryPage extends StatefulWidget {
@@ -12,42 +17,23 @@ class CreateMemoryPage extends StatefulWidget {
 }
 
 class _CreateMemoryPageState extends State<CreateMemoryPage> {
-  static const int _maxTitleLength = 12;
-  static const List<String> _palette = [
-    '#FF6B6B',
-    '#FF8E72',
-    '#FFB26B',
-    '#FFD56B',
-    '#F4E76E',
-    '#A4D96C',
-    '#5FCD8C',
-    '#54D2C6',
-    '#6FD3FF',
-    '#6EA8EB',
-    '#7C93FF',
-    '#9A7CFF',
-    '#B780FF',
-    '#E08EFF',
-    '#FF94C2',
-    '#D7B48C',
-    '#B6BDC6',
-    '#8B9AA9',
-    '#5D6D7E',
-    '#2D3A4A',
-  ];
-
-  final TextEditingController _titleController = TextEditingController();
-  String? _selectedColor;
-
   @override
-  void dispose() {
-    _titleController.dispose();
-    super.dispose();
+  Widget build(BuildContext context) {
+    return ChangeNotifierProvider(
+      create: (_) => CreateMemoryViewModel(
+        repository: const MemoryRepository(MemoryService()),
+      ),
+      child: const _CreateMemoryStepOneView(),
+    );
   }
+}
+
+class _CreateMemoryStepOneView extends StatelessWidget {
+  const _CreateMemoryStepOneView();
 
   @override
   Widget build(BuildContext context) {
-    final canProceed = _selectedColor != null;
+    final vm = context.watch<CreateMemoryViewModel>();
 
     return Scaffold(
       backgroundColor: AppColors.white,
@@ -57,7 +43,7 @@ class _CreateMemoryPageState extends State<CreateMemoryPage> {
           children: [
             _HeaderSection(
               onBack: () => Navigator.pop(context),
-              onPickGallery: () => _showPreparingSnackBar('배경 이미지 선택'),
+              onPickGallery: () => _showPreparingSnackBar(context, '배경 이미지 선택'),
             ),
             const SizedBox(height: 28),
             Padding(
@@ -84,7 +70,7 @@ class _CreateMemoryPageState extends State<CreateMemoryPage> {
                           alignment: Alignment.bottomCenter,
                           child: Container(
                             height: 1,
-                            color: _titleController.text.isEmpty
+                            color: vm.titleController.text.isEmpty
                                 ? AppColors.g03
                                 : AppColors.b02,
                           ),
@@ -94,10 +80,12 @@ class _CreateMemoryPageState extends State<CreateMemoryPage> {
                         children: [
                           Expanded(
                             child: TextField(
-                              controller: _titleController,
-                              onChanged: (_) => setState(() {}),
+                              controller: vm.titleController,
+                              onChanged: (_) => vm.onTitleChanged(),
                               inputFormatters: [
-                                LengthLimitingTextInputFormatter(_maxTitleLength),
+                                LengthLimitingTextInputFormatter(
+                                  CreateMemoryViewModel.maxTitleLength,
+                                ),
                               ],
                               style: AppFont.b7_16.copyWith(color: AppColors.black),
                               decoration: InputDecoration(
@@ -112,7 +100,7 @@ class _CreateMemoryPageState extends State<CreateMemoryPage> {
                           Padding(
                             padding: const EdgeInsets.only(bottom: 8),
                             child: Text(
-                              '${_titleController.text.length}/$_maxTitleLength',
+                              '${vm.titleController.text.length}/${CreateMemoryViewModel.maxTitleLength}',
                               style: AppFont.b8_14.copyWith(color: AppColors.g03),
                             ),
                           ),
@@ -126,10 +114,10 @@ class _CreateMemoryPageState extends State<CreateMemoryPage> {
                   Wrap(
                     spacing: 12,
                     runSpacing: 12,
-                    children: _palette.map((color) {
-                      final isSelected = _selectedColor == color;
+                    children: CreateMemoryViewModel.palette.map((color) {
+                      final isSelected = vm.selectedColor == color;
                       return GestureDetector(
-                        onTap: () => setState(() => _selectedColor = color),
+                        onTap: () => vm.setColor(color),
                         child: Container(
                           width: 34,
                           height: 34,
@@ -158,12 +146,28 @@ class _CreateMemoryPageState extends State<CreateMemoryPage> {
                     width: double.infinity,
                     height: 56,
                     child: TextButton(
-                      onPressed: canProceed
-                          ? () => _showPreparingSnackBar('멤버 선택/생성')
+                      onPressed: vm.canProceedToMembers
+                          ? () async {
+                              final result = await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => ChangeNotifierProvider.value(
+                                    value: vm,
+                                    child: const SelectMemberPage(),
+                                  ),
+                                ),
+                              );
+
+                              if (!context.mounted || result == null) {
+                                return;
+                              }
+
+                              Navigator.pop(context, result);
+                            }
                           : null,
                       style: TextButton.styleFrom(
                         backgroundColor:
-                            canProceed ? AppColors.b02 : AppColors.bg02,
+                            vm.canProceedToMembers ? AppColors.b02 : AppColors.bg02,
                         disabledBackgroundColor: AppColors.bg02,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14),
@@ -172,7 +176,9 @@ class _CreateMemoryPageState extends State<CreateMemoryPage> {
                       child: Text(
                         '다음',
                         style: AppFont.b6_18.copyWith(
-                          color: canProceed ? AppColors.white : AppColors.g03,
+                          color: vm.canProceedToMembers
+                              ? AppColors.white
+                              : AppColors.g03,
                         ),
                       ),
                     ),
@@ -185,19 +191,6 @@ class _CreateMemoryPageState extends State<CreateMemoryPage> {
         ),
       ),
     );
-  }
-
-  void _showPreparingSnackBar(String label) {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(content: Text('$label 기능은 다음 단계에서 이어서 구현할게요.')),
-      );
-  }
-
-  Color _hexToColor(String hex) {
-    final normalized = hex.replaceFirst('#', '');
-    return Color(int.parse('FF$normalized', radix: 16));
   }
 }
 
@@ -279,4 +272,17 @@ class _HeaderSection extends StatelessWidget {
       ],
     );
   }
+}
+
+void _showPreparingSnackBar(BuildContext context, String label) {
+  ScaffoldMessenger.of(context)
+    ..hideCurrentSnackBar()
+    ..showSnackBar(
+      SnackBar(content: Text('$label 기능은 다음 단계에서 이어서 구현할게요.')),
+    );
+}
+
+Color _hexToColor(String hex) {
+  final normalized = hex.replaceFirst('#', '');
+  return Color(int.parse('FF$normalized', radix: 16));
 }

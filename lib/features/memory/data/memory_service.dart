@@ -49,4 +49,83 @@ class MemoryService {
       ),
     );
   }
+
+  Future<List<Map<String, dynamic>>> searchUsers(String keyword) async {
+    final client = _clientProvider.client;
+    if (client == null) {
+      return const [];
+    }
+
+    final response = await client.rpc(
+      'search_users',
+      params: {'search_term': keyword},
+    );
+
+    return List<Map<String, dynamic>>.from(
+      (response as List<dynamic>).map(
+        (row) => Map<String, dynamic>.from(row as Map),
+      ),
+    );
+  }
+
+  Future<String> createIslandWithMembers({
+    required String islandName,
+    required String color,
+    String? bgUrl,
+    List<String> inviteeIds = const [],
+  }) async {
+    final client = _clientProvider.client;
+    if (client == null) {
+      throw StateError('로그인이 필요합니다.');
+    }
+
+    final response = await client.rpc(
+      'create_island_with_members',
+      params: {
+        'island_name': islandName,
+        'color': color,
+        'bg_url': bgUrl,
+        'invitee_ids': inviteeIds,
+      },
+    );
+
+    return response as String;
+  }
+
+  Future<String?> fetchInviteCode(String islandId) async {
+    final client = _clientProvider.client;
+    if (client == null || islandId.isEmpty) {
+      return null;
+    }
+
+    final response = await client
+        .from('islands')
+        .select('invite_code')
+        .eq('id', islandId)
+        .maybeSingle();
+
+    if (response == null) {
+      return null;
+    }
+
+    return response['invite_code']?.toString();
+  }
+
+  Future<List<Map<String, dynamic>>> fetchIslandByIds(List<String> islandIds) async {
+    final client = _clientProvider.client;
+    if (client == null || islandIds.isEmpty) {
+      return const [];
+    }
+
+    final response = await client
+        .from('islands')
+        .select('id, name, bg_image_url, invite_code, updated_at')
+        .inFilter('id', islandIds);
+
+    return List<Map<String, dynamic>>.from(
+      (response as List<dynamic>).map(
+        (row) => Map<String, dynamic>.from(row as Map),
+      ),
+    );
+  }
 }

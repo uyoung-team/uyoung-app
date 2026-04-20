@@ -30,4 +30,9 @@ class MemoryViewModel extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+  Future<void> insertCreatedItem(MemoryIslandItem item) async {
+    _items = [item, ..._items.where((existing) => existing.id != item.id)];
+    notifyListeners();
+  }
 }
