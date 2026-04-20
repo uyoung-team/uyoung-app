@@ -94,6 +94,38 @@ class MemoryRepository {
     }
   }
 
+  Future<MemoryIslandItem> fetchIsland(String islandId) async {
+    try {
+      final island = await service.fetchIsland(islandId);
+      if (island == null) {
+        throw StateError('기억섬을 찾을 수 없어요.');
+      }
+
+      final members = await fetchIslandMembers(islandId);
+      return MemoryIslandItem(
+        id: (island['id'] ?? islandId).toString(),
+        title: (island['name'] ?? '').toString(),
+        isFavorite: false,
+        isNotificationOn: true,
+        imagePath: island['bg_image_url']?.toString(),
+        updatedAt: DateTime.tryParse((island['updated_at'] ?? '').toString()),
+        inviteCode: island['invite_code']?.toString(),
+        members: members,
+      );
+    } catch (error) {
+      throw StateError('기억섬 정보를 불러오지 못했어요. $error');
+    }
+  }
+
+  Future<List<MemoryMemberPreview>> fetchIslandMembers(String islandId) async {
+    try {
+      final memberRows = await service.fetchIslandMemberRows([islandId]);
+      return _groupMembersByIsland(memberRows)[islandId] ?? const [];
+    } catch (error) {
+      throw StateError('멤버 정보를 불러오지 못했어요. $error');
+    }
+  }
+
   Map<String, List<MemoryMemberPreview>> _groupMembersByIsland(
     List<Map<String, dynamic>> rows,
   ) {

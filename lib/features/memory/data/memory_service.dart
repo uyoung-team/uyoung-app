@@ -128,4 +128,9 @@ class MemoryService {
       ),
     );
   }
+
+  Future<Map<String, dynamic>?> fetchIsland(String islandId) async {
+    final rows = await fetchIslandByIds([islandId]);
+    return rows.isEmpty ? null : rows.first;
+  }
 }

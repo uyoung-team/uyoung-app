@@ -7,6 +7,7 @@ import 'package:uyoung_app/features/memory/data/memory_models.dart';
 import 'package:uyoung_app/features/memory/data/memory_repository.dart';
 import 'package:uyoung_app/features/memory/data/memory_service.dart';
 import 'package:uyoung_app/features/memory/presentation/pages/create_memory_page.dart';
+import 'package:uyoung_app/features/memory/presentation/pages/memory_detail_page.dart';
 import 'package:uyoung_app/features/memory/presentation/pages/memory_search_page.dart';
 import 'package:uyoung_app/features/memory/presentation/viewmodels/memory_view_model.dart';
 import 'package:uyoung_app/shared/services/asset_paths.dart';
@@ -212,7 +213,13 @@ class _MemoryIslandCard extends StatelessWidget {
       borderRadius: BorderRadius.circular(18),
       child: InkWell(
         borderRadius: BorderRadius.circular(18),
-        onTap: () => _MemoryView._showPreparingMessage(context, '기억섬 상세'),
+        onTap: () {
+          Navigator.of(context).push(
+            MaterialPageRoute<void>(
+              builder: (_) => MemoryDetailPage(item: item),
+            ),
+          );
+        },
         child: Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(18),
