@@ -22,6 +22,21 @@ class MyPageRepository {
     );
   }
 
+  Future<void> updateProfile({
+    required String nickname,
+  }) async {
+    final trimmed = nickname.trim();
+    if (trimmed.isEmpty) {
+      throw StateError('닉네임을 입력해주세요.');
+    }
+
+    try {
+      await service.updateProfile(nickname: trimmed);
+    } catch (error) {
+      throw StateError('프로필을 저장하지 못했어요. $error');
+    }
+  }
+
   Future<List<NoticeItem>> fetchNotices() async {
     final rows = await service.fetchNotices();
 
@@ -86,6 +101,22 @@ class MyPageRepository {
       profileImageUrl: profile['profile_image_url']?.toString(),
       createdAt: null,
     );
+  }
+
+  Future<void> addFriendByCode(String userCode) async {
+    try {
+      await service.addFriendByCode(userCode);
+    } catch (error) {
+      throw StateError('코드로 친구를 추가하지 못했어요. $error');
+    }
+  }
+
+  Future<void> deleteFriend(String friendId) async {
+    try {
+      await service.deleteFriend(friendId);
+    } catch (error) {
+      throw StateError('친구를 삭제하지 못했어요. $error');
+    }
   }
 
   NoticeItem _mapNoticeItem(Map<String, dynamic> row) {

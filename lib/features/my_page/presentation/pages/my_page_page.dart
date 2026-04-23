@@ -10,8 +10,11 @@ import 'package:uyoung_app/features/home/presentation/pages/notification_page.da
 import 'package:uyoung_app/features/my_page/data/my_page_repository.dart';
 import 'package:uyoung_app/features/my_page/data/my_page_service.dart';
 import 'package:uyoung_app/features/my_page/presentation/pages/friends_page.dart';
+import 'package:uyoung_app/features/my_page/presentation/pages/friend_invite_page.dart';
 import 'package:uyoung_app/features/my_page/presentation/pages/inquiries_page.dart';
 import 'package:uyoung_app/features/my_page/presentation/pages/notices_page.dart';
+import 'package:uyoung_app/features/my_page/presentation/pages/pearl_charge_page.dart';
+import 'package:uyoung_app/features/my_page/presentation/pages/profile_edit_page.dart';
 import 'package:uyoung_app/features/my_page/presentation/viewmodels/my_page_view_model.dart';
 import 'package:uyoung_app/shared/services/asset_paths.dart';
 import 'package:uyoung_app/shared/widgets/app_headline_text.dart';
@@ -54,7 +57,13 @@ class _MyPageView extends StatelessWidget {
               const SizedBox(height: 18),
               _PearlCard(
                 pearlCount: viewModel.profile.pearlCount,
-                onTap: () => _showPreparingMessage(context, '진주 충전'),
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => const PearlChargePage(),
+                    ),
+                  );
+                },
               ),
               const SizedBox(height: 8),
               Row(
@@ -81,7 +90,13 @@ class _MyPageView extends StatelessWidget {
                       child: _QuickActionAsset(
                         svgPath: AssetPaths.icons.smallCommon.addPhotoPlus,
                       ),
-                      onTap: () => _showPreparingMessage(context, '친구와 한 컷'),
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) => const FriendInvitePage(),
+                          ),
+                        );
+                      },
                     ),
                   ),
                   const SizedBox(width: 6),
@@ -121,7 +136,7 @@ class _MyPageView extends StatelessWidget {
                 onTap: () {
                   Navigator.of(context).push(
                     MaterialPageRoute<void>(
-                      builder: (_) => const FriendsPage(),
+                      builder: (_) => const FriendInvitePage(),
                     ),
                   );
                 },
@@ -289,8 +304,18 @@ class _ProfileHero extends StatelessWidget {
               right: -10,
               top: -6,
               child: GestureDetector(
-                onTap: () =>
-                    _MyPageView._showPreparingMessage(context, '프로필 편집'),
+                onTap: () async {
+                  final didUpdate = await Navigator.of(context).push<bool>(
+                    MaterialPageRoute<bool>(
+                      builder: (_) => ProfileEditPage(
+                        initialProfile: viewModel.profile,
+                      ),
+                    ),
+                  );
+                  if (didUpdate == true && context.mounted) {
+                    await context.read<MyPageViewModel>().load();
+                  }
+                },
                 child: Container(
                   width: 28,
                   height: 28,

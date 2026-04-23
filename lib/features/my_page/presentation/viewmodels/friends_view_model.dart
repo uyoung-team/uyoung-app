@@ -67,6 +67,45 @@ class FriendsViewModel extends ChangeNotifier {
     }
   }
 
+  Future<String?> addFoundUser() async {
+    final result = _searchResult;
+    if (result == null) {
+      return null;
+    }
+
+    _isSearching = true;
+    _searchMessage = null;
+    notifyListeners();
+
+    try {
+      await repository.addFriendByCode(result.userCode);
+      _searchMessage = '${result.nickname}님을 친구로 추가했어요.';
+      await load();
+      return _searchMessage;
+    } catch (_) {
+      _searchMessage = '친구 추가 중 문제가 발생했습니다.';
+      return _searchMessage;
+    } finally {
+      _isSearching = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> deleteFriend(String friendId) async {
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      await repository.deleteFriend(friendId);
+      _friends = _friends.where((friend) => friend.id != friendId).toList();
+    } catch (_) {
+      _errorMessage = '친구 삭제에 실패했어요.';
+      rethrow;
+    } finally {
+      notifyListeners();
+    }
+  }
+
   void clearSearch() {
     _searchResult = null;
     _searchMessage = null;
