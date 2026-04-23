@@ -121,6 +121,7 @@ class AppImages {
   final AttendanceImages attendance = const AttendanceImages();
   final CharacterImages character = const CharacterImages();
   final HomeImages home = const HomeImages();
+  final SplashImages splash = const SplashImages();
 }
 
 class AttendanceImages {
@@ -181,4 +182,12 @@ class HomeImages {
   final String iconAttend = 'assets/images/home/icon_attend.png';
   final String myPearl = 'assets/images/home/home_my_pearl.png';
   final String plusPearl = 'assets/images/home/home_plus_pearl.png';
+}
+
+class SplashImages {
+  const SplashImages();
+
+  final String background = 'assets/images/splash/splash_bg.png';
+  final String character = 'assets/images/splash/splash_main_character.png';
+  final String speechBubble = 'assets/images/splash/splash_speech_bubble.png';
 }
