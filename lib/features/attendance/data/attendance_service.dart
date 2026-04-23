@@ -38,9 +38,8 @@ class AttendanceService {
 
     final response = await client
         .from('attendance_logs')
-        .select('created_at, reward_item, reward_item_name')
+        .select('reward_item')
         .eq('user_id', userId)
-        .order('created_at', ascending: false)
         .limit(7);
 
     final rows = List<Map<String, dynamic>>.from(response);
