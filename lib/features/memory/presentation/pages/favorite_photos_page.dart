@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:uyoung_app/core/theme/app_colors.dart';
 import 'package:uyoung_app/core/theme/app_font.dart';
 import 'package:uyoung_app/features/memory/data/memory_repository.dart';
+import 'package:uyoung_app/features/memory/presentation/pages/photo_detail_page.dart';
 import 'package:uyoung_app/features/memory/data/memory_service.dart';
 import 'package:uyoung_app/features/memory/presentation/viewmodels/favorite_photo_view_model.dart';
 import 'package:uyoung_app/shared/widgets/app_headline_text.dart';
@@ -97,11 +98,21 @@ class _FavoritePhotoTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(18),
-      child: DecoratedBox(
-        decoration: const BoxDecoration(color: AppColors.g05),
-        child: _buildImage(),
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute<void>(
+            builder: (_) => PhotoDetailPage(imagePath: photoKey),
+          ),
+        );
+      },
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(18),
+        child: DecoratedBox(
+          decoration: const BoxDecoration(color: AppColors.g05),
+          child: _buildImage(),
+        ),
       ),
     );
   }
