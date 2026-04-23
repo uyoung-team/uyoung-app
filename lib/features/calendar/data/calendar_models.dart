@@ -27,3 +27,17 @@ class CalendarIslandFilter {
     );
   }
 }
+
+class CalendarDayMemoryGroup {
+  const CalendarDayMemoryGroup({
+    required this.islandId,
+    required this.islandName,
+    required this.color,
+    required this.thumbnailPaths,
+  });
+
+  final String islandId;
+  final String islandName;
+  final Color color;
+  final List<String> thumbnailPaths;
+}

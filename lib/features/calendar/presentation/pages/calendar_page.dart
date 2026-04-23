@@ -6,6 +6,7 @@ import 'package:uyoung_app/core/theme/app_font.dart';
 import 'package:uyoung_app/features/calendar/data/calendar_repository.dart';
 import 'package:uyoung_app/features/calendar/data/calendar_service.dart';
 import 'package:uyoung_app/features/calendar/presentation/viewmodels/calendar_view_model.dart';
+import 'package:uyoung_app/features/calendar/presentation/widgets/calendar_memory_bottom_sheet.dart';
 import 'package:uyoung_app/shared/services/asset_paths.dart';
 import 'package:uyoung_app/shared/widgets/app_headline_text.dart';
 
@@ -204,7 +205,10 @@ class _CalendarGrid extends StatelessWidget {
         final isToday = _isSameDate(day, DateTime.now());
 
         return GestureDetector(
-          onTap: () => viewModel.selectDay(day),
+          onTap: () {
+            viewModel.openBottomSheet(day);
+            _openMemoryBottomSheet(context, viewModel, day);
+          },
           child: Container(
             margin: const EdgeInsets.all(4),
             decoration: BoxDecoration(
@@ -228,16 +232,30 @@ class _CalendarGrid extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 8),
-                Container(
-                  width: 6,
-                  height: 6,
-                  decoration: BoxDecoration(
-                    color: isSelected
-                        ? AppColors.b01
-                        : AppColors.bg03,
-                    shape: BoxShape.circle,
+                if (viewModel.hasAnyMemoryForDay(day))
+                  Wrap(
+                    spacing: 3,
+                    children: List<Widget>.generate(
+                      viewModel.memoriesForDay(day).take(3).length,
+                      (index) => Container(
+                        width: 6,
+                        height: 6,
+                        decoration: BoxDecoration(
+                          color: viewModel.memoriesForDay(day)[index].color,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    ),
+                  )
+                else
+                  Container(
+                    width: 6,
+                    height: 6,
+                    decoration: BoxDecoration(
+                      color: isSelected ? AppColors.b01 : AppColors.bg03,
+                      shape: BoxShape.circle,
+                    ),
                   ),
-                ),
               ],
             ),
           ),
@@ -271,6 +289,7 @@ class _SelectedDaySummary extends StatelessWidget {
   Widget build(BuildContext context) {
     final label =
         '${viewModel.selectedDay.month}월 ${viewModel.selectedDay.day}일';
+    final memories = viewModel.memoriesForDay(viewModel.selectedDay);
 
     return Container(
       width: double.infinity,
@@ -288,9 +307,11 @@ class _SelectedDaySummary extends StatelessWidget {
           Text(
             viewModel.selectedIslandCount == 0
                 ? '선택된 기억섬이 없어요.'
-                : '${viewModel.selectedIslandCount}개의 기억섬을 기준으로 기록을 보여줄 준비가 되었어요.',
+                : memories.isEmpty
+                ? '선택한 기억섬 기준으로 아직 표시할 기억이 없어요.'
+                : '${memories.length}개의 기억섬에서 이날의 기억을 확인할 수 있어요.',
             style: AppFont.b8_14.copyWith(
-              color: viewModel.selectedIslandCount == 0
+              color: viewModel.selectedIslandCount == 0 || memories.isEmpty
                   ? AppColors.g03
                   : AppColors.g02,
               height: 1.35,
@@ -300,6 +321,22 @@ class _SelectedDaySummary extends StatelessWidget {
       ),
     );
   }
+}
+
+void _openMemoryBottomSheet(
+  BuildContext context,
+  CalendarViewModel viewModel,
+  DateTime date,
+) {
+  showModalBottomSheet<void>(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
+    builder: (_) => CalendarMemoryBottomSheet(
+      date: date,
+      groups: viewModel.memoriesForDay(date),
+    ),
+  ).whenComplete(viewModel.closeBottomSheet);
 }
 
 class _CalendarFilterDrawer extends StatelessWidget {
