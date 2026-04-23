@@ -7,6 +7,8 @@ import 'package:uyoung_app/core/theme/app_font.dart';
 import 'package:uyoung_app/core/theme/app_radius.dart';
 import 'package:uyoung_app/core/theme/app_spacing.dart';
 import 'package:uyoung_app/features/home/presentation/pages/notification_page.dart';
+import 'package:uyoung_app/features/login/data/login_repository.dart';
+import 'package:uyoung_app/features/login/data/login_service.dart';
 import 'package:uyoung_app/features/my_page/data/my_page_repository.dart';
 import 'package:uyoung_app/features/my_page/data/my_page_service.dart';
 import 'package:uyoung_app/features/my_page/presentation/pages/friends_page.dart';
@@ -209,7 +211,7 @@ class _MyPageView extends StatelessWidget {
               const SizedBox(height: 20),
               _FooterActionText(
                 title: '로그아웃',
-                onTap: () => _showPreparingMessage(context, '로그아웃'),
+                onTap: () => _signOut(context),
               ),
               const SizedBox(height: 20),
               _FooterActionText(
@@ -242,6 +244,19 @@ class _MyPageView extends StatelessWidget {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(const SnackBar(content: Text('초대 코드가 복사되었어요.')));
+  }
+
+  static Future<void> _signOut(BuildContext context) async {
+    try {
+      await const LoginRepository(LoginService()).signOut();
+    } catch (_) {
+      if (!context.mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(const SnackBar(content: Text('로그아웃에 실패했어요.')));
+    }
   }
 }
 
