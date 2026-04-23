@@ -133,4 +133,64 @@ class MemoryService {
     final rows = await fetchIslandByIds([islandId]);
     return rows.isEmpty ? null : rows.first;
   }
+
+  Future<void> inviteMembersToIsland({
+    required String islandId,
+    required List<String> selectedUserIds,
+  }) async {
+    final client = _clientProvider.client;
+    if (client == null) {
+      throw StateError('로그인이 필요합니다.');
+    }
+
+    if (selectedUserIds.isEmpty) {
+      return;
+    }
+
+    await client.rpc(
+      'invite_members_to_island',
+      params: {
+        'target_island_id': islandId,
+        'target_user_ids': selectedUserIds,
+      },
+    );
+  }
+
+  Future<List<Map<String, dynamic>>> fetchFavoritePhotos(String islandId) async {
+    final client = _clientProvider.client;
+    if (client == null) {
+      throw StateError('로그인이 필요합니다.');
+    }
+
+    final response = await client.rpc(
+      'get_my_favorite_photos',
+      params: {'target_island_id': islandId},
+    );
+
+    return List<Map<String, dynamic>>.from(
+      (response as List<dynamic>).map(
+        (row) => Map<String, dynamic>.from(row as Map),
+      ),
+    );
+  }
+
+  Future<bool> toggleFavoritePhoto({
+    required String islandId,
+    required String photoKey,
+  }) async {
+    final client = _clientProvider.client;
+    if (client == null) {
+      throw StateError('로그인이 필요합니다.');
+    }
+
+    final response = await client.rpc(
+      'toggle_favorite_photo',
+      params: {
+        'target_island_id': islandId,
+        'target_photo_key': photoKey,
+      },
+    );
+
+    return response == true;
+  }
 }

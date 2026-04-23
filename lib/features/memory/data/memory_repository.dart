@@ -126,6 +126,43 @@ class MemoryRepository {
     }
   }
 
+  Future<void> inviteMembersToIsland({
+    required String islandId,
+    required List<String> selectedUserIds,
+  }) async {
+    try {
+      await service.inviteMembersToIsland(
+        islandId: islandId,
+        selectedUserIds: selectedUserIds,
+      );
+    } catch (error) {
+      throw StateError('멤버를 초대하지 못했어요. $error');
+    }
+  }
+
+  Future<List<FavoritePhoto>> fetchFavoritePhotos(String islandId) async {
+    try {
+      final rows = await service.fetchFavoritePhotos(islandId);
+      return rows.map(FavoritePhoto.fromMap).toList();
+    } catch (error) {
+      throw StateError('즐겨찾는 사진을 불러오지 못했어요. $error');
+    }
+  }
+
+  Future<bool> toggleFavoritePhoto({
+    required String islandId,
+    required String photoKey,
+  }) async {
+    try {
+      return await service.toggleFavoritePhoto(
+        islandId: islandId,
+        photoKey: photoKey,
+      );
+    } catch (error) {
+      throw StateError('즐겨찾기 상태를 변경하지 못했어요. $error');
+    }
+  }
+
   Map<String, List<MemoryMemberPreview>> _groupMembersByIsland(
     List<Map<String, dynamic>> rows,
   ) {

@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:uyoung_app/core/theme/app_colors.dart';
 import 'package:uyoung_app/core/theme/app_font.dart';
+import 'package:uyoung_app/shared/widgets/main_tab_shell.dart';
 import 'package:uyoung_app/features/memory/data/memory_models.dart';
 import 'package:uyoung_app/features/memory/data/memory_repository.dart';
 import 'package:uyoung_app/features/memory/data/memory_service.dart';
+import 'package:uyoung_app/features/memory/presentation/pages/favorite_photos_page.dart';
+import 'package:uyoung_app/features/memory/presentation/pages/island_invite_page.dart';
 import 'package:uyoung_app/features/memory/presentation/viewmodels/island_detail_view_model.dart';
 import 'package:uyoung_app/shared/widgets/app_headline_text.dart';
 
@@ -106,6 +109,58 @@ class _MemberInquiryView extends StatelessWidget {
               ),
               const SizedBox(height: 18),
               Container(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                decoration: BoxDecoration(
+                  color: AppColors.white,
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(color: AppColors.bg02),
+                ),
+                child: Column(
+                  children: [
+                    ListTile(
+                      leading: const Icon(
+                        Icons.calendar_month_rounded,
+                        color: AppColors.b02,
+                        size: 28,
+                      ),
+                      title: Text(
+                        '캘린더',
+                        style: AppFont.b7_16.copyWith(color: AppColors.black),
+                      ),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute<void>(
+                            builder: (_) => const MainTabShell(initialIndex: 2),
+                          ),
+                        );
+                      },
+                    ),
+                    Container(height: 1, color: AppColors.bg02),
+                    ListTile(
+                      leading: const Icon(
+                        Icons.favorite_border_rounded,
+                        color: AppColors.b02,
+                        size: 28,
+                      ),
+                      title: Text(
+                        '즐겨찾는 사진',
+                        style: AppFont.b7_16.copyWith(color: AppColors.black),
+                      ),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute<void>(
+                            builder: (_) => FavoritePhotosPage(islandId: island.id),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 18),
+              Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: AppColors.white,
@@ -135,12 +190,22 @@ class _MemberInquiryView extends StatelessWidget {
                         '초대하기',
                         style: AppFont.b7_16.copyWith(color: AppColors.black),
                       ),
-                      onTap: () {
-                        ScaffoldMessenger.of(context)
-                          ..hideCurrentSnackBar()
-                          ..showSnackBar(
-                            const SnackBar(content: Text('멤버 초대는 다음 단계에서 연결할게요.')),
-                          );
+                      onTap: () async {
+                        final invited = await Navigator.push<bool>(
+                          context,
+                          MaterialPageRoute<bool>(
+                            builder: (_) => IslandInvitePage(
+                              islandId: island.id,
+                              existingMemberIds: viewModel.members
+                                  .map((member) => member.id)
+                                  .toSet(),
+                            ),
+                          ),
+                        );
+
+                        if (invited == true && context.mounted) {
+                          await context.read<IslandDetailViewModel>().load();
+                        }
                       },
                     ),
                     if (viewModel.members.isEmpty)

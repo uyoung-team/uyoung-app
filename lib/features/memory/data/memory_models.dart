@@ -64,3 +64,31 @@ class InviteeUser {
 
   String get displayName => nickname.isNotEmpty ? nickname : userCode;
 }
+
+class FavoritePhoto {
+  const FavoritePhoto({
+    required this.id,
+    required this.islandId,
+    required this.userId,
+    required this.photoKey,
+    required this.createdAt,
+  });
+
+  final String id;
+  final String islandId;
+  final String userId;
+  final String photoKey;
+  final DateTime? createdAt;
+
+  factory FavoritePhoto.fromMap(Map<String, dynamic> map) {
+    return FavoritePhoto(
+      id: (map['id'] ?? '').toString(),
+      islandId: (map['island_id'] ?? '').toString(),
+      userId: (map['user_id'] ?? '').toString(),
+      photoKey: (map['photo_key'] ?? '').toString(),
+      createdAt: map['created_at'] is String
+          ? DateTime.tryParse(map['created_at'] as String)
+          : null,
+    );
+  }
+}
