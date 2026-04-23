@@ -1,9 +1,13 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:uyoung_app/core/theme/app_colors.dart';
 import 'package:uyoung_app/core/theme/app_font.dart';
 import 'package:uyoung_app/features/memory/data/memory_models.dart';
 import 'package:uyoung_app/features/memory/presentation/pages/favorite_photos_page.dart';
 import 'package:uyoung_app/features/memory/presentation/pages/member_inquiry_page.dart';
+import 'package:uyoung_app/features/memory/presentation/pages/photo_detail_page.dart';
 import 'package:uyoung_app/shared/widgets/app_headline_text.dart';
 
 class MemoryDetailPage extends StatefulWidget {
@@ -21,6 +25,8 @@ class MemoryDetailPage extends StatefulWidget {
 class _MemoryDetailPageState extends State<MemoryDetailPage> {
   int selectedIndex = 0;
   final PageController _pageController = PageController();
+  final ImagePicker _picker = ImagePicker();
+  final List<_MemoryLocalPhoto> _localPhotos = [];
 
   static const double _tabBarHeight = 52;
 
@@ -28,6 +34,26 @@ class _MemoryDetailPageState extends State<MemoryDetailPage> {
   void dispose() {
     _pageController.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickImage() async {
+    final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile == null) {
+      return;
+    }
+
+    setState(() {
+      _localPhotos.insert(
+        0,
+        _MemoryLocalPhoto(
+          path: pickedFile.path,
+          createdAt: DateTime.now(),
+          uploaderName: '나',
+          isLocalFile: true,
+        ),
+      );
+      selectedIndex = 0;
+    });
   }
 
   @override
@@ -67,9 +93,10 @@ class _MemoryDetailPageState extends State<MemoryDetailPage> {
             children: [
               _OverviewTab(
                 item: widget.item,
+                localPhotos: _localPhotos,
               ),
-              _DateTab(item: widget.item),
-              _TimelineTab(item: widget.item),
+              _DateTab(item: widget.item, localPhotos: _localPhotos),
+              _TimelineTab(item: widget.item, localPhotos: _localPhotos),
               _FavoriteTab(
                 item: widget.item,
                 onOpenFavoritePhotos: () {
@@ -118,13 +145,7 @@ class _MemoryDetailPageState extends State<MemoryDetailPage> {
                   ),
                   const SizedBox(width: 10),
                   GestureDetector(
-                    onTap: () {
-                      ScaffoldMessenger.of(context)
-                        ..hideCurrentSnackBar()
-                        ..showSnackBar(
-                          const SnackBar(content: Text('사진 추가는 다음 단계에서 연결할게요.')),
-                        );
-                    },
+                    onTap: _pickImage,
                     child: Container(
                       width: 46,
                       height: 46,
@@ -194,9 +215,13 @@ class _MemoryDetailPageState extends State<MemoryDetailPage> {
 }
 
 class _OverviewTab extends StatelessWidget {
-  const _OverviewTab({required this.item});
+  const _OverviewTab({
+    required this.item,
+    required this.localPhotos,
+  });
 
   final MemoryIslandItem item;
+  final List<_MemoryLocalPhoto> localPhotos;
 
   @override
   Widget build(BuildContext context) {
@@ -232,6 +257,24 @@ class _OverviewTab extends StatelessWidget {
           style: AppFont.b8_14.copyWith(color: AppColors.g02),
         ),
         const SizedBox(height: 18),
+        if (localPhotos.isNotEmpty) ...[
+          _QuickActionCard(
+            title: '최근 추가한 사진',
+            subtitle: '${localPhotos.length}장의 사진이 준비되었어요.',
+            icon: Icons.photo_library_outlined,
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => PhotoDetailPage(
+                    imagePath: localPhotos.first.path,
+                    uploaderName: localPhotos.first.uploaderName,
+                  ),
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 12),
+        ],
         Row(
           children: [
             Expanded(
@@ -329,19 +372,35 @@ class _OverviewTab extends StatelessWidget {
 }
 
 class _DateTab extends StatelessWidget {
-  const _DateTab({required this.item});
+  const _DateTab({
+    required this.item,
+    required this.localPhotos,
+  });
 
   final MemoryIslandItem item;
+  final List<_MemoryLocalPhoto> localPhotos;
 
   @override
   Widget build(BuildContext context) {
-    final dates = List<DateTime>.generate(
-      5,
-      (index) => DateUtils.addDaysToDate(
-        item.updatedAt ?? DateTime.now(),
-        -index * 3,
-      ),
-    );
+    final grouped = <DateTime, List<_MemoryLocalPhoto>>{};
+    for (final photo in localPhotos) {
+      final key = DateTime(
+        photo.createdAt.year,
+        photo.createdAt.month,
+        photo.createdAt.day,
+      );
+      grouped.putIfAbsent(key, () => []).add(photo);
+    }
+    final dates = grouped.keys.toList()..sort((a, b) => b.compareTo(a));
+
+    if (dates.isEmpty) {
+      return Center(
+        child: Text(
+          '아직 추가된 사진이 없어요.',
+          style: AppFont.b7_16.copyWith(color: AppColors.g03),
+        ),
+      );
+    }
 
     return ListView.separated(
       padding: const EdgeInsets.fromLTRB(18, 16, 18, 120),
@@ -349,6 +408,7 @@ class _DateTab extends StatelessWidget {
       separatorBuilder: (_, _) => const SizedBox(height: 12),
       itemBuilder: (context, index) {
         final date = dates[index];
+        final photos = grouped[date] ?? const [];
         return Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
@@ -379,9 +439,43 @@ class _DateTab extends StatelessWidget {
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      '이 날짜에 남긴 추억들을 정리할 준비를 하고 있어요.',
+                      '${photos.length}장의 사진이 이 날짜에 저장되어 있어요.',
                       style: AppFont.b8_14.copyWith(color: AppColors.g02),
                     ),
+                    if (photos.isNotEmpty) ...[
+                      const SizedBox(height: 10),
+                      SizedBox(
+                        height: 72,
+                        child: ListView.separated(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: photos.length,
+                          separatorBuilder: (_, _) => const SizedBox(width: 8),
+                          itemBuilder: (context, photoIndex) {
+                            final photo = photos[photoIndex];
+                            return GestureDetector(
+                              onTap: () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute<void>(
+                                    builder: (_) => PhotoDetailPage(
+                                      imagePath: photo.path,
+                                      uploaderName: photo.uploaderName,
+                                    ),
+                                  ),
+                                );
+                              },
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(14),
+                                child: SizedBox(
+                                  width: 72,
+                                  height: 72,
+                                  child: _MemoryPhotoThumbnail(photo: photo),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -394,23 +488,34 @@ class _DateTab extends StatelessWidget {
 }
 
 class _TimelineTab extends StatelessWidget {
-  const _TimelineTab({required this.item});
+  const _TimelineTab({
+    required this.item,
+    required this.localPhotos,
+  });
 
   final MemoryIslandItem item;
+  final List<_MemoryLocalPhoto> localPhotos;
 
   @override
   Widget build(BuildContext context) {
-    final members = item.members.isEmpty
-        ? ['아직 참여 멤버가 없어요']
-        : item.members.map((member) => member.nickname).toList();
+    if (localPhotos.isEmpty) {
+      return Center(
+        child: Text(
+          '아직 타임라인에 표시할 사진이 없어요.',
+          style: AppFont.b7_16.copyWith(color: AppColors.g03),
+        ),
+      );
+    }
+
+    final timelineItems = localPhotos.take(8).toList();
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(18, 16, 18, 120),
       children: [
-        ...members.asMap().entries.map((entry) {
+        ...timelineItems.asMap().entries.map((entry) {
           final index = entry.key;
-          final name = entry.value;
-          final isLast = index == members.length - 1;
+          final photo = entry.value;
+          final isLast = index == timelineItems.length - 1;
 
           return Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -447,13 +552,28 @@ class _TimelineTab extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        name,
+                        '${photo.createdAt.month}월 ${photo.createdAt.day}일 · ${photo.uploaderName}',
                         style: AppFont.b7_16.copyWith(color: AppColors.black),
                       ),
                       const SizedBox(height: 6),
-                      Text(
-                        '기억섬 활동 타임라인은 다음 단계에서 더 풍성하게 이어붙일게요.',
-                        style: AppFont.b8_14.copyWith(color: AppColors.g02),
+                      Row(
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: SizedBox(
+                              width: 64,
+                              height: 64,
+                              child: _MemoryPhotoThumbnail(photo: photo),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              '새로운 추억이 타임라인에 추가되었어요.',
+                              style: AppFont.b8_14.copyWith(color: AppColors.g02),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -463,6 +583,37 @@ class _TimelineTab extends StatelessWidget {
           );
         }),
       ],
+    );
+  }
+}
+
+class _MemoryPhotoThumbnail extends StatelessWidget {
+  const _MemoryPhotoThumbnail({required this.photo});
+
+  final _MemoryLocalPhoto photo;
+
+  @override
+  Widget build(BuildContext context) {
+    if (photo.isLocalFile) {
+      return Image.file(
+        File(photo.path),
+        fit: BoxFit.cover,
+        errorBuilder: (_, _, _) => const ColoredBox(color: AppColors.g05),
+      );
+    }
+
+    if (photo.path.startsWith('http://') || photo.path.startsWith('https://')) {
+      return Image.network(
+        photo.path,
+        fit: BoxFit.cover,
+        errorBuilder: (_, _, _) => const ColoredBox(color: AppColors.g05),
+      );
+    }
+
+    return Image.asset(
+      photo.path,
+      fit: BoxFit.cover,
+      errorBuilder: (_, _, _) => const ColoredBox(color: AppColors.g05),
     );
   }
 }
@@ -566,4 +717,18 @@ class _QuickActionCard extends StatelessWidget {
       ),
     );
   }
+}
+
+class _MemoryLocalPhoto {
+  const _MemoryLocalPhoto({
+    required this.path,
+    required this.createdAt,
+    required this.uploaderName,
+    required this.isLocalFile,
+  });
+
+  final String path;
+  final DateTime createdAt;
+  final String uploaderName;
+  final bool isLocalFile;
 }
