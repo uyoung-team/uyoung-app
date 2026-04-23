@@ -40,8 +40,28 @@ class MemoryService {
 
     final response = await client
         .from('island_members')
-        .select('island_id, user_id, profiles!user_id(id, nickname, avatar_url)')
+        .select('island_id, user_id')
         .inFilter('island_id', islandIds);
+
+    return List<Map<String, dynamic>>.from(
+      (response as List<dynamic>).map(
+        (row) => Map<String, dynamic>.from(row as Map),
+      ),
+    );
+  }
+
+  Future<List<Map<String, dynamic>>> fetchProfilesByIds(
+    List<String> userIds,
+  ) async {
+    final client = _clientProvider.client;
+    if (client == null || userIds.isEmpty) {
+      return const [];
+    }
+
+    final response = await client
+        .from('profiles')
+        .select('id, nickname, avatar_url, user_code')
+        .inFilter('id', userIds);
 
     return List<Map<String, dynamic>>.from(
       (response as List<dynamic>).map(

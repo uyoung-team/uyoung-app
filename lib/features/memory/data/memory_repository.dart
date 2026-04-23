@@ -14,7 +14,7 @@ class MemoryRepository {
           .where((id) => id.isNotEmpty)
           .toList();
       final memberRows = await service.fetchIslandMemberRows(islandIds);
-      final membersByIsland = _groupMembersByIsland(memberRows);
+      final membersByIsland = await _groupMembersByIsland(memberRows);
 
       final items = islandRows.map((row) {
         final island = Map<String, dynamic>.from(
@@ -77,7 +77,7 @@ class MemoryRepository {
       final islandRows = await service.fetchIslandByIds([islandId]);
       final memberRows = await service.fetchIslandMemberRows([islandId]);
       final island = islandRows.isNotEmpty ? islandRows.first : <String, dynamic>{};
-      final members = _groupMembersByIsland(memberRows)[islandId] ?? const [];
+      final members = (await _groupMembersByIsland(memberRows))[islandId] ?? const [];
 
       return MemoryIslandItem(
         id: islandId,
@@ -120,7 +120,7 @@ class MemoryRepository {
   Future<List<MemoryMemberPreview>> fetchIslandMembers(String islandId) async {
     try {
       final memberRows = await service.fetchIslandMemberRows([islandId]);
-      return _groupMembersByIsland(memberRows)[islandId] ?? const [];
+      return (await _groupMembersByIsland(memberRows))[islandId] ?? const [];
     } catch (error) {
       throw StateError('멤버 정보를 불러오지 못했어요. $error');
     }
@@ -163,16 +163,26 @@ class MemoryRepository {
     }
   }
 
-  Map<String, List<MemoryMemberPreview>> _groupMembersByIsland(
+  Future<Map<String, List<MemoryMemberPreview>>> _groupMembersByIsland(
     List<Map<String, dynamic>> rows,
-  ) {
+  ) async {
     final grouped = <String, List<MemoryMemberPreview>>{};
+    final userIds = rows
+        .map((row) => row['user_id']?.toString() ?? '')
+        .where((id) => id.isNotEmpty)
+        .toSet()
+        .toList();
+    final profileRows = await service.fetchProfilesByIds(userIds);
+    final profileMap = {
+      for (final row in profileRows) row['id']?.toString() ?? '': row,
+    };
 
     for (final row in rows) {
       final islandId = row['island_id']?.toString();
-      final profileRaw = row['profiles'];
+      final userId = row['user_id']?.toString() ?? '';
+      final profileRaw = profileMap[userId];
 
-      if (islandId == null || profileRaw is! Map) {
+      if (islandId == null || profileRaw == null) {
         continue;
       }
 
