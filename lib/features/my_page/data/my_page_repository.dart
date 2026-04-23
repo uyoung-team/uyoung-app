@@ -22,6 +22,16 @@ class MyPageRepository {
     );
   }
 
+  Future<bool> needsProfileSetup() async {
+    final profileRow = await service.fetchProfile();
+    if (profileRow == null) {
+      return true;
+    }
+
+    final nickname = (profileRow['nickname'] ?? '').toString().trim();
+    return nickname.isEmpty;
+  }
+
   Future<void> updateProfile({
     required String nickname,
   }) async {

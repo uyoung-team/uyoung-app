@@ -37,10 +37,10 @@ class MyPageService {
       throw StateError('로그인이 필요합니다.');
     }
 
-    await client
-        .from('profiles')
-        .update({'nickname': nickname.trim()})
-        .eq('id', userId);
+    await client.from('profiles').upsert({
+      'id': userId,
+      'nickname': nickname.trim(),
+    }, onConflict: 'id');
   }
 
   Future<List<Map<String, dynamic>>> fetchUserAssets() async {

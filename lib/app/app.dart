@@ -6,6 +6,9 @@ import 'package:uyoung_app/core/theme/app_theme.dart';
 import 'package:uyoung_app/features/login/data/login_repository.dart';
 import 'package:uyoung_app/features/login/data/login_service.dart';
 import 'package:uyoung_app/features/login/presentation/pages/login_page.dart';
+import 'package:uyoung_app/features/login/presentation/pages/profile_setup_page.dart';
+import 'package:uyoung_app/features/my_page/data/my_page_repository.dart';
+import 'package:uyoung_app/features/my_page/data/my_page_service.dart';
 import 'package:uyoung_app/shared/widgets/main_tab_shell.dart';
 
 class UyoungApp extends StatelessWidget {
@@ -39,6 +42,9 @@ class AuthGate extends StatefulWidget {
 
 class _AuthGateState extends State<AuthGate> {
   final LoginRepository _repository = const LoginRepository(LoginService());
+  final MyPageRepository _myPageRepository = const MyPageRepository(
+    MyPageService(),
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -51,7 +57,22 @@ class _AuthGateState extends State<AuthGate> {
           return const LoginPage();
         }
 
-        return const MainTabShell();
+        return FutureBuilder<bool>(
+          future: _myPageRepository.needsProfileSetup(),
+          builder: (context, profileSnapshot) {
+            if (profileSnapshot.connectionState != ConnectionState.done) {
+              return const Scaffold(
+                body: Center(child: CircularProgressIndicator()),
+              );
+            }
+
+            if (profileSnapshot.data == true) {
+              return const ProfileSetupPage();
+            }
+
+            return const MainTabShell();
+          },
+        );
       },
     );
   }
