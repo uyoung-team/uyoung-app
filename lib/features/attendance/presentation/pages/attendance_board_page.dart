@@ -6,7 +6,6 @@ import 'package:uyoung_app/features/attendance/presentation/viewmodels/attendanc
 import 'package:uyoung_app/features/attendance/presentation/widgets/attendance_board_layout.dart';
 import 'package:uyoung_app/features/attendance/presentation/widgets/attendance_primary_button.dart';
 import 'package:uyoung_app/shared/services/asset_paths.dart';
-import 'package:uyoung_app/shared/widgets/app_headline_text.dart';
 
 class AttendanceBoardPage extends StatelessWidget {
   const AttendanceBoardPage({super.key, required this.viewModel});
@@ -36,12 +35,6 @@ class _AttendanceBoardView extends StatelessWidget {
       backgroundColor: AppColors.white,
       body: Stack(
         children: [
-          Positioned.fill(
-            child: Image.asset(
-              AssetPaths.images.attendance.background02,
-              fit: BoxFit.cover,
-            ),
-          ),
           Positioned(
             top: safeTop + 8,
             left: 18,
@@ -59,8 +52,11 @@ class _AttendanceBoardView extends StatelessWidget {
                   top: 14,
                   left: 0,
                   right: 0,
-                  child: Center(
-                    child: AppHeadlineText('출석체크', style: AppFont.h4_22),
+                    child: Center(
+                    child: Text(
+                      '출석체크',
+                      style: AppFont.h4_22.copyWith(color: AppColors.black),
+                    ),
                   ),
                 ),
                 _AttendanceBoardHeader(viewModel: viewModel),
@@ -85,6 +81,7 @@ class _AttendanceBoardView extends StatelessWidget {
                   bottom: safeBottom + 2,
                   child: AttendancePrimaryButton(
                     text: '홈으로 가기',
+                    height: 58,
                     onTap: () {
                       Navigator.popUntil(context, (route) => route.isFirst);
                     },
@@ -119,9 +116,12 @@ class _AttendanceBoardHeader extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  AppHeadlineText(
+                  Text(
                     viewModel.boardItemSummary,
-                    style: AppFont.h3_24,
+                    style: AppFont.h3_24.copyWith(
+                      color: AppColors.black,
+                      height: 1.35,
+                    ),
                   ),
                   const SizedBox(height: 12),
                   Text(

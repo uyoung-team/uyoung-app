@@ -13,23 +13,25 @@ class AttendanceBoardLayout extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        const starWidth = 112.0;
-        const iconSize = 58.0;
+        const starWidth = 150.0;
+        const iconSize = 75.0;
 
         final labelStyle = AppFont.h6_18.copyWith(color: AppColors.b02);
 
         final boardWidth = constraints.maxWidth;
         final boardHeight = constraints.maxHeight;
         const pathHorizontalInset = 18.0;
-        const pathBottom = 124.0;
+        const basePathBottom = 150.0;
+        const pathBottom = 150.0;
         final pathWidth = boardWidth - (pathHorizontalInset * 2);
+        final verticalShift = basePathBottom - pathBottom;
 
-        double syncedLeft(double ratio, {double offset = -22}) {
+        double syncedLeft(double ratio, {double offset = -30}) {
           return pathWidth * ratio + offset;
         }
 
-        double syncedTop(double ratio, {double offset = -14}) {
-          return boardHeight * ratio + offset;
+        double syncedTop(double ratio, {double offset = -30}) {
+          return boardHeight * ratio + verticalShift + offset;
         }
 
         return Stack(
@@ -160,9 +162,7 @@ class _BoardTile extends StatelessWidget {
                   Positioned.fill(
                     child: Center(
                       child: Image.asset(
-                        highlighted
-                            ? AssetPaths.images.attendance.boardStarShine
-                            : AssetPaths.images.attendance.boardStar,
+                        AssetPaths.images.attendance.boardStar,
                         width: starWidth,
                         height: starWidth,
                         fit: BoxFit.contain,
@@ -184,7 +184,7 @@ class _BoardTile extends StatelessWidget {
             ),
           ),
           Transform.translate(
-            offset: const Offset(0, -16),
+            offset: const Offset(0, -20),
             child: Text('$day일차', style: labelStyle),
           ),
         ],

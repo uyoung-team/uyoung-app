@@ -9,7 +9,6 @@ import 'package:uyoung_app/features/calendar/presentation/pages/calendar_memory_
 import 'package:uyoung_app/features/calendar/presentation/viewmodels/calendar_view_model.dart';
 import 'package:uyoung_app/features/calendar/presentation/widgets/calendar_memory_bottom_sheet.dart';
 import 'package:uyoung_app/shared/services/asset_paths.dart';
-import 'package:uyoung_app/shared/widgets/app_headline_text.dart';
 
 class CalendarPage extends StatelessWidget {
   const CalendarPage({super.key});
@@ -64,29 +63,37 @@ class _CalendarTopBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 12, 0),
+      padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 4),
       child: Row(
         children: [
-          AppHeadlineText.h5('캘린더'),
+          const SizedBox(width: 8),
+          Text(
+            '캘린더',
+            style: AppFont.b5_20.copyWith(color: AppColors.black),
+          ),
           const Spacer(),
           Builder(
             builder: (context) {
               return IconButton(
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
                 onPressed: () => Scaffold.of(context).openEndDrawer(),
                 icon: SvgPicture.asset(
                   AssetPaths.icons.common.filter,
-                  width: 36,
-                  height: 36,
+                  width: 44,
+                  height: 44,
                 ),
               );
             },
           ),
           IconButton(
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
             onPressed: viewModel.jumpToToday,
             icon: SvgPicture.asset(
               AssetPaths.icons.common.today,
-              width: 36,
-              height: 36,
+              width: 44,
+              height: 44,
             ),
           ),
         ],
@@ -106,25 +113,17 @@ class _CalendarMonthHeader extends StatelessWidget {
         '${viewModel.focusedMonth.year}년 ${viewModel.focusedMonth.month}월';
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 18),
+      padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Row(
         children: [
-          IconButton(
-            onPressed: viewModel.goToPreviousMonth,
-            icon: const Icon(Icons.chevron_left_rounded),
+          Text(
+            monthText,
+            style: AppFont.b5_20.copyWith(color: AppColors.black),
           ),
-          Expanded(
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: () => _openMonthPicker(context, viewModel),
-              child: Center(
-                child: AppHeadlineText.h6(monthText),
-              ),
-            ),
-          ),
-          IconButton(
-            onPressed: viewModel.goToNextMonth,
-            icon: const Icon(Icons.chevron_right_rounded),
+          const SizedBox(width: 4),
+          GestureDetector(
+            onTap: () => _openMonthPicker(context, viewModel),
+            child: const Icon(Icons.keyboard_arrow_down, size: 18),
           ),
         ],
       ),
@@ -140,22 +139,38 @@ class _WeekdayHeader extends StatelessWidget {
     const labels = ['일', '월', '화', '수', '목', '금', '토'];
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 18),
-      child: Row(
-        children: labels
-            .map(
-              (label) => Expanded(
-                child: Center(
-                  child: Text(
-                    label,
-                    style: AppFont.b8_14.copyWith(
-                      color: label == '일' ? AppColors.subRed03 : AppColors.g02,
+      padding: const EdgeInsets.symmetric(horizontal: 10),
+      child: Column(
+        children: [
+          Row(
+            children: labels
+                .asMap()
+                .entries
+                .map(
+                  (entry) => Expanded(
+                    child: Center(
+                      child: Text(
+                        entry.value,
+                        style: AppFont.b7_16.copyWith(
+                          color: entry.key == 0
+                              ? AppColors.subRed03
+                              : entry.key == 6
+                              ? AppColors.b01
+                              : AppColors.black,
+                        ),
+                      ),
                     ),
                   ),
-                ),
-              ),
-            )
-            .toList(),
+                )
+                .toList(),
+          ),
+          const SizedBox(height: 7.5),
+          Container(
+            height: 1,
+            margin: const EdgeInsets.symmetric(horizontal: 18),
+            color: AppColors.bg02,
+          ),
+        ],
       ),
     );
   }
@@ -319,7 +334,10 @@ void _openMonthPicker(BuildContext context, CalendarViewModel viewModel) {
                         setStateDialog(() => tempYear--);
                       },
                     ),
-                    AppHeadlineText.h5('$tempYear년'),
+                    Text(
+                      '$tempYear년',
+                      style: AppFont.b5_20.copyWith(color: AppColors.black),
+                    ),
                     IconButton(
                       icon: const Icon(Icons.arrow_right),
                       onPressed: () {
@@ -418,35 +436,52 @@ class _CalendarFilterDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Drawer(
+      width: 312,
       backgroundColor: AppColors.white,
+      elevation: 0,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
       child: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            const SizedBox(height: 10),
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+              padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Row(
                 children: [
-                  AppHeadlineText.h6('기억섬 필터'),
+                  Text(
+                    '내 기억섬',
+                    style: AppFont.b6_18.copyWith(color: AppColors.black),
+                  ),
                   const Spacer(),
                   IconButton(
-                    onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.close_rounded),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (_) => ChangeNotifierProvider.value(
+                            value: viewModel,
+                            child: const CalendarMemoryIslandManagePage(),
+                          ),
+                        ),
+                      );
+                    },
+                    icon: SvgPicture.asset(
+                      AssetPaths.icons.common.setting,
+                      width: 30,
+                      height: 30,
+                    ),
                   ),
                 ],
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Text(
-                '표시할 기억섬을 선택하면 이후 캘린더 기록을 더 쉽게 좁혀볼 수 있어요.',
-                style: AppFont.b8_14.copyWith(
-                  color: AppColors.g02,
-                  height: 1.35,
-                ),
-              ),
+            Container(
+              height: 1,
+              color: const Color(0xFFE9E9ED),
+              margin: const EdgeInsets.symmetric(horizontal: 24),
             ),
-            const SizedBox(height: 18),
+            const SizedBox(height: 16),
             Expanded(
               child: viewModel.islandFilters.isEmpty
                   ? Center(
@@ -454,95 +489,56 @@ class _CalendarFilterDrawer extends StatelessWidget {
                         '선택할 기억섬이 아직 없어요.',
                         style: AppFont.b8_14.copyWith(color: AppColors.g03),
                       ),
-                    )
+                      )
                   : ListView.separated(
-                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
                       itemBuilder: (context, index) {
                         final item = viewModel.islandFilters[index];
 
-                        return InkWell(
-                          borderRadius: BorderRadius.circular(18),
+                        return GestureDetector(
                           onTap: () => viewModel.toggleIslandSelection(item.id),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 14,
-                            ),
-                            decoration: BoxDecoration(
-                              color: item.isSelected
-                                  ? item.color.withValues(alpha: 0.14)
-                                  : AppColors.back,
-                              borderRadius: BorderRadius.circular(18),
-                              border: Border.all(
-                                color: item.isSelected
-                                    ? item.color
-                                    : AppColors.bg02,
-                              ),
-                            ),
-                            child: Row(
-                              children: [
-                                Container(
-                                  width: 12,
-                                  height: 12,
-                                  decoration: BoxDecoration(
-                                    color: item.color,
-                                    shape: BoxShape.circle,
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 24,
+                                height: 24,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(6),
+                                  border: Border.all(
+                                    color: item.isSelected
+                                        ? Colors.transparent
+                                        : const Color(0xFFD2D2D7),
+                                    width: 1.5,
                                   ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Text(
-                                    item.name,
-                                    style: AppFont.b7_16.copyWith(
-                                      color: AppColors.black,
-                                    ),
-                                  ),
-                                ),
-                                Icon(
-                                  item.isSelected
-                                      ? Icons.check_circle_rounded
-                                      : Icons.circle_outlined,
                                   color: item.isSelected
                                       ? item.color
-                                      : AppColors.g04,
+                                      : AppColors.white,
                                 ),
-                              ],
-                            ),
+                                child: item.isSelected
+                                    ? const Icon(
+                                        Icons.check,
+                                        size: 18,
+                                        color: AppColors.white,
+                                      )
+                                    : null,
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text(
+                                  item.name,
+                                  style: AppFont.b7_16.copyWith(
+                                    color: AppColors.black,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
                           ),
                         );
                       },
-                      separatorBuilder: (_, _) => const SizedBox(height: 10),
+                      separatorBuilder: (_, _) => const SizedBox(height: 20),
                       itemCount: viewModel.islandFilters.length,
                     ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
-              child: SizedBox(
-                width: double.infinity,
-                child: FilledButton(
-                  onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute<void>(
-                        builder: (_) => ChangeNotifierProvider.value(
-                          value: viewModel,
-                          child: const CalendarMemoryIslandManagePage(),
-                        ),
-                      ),
-                    );
-                  },
-                  style: FilledButton.styleFrom(
-                    backgroundColor: AppColors.b02,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                  ),
-                  child: Text(
-                    '기억섬 관리',
-                    style: AppFont.b7_16.copyWith(color: AppColors.white),
-                  ),
-                ),
-              ),
             ),
           ],
         ),
