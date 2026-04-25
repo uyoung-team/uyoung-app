@@ -94,6 +94,33 @@ class CalendarViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  void reorderIslands(int oldIndex, int newIndex) {
+    if (oldIndex < 0 || oldIndex >= _islandFilters.length) {
+      return;
+    }
+    if (newIndex < 0 || newIndex > _islandFilters.length) {
+      return;
+    }
+    if (newIndex > oldIndex) {
+      newIndex -= 1;
+    }
+
+    final item = _islandFilters.removeAt(oldIndex);
+    _islandFilters.insert(newIndex, item);
+    notifyListeners();
+  }
+
+  void toggleAlert(String islandId, bool enabled) {
+    _islandFilters = _islandFilters
+        .map(
+          (item) => item.id == islandId
+              ? item.copyWith(alertEnabled: enabled)
+              : item,
+        )
+        .toList();
+    notifyListeners();
+  }
+
   List<CalendarDayMemoryGroup> memoriesForDay(DateTime day) {
     final selectedIslands = _islandFilters.where((item) => item.isSelected);
     return selectedIslands

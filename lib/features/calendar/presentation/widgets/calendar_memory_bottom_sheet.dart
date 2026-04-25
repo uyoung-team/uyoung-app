@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:uyoung_app/core/theme/app_colors.dart';
 import 'package:uyoung_app/core/theme/app_font.dart';
 import 'package:uyoung_app/features/calendar/data/calendar_models.dart';
+import 'package:uyoung_app/features/calendar/presentation/pages/calendar_memory_island_detail_page.dart';
 import 'package:uyoung_app/shared/widgets/app_headline_text.dart';
 
 class CalendarMemoryBottomSheet extends StatelessWidget {
@@ -59,7 +60,10 @@ class CalendarMemoryBottomSheet extends StatelessWidget {
                         padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
                         itemBuilder: (context, index) {
                           final group = groups[index];
-                          return _CalendarMemoryIslandSection(group: group);
+                          return _CalendarMemoryIslandSection(
+                            group: group,
+                            date: date,
+                          );
                         },
                         separatorBuilder: (_, _) => const SizedBox(height: 24),
                         itemCount: groups.length,
@@ -74,9 +78,13 @@ class CalendarMemoryBottomSheet extends StatelessWidget {
 }
 
 class _CalendarMemoryIslandSection extends StatelessWidget {
-  const _CalendarMemoryIslandSection({required this.group});
+  const _CalendarMemoryIslandSection({
+    required this.group,
+    required this.date,
+  });
 
   final CalendarDayMemoryGroup group;
+  final DateTime date;
 
   @override
   Widget build(BuildContext context) {
@@ -101,30 +109,44 @@ class _CalendarMemoryIslandSection extends StatelessWidget {
         const SizedBox(height: 16),
         SizedBox(
           height: 146,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            itemBuilder: (context, index) {
-              final imagePath = group.thumbnailPaths[index];
-              final remaining = group.thumbnailPaths.length - 3;
-
-              if (index == 2 && group.thumbnailPaths.length > 3) {
-                return _OverlayPhotoCard(
-                  imagePath: imagePath,
-                  label: '+$remaining',
-                );
-              }
-
-              if (index > 2 && group.thumbnailPaths.length > 3) {
-                return const SizedBox.shrink();
-              }
-
-              return _PhotoCard(
-                imagePath: imagePath,
-                angleDegrees: index.isEven ? -3.98 : 2.98,
+          child: GestureDetector(
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => CalendarMemoryIslandDetailPage(
+                    group: group,
+                    date: date,
+                  ),
+                ),
               );
             },
-            separatorBuilder: (_, _) => const SizedBox(width: 14),
-            itemCount: group.thumbnailPaths.length > 3 ? 3 : group.thumbnailPaths.length,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemBuilder: (context, index) {
+                final imagePath = group.thumbnailPaths[index];
+                final remaining = group.thumbnailPaths.length - 3;
+
+                if (index == 2 && group.thumbnailPaths.length > 3) {
+                  return _OverlayPhotoCard(
+                    imagePath: imagePath,
+                    label: '+$remaining',
+                  );
+                }
+
+                if (index > 2 && group.thumbnailPaths.length > 3) {
+                  return const SizedBox.shrink();
+                }
+
+                return _PhotoCard(
+                  imagePath: imagePath,
+                  angleDegrees: index.isEven ? -3.98 : 2.98,
+                );
+              },
+              separatorBuilder: (_, _) => const SizedBox(width: 14),
+              itemCount: group.thumbnailPaths.length > 3
+                  ? 3
+                  : group.thumbnailPaths.length,
+            ),
           ),
         ),
       ],

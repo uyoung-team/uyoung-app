@@ -20,6 +20,7 @@ class CalendarRepository {
           name: island['name']?.toString() ?? '이름 없는 기억섬',
           color: CalendarService.colorFromHex(island['theme_color']?.toString()),
           isSelected: true,
+          alertEnabled: true,
         );
       }).where((item) => item.id.isNotEmpty).toList();
     } catch (error) {

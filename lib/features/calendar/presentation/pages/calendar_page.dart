@@ -5,6 +5,7 @@ import 'package:uyoung_app/core/theme/app_colors.dart';
 import 'package:uyoung_app/core/theme/app_font.dart';
 import 'package:uyoung_app/features/calendar/data/calendar_repository.dart';
 import 'package:uyoung_app/features/calendar/data/calendar_service.dart';
+import 'package:uyoung_app/features/calendar/presentation/pages/calendar_memory_island_manage_page.dart';
 import 'package:uyoung_app/features/calendar/presentation/viewmodels/calendar_view_model.dart';
 import 'package:uyoung_app/features/calendar/presentation/widgets/calendar_memory_bottom_sheet.dart';
 import 'package:uyoung_app/shared/services/asset_paths.dart';
@@ -513,6 +514,35 @@ class _CalendarFilterDrawer extends StatelessWidget {
                       separatorBuilder: (_, _) => const SizedBox(height: 10),
                       itemCount: viewModel.islandFilters.length,
                     ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+              child: SizedBox(
+                width: double.infinity,
+                child: FilledButton(
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => ChangeNotifierProvider.value(
+                          value: viewModel,
+                          child: const CalendarMemoryIslandManagePage(),
+                        ),
+                      ),
+                    );
+                  },
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AppColors.b02,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                  child: Text(
+                    '기억섬 관리',
+                    style: AppFont.b7_16.copyWith(color: AppColors.white),
+                  ),
+                ),
+              ),
             ),
           ],
         ),
