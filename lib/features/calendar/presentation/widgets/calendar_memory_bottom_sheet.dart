@@ -46,8 +46,6 @@ class CalendarMemoryBottomSheet extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 16),
-              AppHeadlineText.h6('${date.month}월 ${date.day}일'),
-              const SizedBox(height: 12),
               Expanded(
                 child: groups.isEmpty
                     ? Center(
@@ -120,7 +118,10 @@ class _CalendarMemoryIslandSection extends StatelessWidget {
                 return const SizedBox.shrink();
               }
 
-              return _PhotoCard(imagePath: imagePath);
+              return _PhotoCard(
+                imagePath: imagePath,
+                angleDegrees: index.isEven ? -3.98 : 2.98,
+              );
             },
             separatorBuilder: (_, _) => const SizedBox(width: 14),
             itemCount: group.thumbnailPaths.length > 3 ? 3 : group.thumbnailPaths.length,
@@ -132,27 +133,34 @@ class _CalendarMemoryIslandSection extends StatelessWidget {
 }
 
 class _PhotoCard extends StatelessWidget {
-  const _PhotoCard({required this.imagePath});
+  const _PhotoCard({
+    required this.imagePath,
+    required this.angleDegrees,
+  });
 
   final String imagePath;
+  final double angleDegrees;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 108,
-      height: 144,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: const [
-          BoxShadow(
-            offset: Offset(2, 2),
-            blurRadius: 6,
-            color: Color(0x14000000),
+    return Transform.rotate(
+      angle: angleDegrees * 3.141592 / 180,
+      child: Container(
+        width: 107,
+        height: 143,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: const [
+            BoxShadow(
+              offset: Offset(2, 2),
+              blurRadius: 6,
+              color: Color(0x14000000),
+            ),
+          ],
+          image: DecorationImage(
+            image: AssetImage(imagePath),
+            fit: BoxFit.cover,
           ),
-        ],
-        image: DecorationImage(
-          image: AssetImage(imagePath),
-          fit: BoxFit.cover,
         ),
       ),
     );
@@ -170,23 +178,33 @@ class _OverlayPhotoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(16),
-      child: Stack(
-        children: [
-          _PhotoCard(imagePath: imagePath),
-          Positioned.fill(
-            child: Container(color: const Color(0x66000000)),
-          ),
-          Positioned.fill(
-            child: Center(
-              child: Text(
-                label,
-                style: AppFont.b5_20.copyWith(color: AppColors.white),
+    return Transform.rotate(
+      angle: 2.99 * 3.141592 / 180,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: Stack(
+          children: [
+            SizedBox(
+              width: 107,
+              height: 143,
+              child: Image.asset(
+                imagePath,
+                fit: BoxFit.cover,
               ),
             ),
-          ),
-        ],
+            Positioned.fill(
+              child: Container(color: const Color(0x66000000)),
+            ),
+            Positioned.fill(
+              child: Center(
+                child: Text(
+                  label,
+                  style: AppFont.b5_20.copyWith(color: AppColors.white),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

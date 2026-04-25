@@ -138,13 +138,6 @@ class _MemoryView extends StatelessWidget {
     );
   }
 
-  static void _showPreparingMessage(BuildContext context, String label) {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(content: Text('$label 기능은 다음 단계에서 연결할게요.')),
-      );
-  }
 }
 
 class _MemoryEmptyState extends StatelessWidget {
@@ -159,8 +152,8 @@ class _MemoryEmptyState extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Image.asset(
-              AssetPaths.images.character.character03,
-              width: 132,
+              AssetPaths.images.character.character02,
+              width: 148,
               fit: BoxFit.contain,
             ),
             const SizedBox(height: 20),
@@ -180,8 +173,13 @@ class _MemoryEmptyState extends StatelessWidget {
               width: 140,
               height: 42,
               child: FilledButton(
-                onPressed: () =>
-                    _MemoryView._showPreparingMessage(context, '기억섬 생성'),
+                onPressed: () {
+                  Navigator.of(context).push<MemoryIslandItem>(
+                    MaterialPageRoute<MemoryIslandItem>(
+                      builder: (_) => const CreateMemoryPage(),
+                    ),
+                  );
+                },
                 style: FilledButton.styleFrom(
                   backgroundColor: AppColors.b02,
                   shape: RoundedRectangleBorder(

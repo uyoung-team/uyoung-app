@@ -45,16 +45,7 @@ class _CalendarView extends StatelessWidget {
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 14),
-                child: Column(
-                  children: [
-                    Expanded(
-                      child: _CalendarGrid(viewModel: viewModel),
-                    ),
-                    const SizedBox(height: 14),
-                    _SelectedDaySummary(viewModel: viewModel),
-                    const SizedBox(height: 14),
-                  ],
-                ),
+                child: _CalendarGrid(viewModel: viewModel),
               ),
             ),
           ],
@@ -122,8 +113,12 @@ class _CalendarMonthHeader extends StatelessWidget {
             icon: const Icon(Icons.chevron_left_rounded),
           ),
           Expanded(
-            child: Center(
-              child: AppHeadlineText.h6(monthText),
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () => _openMonthPicker(context, viewModel),
+              child: Center(
+                child: AppHeadlineText.h6(monthText),
+              ),
             ),
           ),
           IconButton(
@@ -280,49 +275,6 @@ class _CalendarGrid extends StatelessWidget {
   }
 }
 
-class _SelectedDaySummary extends StatelessWidget {
-  const _SelectedDaySummary({required this.viewModel});
-
-  final CalendarViewModel viewModel;
-
-  @override
-  Widget build(BuildContext context) {
-    final label =
-        '${viewModel.selectedDay.month}월 ${viewModel.selectedDay.day}일';
-    final memories = viewModel.memoriesForDay(viewModel.selectedDay);
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(18, 16, 18, 18),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.bg02),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          AppHeadlineText.h7(label),
-          const SizedBox(height: 6),
-          Text(
-            viewModel.selectedIslandCount == 0
-                ? '선택된 기억섬이 없어요.'
-                : memories.isEmpty
-                ? '선택한 기억섬 기준으로 아직 표시할 기억이 없어요.'
-                : '${memories.length}개의 기억섬에서 이날의 기억을 확인할 수 있어요.',
-            style: AppFont.b8_14.copyWith(
-              color: viewModel.selectedIslandCount == 0 || memories.isEmpty
-                  ? AppColors.g03
-                  : AppColors.g02,
-              height: 1.35,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 void _openMemoryBottomSheet(
   BuildContext context,
   CalendarViewModel viewModel,
@@ -337,6 +289,124 @@ void _openMemoryBottomSheet(
       groups: viewModel.memoriesForDay(date),
     ),
   ).whenComplete(viewModel.closeBottomSheet);
+}
+
+void _openMonthPicker(BuildContext context, CalendarViewModel viewModel) {
+  showDialog<void>(
+    context: context,
+    barrierDismissible: true,
+    builder: (dialogContext) {
+      int tempYear = viewModel.focusedMonth.year;
+      int tempMonth = viewModel.focusedMonth.month;
+
+      return AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        contentPadding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+        content: StatefulBuilder(
+          builder: (context, setStateDialog) {
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.arrow_left),
+                      onPressed: () {
+                        setStateDialog(() => tempYear--);
+                      },
+                    ),
+                    AppHeadlineText.h5('$tempYear년'),
+                    IconButton(
+                      icon: const Icon(Icons.arrow_right),
+                      onPressed: () {
+                        setStateDialog(() => tempYear++);
+                      },
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: List.generate(12, (index) {
+                    final month = index + 1;
+                    final isSelected = tempMonth == month;
+
+                    return GestureDetector(
+                      onTap: () {
+                        setStateDialog(() => tempMonth = month);
+                      },
+                      child: Container(
+                        width: 60,
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 6,
+                          horizontal: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: isSelected
+                              ? AppColors.b01.withValues(alpha: 0.12)
+                              : const Color(0xFFF3F4F7),
+                          borderRadius: BorderRadius.circular(8),
+                          border: isSelected
+                              ? Border.all(color: AppColors.b01, width: 1)
+                              : null,
+                        ),
+                        alignment: Alignment.center,
+                        child: Text(
+                          '$month월',
+                          style: AppFont.b7_16.copyWith(
+                            color: isSelected
+                                ? AppColors.b01
+                                : AppColors.black,
+                          ),
+                        ),
+                      ),
+                    );
+                  }),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextButton(
+                        onPressed: () => Navigator.of(dialogContext).pop(),
+                        child: Text(
+                          '취소',
+                          style: AppFont.b7_16.copyWith(color: AppColors.g02),
+                        ),
+                      ),
+                    ),
+                    Container(
+                      width: 1,
+                      height: 30,
+                      color: AppColors.bg02,
+                    ),
+                    Expanded(
+                      child: TextButton(
+                        onPressed: () {
+                          viewModel.setFocusedMonth(
+                            DateTime(tempYear, tempMonth, 1),
+                          );
+                          Navigator.of(dialogContext).pop();
+                        },
+                        child: Text(
+                          '확인',
+                          style: AppFont.b7_16.copyWith(color: AppColors.b01),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            );
+          },
+        ),
+      );
+    },
+  );
 }
 
 class _CalendarFilterDrawer extends StatelessWidget {

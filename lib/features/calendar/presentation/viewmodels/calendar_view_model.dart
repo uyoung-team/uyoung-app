@@ -58,6 +58,11 @@ class CalendarViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setFocusedMonth(DateTime month) {
+    _focusedMonth = DateTime(month.year, month.month);
+    notifyListeners();
+  }
+
   void selectDay(DateTime day) {
     _selectedDay = DateTime(day.year, day.month, day.day);
     _focusedMonth = DateTime(day.year, day.month);
