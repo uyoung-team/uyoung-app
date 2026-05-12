@@ -81,7 +81,7 @@ class _CalendarMemoryIslandDetailPageState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.back,
+      backgroundColor: const Color(0xFFF8F9FB),
       bottomNavigationBar: _isSelectionMode
           ? Container(
               height: 86,
@@ -126,9 +126,9 @@ class _CalendarMemoryIslandDetailPageState
         child: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(5, 12, 5, 5),
+              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 12),
               child: SizedBox(
-                height: 44,
+                height: 40,
                 child: Stack(
                   alignment: Alignment.center,
                   children: [
@@ -149,10 +149,9 @@ class _CalendarMemoryIslandDetailPageState
                     Align(
                       alignment: Alignment.centerLeft,
                       child: IconButton(
-                        icon: SvgPicture.asset(
-                          AssetPaths.icons.common.previous,
-                          width: 20,
-                          height: 20,
+                        icon: const Icon(
+                          Icons.arrow_back_ios_new_rounded,
+                          size: 20,
                         ),
                         onPressed: () => Navigator.of(context).pop(),
                       ),
@@ -162,8 +161,16 @@ class _CalendarMemoryIslandDetailPageState
                       child: _isSelectionMode
                           ? TextButton(
                               onPressed: _toggleSelectionMode,
+                              style: TextButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 18,
+                                ),
+                                minimumSize: Size.zero,
+                                tapTargetSize:
+                                    MaterialTapTargetSize.shrinkWrap,
+                              ),
                               child: Text(
-                                '취소',
+                                '삭제',
                                 style: AppFont.b8_14.copyWith(
                                   color: AppColors.black,
                                 ),
@@ -171,6 +178,10 @@ class _CalendarMemoryIslandDetailPageState
                             )
                           : IconButton(
                               onPressed: _toggleSelectionMode,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 18,
+                              ),
+                              constraints: const BoxConstraints(),
                               icon: SvgPicture.asset(
                                 AssetPaths.icons.common.check,
                                 width: 20,

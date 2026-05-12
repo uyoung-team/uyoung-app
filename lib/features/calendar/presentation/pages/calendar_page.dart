@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:uyoung_app/core/theme/app_colors.dart';
 import 'package:uyoung_app/core/theme/app_font.dart';
+import 'package:uyoung_app/features/calendar/data/calendar_models.dart';
 import 'package:uyoung_app/features/calendar/data/calendar_repository.dart';
 import 'package:uyoung_app/features/calendar/data/calendar_service.dart';
 import 'package:uyoung_app/features/calendar/presentation/pages/calendar_memory_island_manage_page.dart';
@@ -216,6 +217,8 @@ class _CalendarTableSection extends StatelessWidget {
         rowHeight: rowHeight,
         selectedDayPredicate: (day) => _isSameDate(day, viewModel.selectedDay),
         onDaySelected: (selectedDay, focusedDay) {
+          final groups = viewModel.memoriesForDay(selectedDay);
+
           viewModel.selectDay(selectedDay);
           if (!_isSameMonth(focusedDay, viewModel.focusedMonth)) {
             viewModel.setFocusedMonth(
@@ -223,9 +226,19 @@ class _CalendarTableSection extends StatelessWidget {
             );
           }
 
-          if (viewModel.hasAnyMemoryForDay(selectedDay)) {
+          if (groups.isNotEmpty) {
             viewModel.openBottomSheet(selectedDay);
-            _openMemoryBottomSheet(context, viewModel, selectedDay);
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (!context.mounted) {
+                return;
+              }
+              _openMemoryBottomSheet(
+                context,
+                viewModel,
+                selectedDay,
+                groups: groups,
+              );
+            });
           } else {
             viewModel.closeBottomSheet();
           }
@@ -305,6 +318,9 @@ void _openMemoryBottomSheet(
   BuildContext context,
   CalendarViewModel viewModel,
   DateTime date,
+  {
+    List<CalendarDayMemoryGroup>? groups,
+  }
 ) {
   showModalBottomSheet<void>(
     context: context,
@@ -312,7 +328,7 @@ void _openMemoryBottomSheet(
     backgroundColor: Colors.transparent,
     builder: (_) => CalendarMemoryBottomSheet(
       date: date,
-      groups: viewModel.memoriesForDay(date),
+      groups: groups ?? viewModel.memoriesForDay(date),
     ),
   ).whenComplete(viewModel.closeBottomSheet);
 }
