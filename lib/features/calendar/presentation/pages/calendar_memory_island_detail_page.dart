@@ -4,7 +4,6 @@ import 'package:uyoung_app/core/theme/app_colors.dart';
 import 'package:uyoung_app/core/theme/app_font.dart';
 import 'package:uyoung_app/features/calendar/data/calendar_models.dart';
 import 'package:uyoung_app/shared/services/asset_paths.dart';
-import 'package:uyoung_app/shared/widgets/app_headline_text.dart';
 
 class CalendarMemoryIslandDetailPage extends StatefulWidget {
   const CalendarMemoryIslandDetailPage({
@@ -135,9 +134,10 @@ class _CalendarMemoryIslandDetailPageState
                     Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        AppHeadlineText(
+                        Text(
                           widget.group.islandName,
-                          style: AppFont.h6_18,
+                          style: AppFont.h6_18.copyWith(color: AppColors.black),
+                          textAlign: TextAlign.center,
                         ),
                         const SizedBox(height: 4),
                         Text(

@@ -7,7 +7,6 @@ import 'package:uyoung_app/core/theme/app_font.dart';
 import 'package:uyoung_app/features/calendar/data/calendar_models.dart';
 import 'package:uyoung_app/features/calendar/presentation/viewmodels/calendar_view_model.dart';
 import 'package:uyoung_app/shared/services/asset_paths.dart';
-import 'package:uyoung_app/shared/widgets/app_headline_text.dart';
 
 class CalendarMemoryIslandSettingsPage extends StatelessWidget {
   const CalendarMemoryIslandSettingsPage({
@@ -32,7 +31,7 @@ class CalendarMemoryIslandSettingsPage extends StatelessWidget {
     );
 
     return Scaffold(
-      backgroundColor: AppColors.white,
+      backgroundColor: const Color(0xFFF8F9FB),
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -46,7 +45,10 @@ class CalendarMemoryIslandSettingsPage extends StatelessWidget {
                     icon: const Icon(Icons.close, size: 26),
                   ),
                   const Spacer(),
-                  AppHeadlineText('기억섬 관리', style: AppFont.h5_20),
+                  Text(
+                    '기억섬 관리',
+                    style: AppFont.b5_20.copyWith(color: AppColors.black),
+                  ),
                   const Spacer(),
                   const SizedBox(width: 40),
                 ],
@@ -60,7 +62,7 @@ class CalendarMemoryIslandSettingsPage extends StatelessWidget {
                   Expanded(
                     child: Text(
                       island.name,
-                      style: AppFont.b6_18.copyWith(color: AppColors.black),
+                      style: AppFont.b6_18.copyWith(color: AppColors.g01),
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
