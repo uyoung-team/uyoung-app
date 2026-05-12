@@ -119,6 +119,7 @@ class AppImages {
   const AppImages._();
 
   final AttendanceImages attendance = const AttendanceImages();
+  final CalendarImages calendar = const CalendarImages();
   final CharacterImages character = const CharacterImages();
   final HomeImages home = const HomeImages();
   final SplashImages splash = const SplashImages();
@@ -150,6 +151,12 @@ class AttendanceImages {
       'assets/images/attendance/attendance_item_trash_02.png';
   final String itemTrashBundle =
       'assets/images/attendance/attendance_item_trash_bundle.png';
+}
+
+class CalendarImages {
+  const CalendarImages();
+
+  final String character = 'assets/images/calendar/character.png';
 }
 
 class CharacterImages {

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
+import 'package:table_calendar/table_calendar.dart';
 import 'package:uyoung_app/core/theme/app_colors.dart';
 import 'package:uyoung_app/core/theme/app_font.dart';
 import 'package:uyoung_app/features/calendar/data/calendar_repository.dart';
@@ -32,23 +33,18 @@ class _CalendarView extends StatelessWidget {
     final viewModel = context.watch<CalendarViewModel>();
 
     return Scaffold(
-      backgroundColor: AppColors.back,
+      backgroundColor: const Color(0xFFF8F9FB),
       endDrawer: _CalendarFilterDrawer(viewModel: viewModel),
       body: SafeArea(
         child: Column(
           children: [
             _CalendarTopBar(viewModel: viewModel),
-            const SizedBox(height: 10),
+            const SizedBox(height: 9),
             _CalendarMonthHeader(viewModel: viewModel),
-            const SizedBox(height: 18),
+            const SizedBox(height: 23),
             const _WeekdayHeader(),
-            const SizedBox(height: 12),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 14),
-                child: _CalendarGrid(viewModel: viewModel),
-              ),
-            ),
+            const SizedBox(height: 18),
+            Expanded(child: _CalendarTableSection(viewModel: viewModel)),
           ],
         ),
       ),
@@ -177,8 +173,8 @@ class _WeekdayHeader extends StatelessWidget {
   }
 }
 
-class _CalendarGrid extends StatelessWidget {
-  const _CalendarGrid({required this.viewModel});
+class _CalendarTableSection extends StatelessWidget {
+  const _CalendarTableSection({required this.viewModel});
 
   final CalendarViewModel viewModel;
 
@@ -201,62 +197,80 @@ class _CalendarGrid extends StatelessWidget {
       );
     }
 
-    final days = _buildCalendarDays(viewModel.focusedMonth);
     final isCompact = viewModel.isBottomSheetOpen;
     final weeks = _weeksInMonth(viewModel.focusedMonth);
     final rowHeight = isCompact ? (weeks == 5 ? 45.0 : 40.0) : 95.0;
 
-    return GridView.builder(
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 7,
-        mainAxisExtent: rowHeight,
-      ),
-      itemCount: days.length,
-      itemBuilder: (context, index) {
-        final day = days[index];
-        final isCurrentMonth = day.month == viewModel.focusedMonth.month;
-        final isSelected = _isSameDate(day, viewModel.selectedDay);
-        final isToday = _isSameDate(day, DateTime.now());
-        final groups = viewModel.memoriesForDay(day);
-        final dotColors = groups.map((group) => group.color).toList();
-        final thumbnailPath = groups.isEmpty || groups.first.thumbnailPaths.isEmpty
-            ? null
-            : groups.first.thumbnailPaths.first;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 10),
+      child: TableCalendar(
+        firstDay: DateTime.utc(2020, 1, 1),
+        lastDay: DateTime.utc(2030, 12, 31),
+        focusedDay: viewModel.focusedMonth,
+        locale: 'ko_KR',
+        headerVisible: false,
+        startingDayOfWeek: StartingDayOfWeek.sunday,
+        daysOfWeekVisible: false,
+        sixWeekMonthsEnforced: false,
+        availableGestures: AvailableGestures.horizontalSwipe,
+        rowHeight: rowHeight,
+        selectedDayPredicate: (day) => _isSameDate(day, viewModel.selectedDay),
+        onDaySelected: (selectedDay, focusedDay) {
+          viewModel.selectDay(selectedDay);
+          if (!_isSameMonth(focusedDay, viewModel.focusedMonth)) {
+            viewModel.setFocusedMonth(
+              DateTime(focusedDay.year, focusedDay.month),
+            );
+          }
 
-        return GestureDetector(
-          onTap: () {
-            viewModel.selectDay(day);
-            if (viewModel.hasAnyMemoryForDay(day)) {
-              viewModel.openBottomSheet(day);
-              _openMemoryBottomSheet(context, viewModel, day);
-            } else {
-              viewModel.closeBottomSheet();
-            }
-          },
-          child: CalendarDayCell(
-            date: day,
-            isOutside: !isCurrentMonth,
-            isSelected: isSelected,
-            isToday: isToday,
-            dotColors: dotColors,
-            thumbnailPath: thumbnailPath,
-            isCompactMode: isCompact,
-            compactWeeks: weeks,
-          ),
-        );
-      },
+          if (viewModel.hasAnyMemoryForDay(selectedDay)) {
+            viewModel.openBottomSheet(selectedDay);
+            _openMemoryBottomSheet(context, viewModel, selectedDay);
+          } else {
+            viewModel.closeBottomSheet();
+          }
+        },
+        onPageChanged: (focusedDay) {
+          viewModel.setFocusedMonth(DateTime(focusedDay.year, focusedDay.month));
+        },
+        calendarBuilders: CalendarBuilders(
+          defaultBuilder: (context, day, _) =>
+              _buildCalendarCell(day, weeks, isCompact, false),
+          selectedBuilder: (context, day, _) =>
+              _buildCalendarCell(day, weeks, isCompact, true),
+          todayBuilder: (context, day, _) =>
+              _buildCalendarCell(day, weeks, isCompact, _isSameDate(day, viewModel.selectedDay), isToday: true),
+          outsideBuilder: (context, day, _) =>
+              _buildCalendarCell(day, weeks, isCompact, false, forceOutside: true),
+        ),
+      ),
     );
   }
 
-  List<DateTime> _buildCalendarDays(DateTime month) {
-    final firstDay = DateTime(month.year, month.month, 1);
-    final startOffset = firstDay.weekday % 7;
-    final startDay = firstDay.subtract(Duration(days: startOffset));
+  Widget _buildCalendarCell(
+    DateTime day,
+    int weeks,
+    bool isCompact,
+    bool isSelected, {
+    bool isToday = false,
+    bool forceOutside = false,
+  }) {
+    final groups = viewModel.memoriesForDay(day);
+    final dotColors = groups.map((group) => group.color).toList();
+    final thumbnailPath =
+        groups.isEmpty || groups.first.thumbnailPaths.isEmpty
+        ? null
+        : groups.first.thumbnailPaths.first;
 
-    return List<DateTime>.generate(
-      42,
-      (index) => DateUtils.addDaysToDate(startDay, index),
+    return CalendarDayCell(
+      date: day,
+      isOutside: forceOutside || day.month != viewModel.focusedMonth.month,
+      isSelected: isSelected,
+      isToday: isToday,
+      dotColors: dotColors,
+      thumbnailPath: thumbnailPath,
+      isCompactMode: isCompact,
+      compactWeeks: weeks,
     );
   }
 
@@ -280,6 +294,10 @@ class _CalendarGrid extends StatelessWidget {
 
   bool _isSameDate(DateTime a, DateTime b) {
     return a.year == b.year && a.month == b.month && a.day == b.day;
+  }
+
+  bool _isSameMonth(DateTime a, DateTime b) {
+    return a.year == b.year && a.month == b.month;
   }
 }
 
@@ -474,14 +492,14 @@ class _CalendarFilterDrawer extends StatelessWidget {
               margin: const EdgeInsets.symmetric(horizontal: 24),
             ),
             const SizedBox(height: 16),
-            Expanded(
+          Expanded(
               child: viewModel.islandFilters.isEmpty
                   ? Center(
                       child: Text(
                         '선택할 기억섬이 아직 없어요.',
                         style: AppFont.b8_14.copyWith(color: AppColors.g03),
                       ),
-                      )
+                    )
                   : ListView.separated(
                       padding: const EdgeInsets.symmetric(horizontal: 24),
                       itemBuilder: (context, index) {

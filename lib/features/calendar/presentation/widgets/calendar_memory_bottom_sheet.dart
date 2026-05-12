@@ -20,13 +20,13 @@ class CalendarMemoryBottomSheet extends StatelessWidget {
     return DraggableScrollableSheet(
       expand: false,
       initialChildSize: 0.48,
-      minChildSize: 0.32,
-      maxChildSize: 0.92,
+      minChildSize: 0.35,
+      maxChildSize: 0.9,
       builder: (context, scrollController) {
         return Container(
           decoration: const BoxDecoration(
-            color: AppColors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
             boxShadow: [
               BoxShadow(
                 offset: Offset(0, -4),
@@ -55,18 +55,19 @@ class CalendarMemoryBottomSheet extends StatelessWidget {
                           style: AppFont.b8_14.copyWith(color: AppColors.g03),
                         ),
                       )
-                    : ListView.separated(
+                    : ListView(
                         controller: scrollController,
-                        padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
-                        itemBuilder: (context, index) {
-                          final group = groups[index];
-                          return _CalendarMemoryIslandSection(
-                            group: group,
-                            date: date,
-                          );
-                        },
-                        separatorBuilder: (_, _) => const SizedBox(height: 24),
-                        itemCount: groups.length,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 10,
+                        ),
+                        children: [
+                          for (final group in groups)
+                            _CalendarMemoryIslandSection(
+                              group: group,
+                              date: date,
+                            ),
+                        ],
                       ),
               ),
             ],
@@ -88,6 +89,10 @@ class _CalendarMemoryIslandSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (group.thumbnailPaths.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -106,50 +111,90 @@ class _CalendarMemoryIslandSection extends StatelessWidget {
             AppHeadlineText(group.islandName, style: AppFont.h6_18),
           ],
         ),
-        const SizedBox(height: 16),
-        SizedBox(
-          height: 146,
-          child: GestureDetector(
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute<void>(
-                  builder: (_) => CalendarMemoryIslandDetailPage(
-                    group: group,
-                    date: date,
-                  ),
-                ),
-              );
-            },
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              itemBuilder: (context, index) {
-                final imagePath = group.thumbnailPaths[index];
-                final remaining = group.thumbnailPaths.length - 3;
-
-                if (index == 2 && group.thumbnailPaths.length > 3) {
-                  return _OverlayPhotoCard(
-                    imagePath: imagePath,
-                    label: '+$remaining',
-                  );
-                }
-
-                if (index > 2 && group.thumbnailPaths.length > 3) {
-                  return const SizedBox.shrink();
-                }
-
-                return _PhotoCard(
-                  imagePath: imagePath,
-                  angleDegrees: index.isEven ? -3.98 : 2.98,
-                );
-              },
-              separatorBuilder: (_, _) => const SizedBox(width: 14),
-              itemCount: group.thumbnailPaths.length > 3
-                  ? 3
-                  : group.thumbnailPaths.length,
-            ),
+        const SizedBox(height: 15),
+        Padding(
+          padding: const EdgeInsets.only(bottom: 24),
+          child: _MemoryPhotoRow(
+            thumbnailPaths: group.thumbnailPaths,
+            group: group,
+            date: date,
           ),
         ),
       ],
+    );
+  }
+}
+
+class _MemoryPhotoRow extends StatelessWidget {
+  const _MemoryPhotoRow({
+    required this.thumbnailPaths,
+    required this.group,
+    required this.date,
+  });
+
+  final List<String> thumbnailPaths;
+  final CalendarDayMemoryGroup group;
+  final DateTime date;
+
+  void _openDetailPage(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) =>
+            CalendarMemoryIslandDetailPage(group: group, date: date),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final firstThumb = thumbnailPaths[0];
+    final String? secondThumb = thumbnailPaths.length > 1
+        ? thumbnailPaths[1]
+        : null;
+    final String? thirdThumb = thumbnailPaths.length > 2
+        ? thumbnailPaths[2]
+        : null;
+
+    final showOverlayOnThird = thumbnailPaths.length >= 4;
+    final remainingCount = showOverlayOnThird ? (thumbnailPaths.length - 3) : 0;
+
+    return SizedBox(
+      height: 140,
+      child: Row(
+        children: [
+          GestureDetector(
+            onTap: () => _openDetailPage(context),
+            child: _PhotoCard(
+              imagePath: firstThumb,
+              angleDegrees: -3.98,
+            ),
+          ),
+          const SizedBox(width: 15),
+          if (secondThumb != null) ...[
+            GestureDetector(
+              onTap: () => _openDetailPage(context),
+              child: _PhotoCard(
+                imagePath: secondThumb,
+                angleDegrees: 2.98,
+              ),
+            ),
+            const SizedBox(width: 15),
+          ],
+          if (thirdThumb != null)
+            GestureDetector(
+              onTap: () => _openDetailPage(context),
+              child: showOverlayOnThird
+                  ? _OverlayPhotoCard(
+                      imagePath: thirdThumb,
+                      label: '+$remainingCount',
+                    )
+                  : _PhotoCard(
+                      imagePath: thirdThumb,
+                      angleDegrees: 2.99,
+                    ),
+            ),
+        ],
+      ),
     );
   }
 }
@@ -202,30 +247,35 @@ class _OverlayPhotoCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Transform.rotate(
       angle: 2.99 * 3.141592 / 180,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
-        child: Stack(
-          children: [
-            SizedBox(
-              width: 107,
-              height: 143,
-              child: Image.asset(
-                imagePath,
-                fit: BoxFit.cover,
-              ),
+      child: Container(
+        width: 107,
+        height: 143,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: const [
+            BoxShadow(
+              offset: Offset(2, 2),
+              blurRadius: 6,
+              spreadRadius: 0,
+              color: Color(0x14000000),
             ),
-            Positioned.fill(
-              child: Container(color: const Color(0x66000000)),
-            ),
-            Positioned.fill(
-              child: Center(
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              Image.asset(imagePath, fit: BoxFit.cover),
+              Container(color: const Color(0x66000000)),
+              Center(
                 child: Text(
                   label,
                   style: AppFont.b5_20.copyWith(color: AppColors.white),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

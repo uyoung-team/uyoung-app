@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:uyoung_app/core/theme/app_colors.dart';
 import 'package:uyoung_app/core/theme/app_font.dart';
 import 'package:uyoung_app/shared/services/asset_paths.dart';
@@ -28,14 +27,7 @@ class CalendarDayCell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isSunday = date.weekday == DateTime.sunday;
-    final isSaturday = date.weekday == DateTime.saturday;
-
-    final baseTextColor = isOutside
-        ? AppColors.g04
-        : (isSunday
-              ? AppColors.subRed03
-              : (isSaturday ? AppColors.b01 : AppColors.black));
+    final baseTextColor = isOutside ? AppColors.g04 : AppColors.g01;
 
     final backgroundColor = isSelected ? AppColors.b01 : Colors.transparent;
     final dayTextColor = isSelected ? AppColors.white : baseTextColor;
@@ -100,9 +92,6 @@ class CalendarDayCell extends StatelessWidget {
               decoration: BoxDecoration(
                 color: backgroundColor,
                 borderRadius: BorderRadius.circular(12),
-                border: isToday && !isSelected
-                    ? Border.all(color: AppColors.b01, width: 1)
-                    : null,
               ),
               child: Text(
                 '${date.day}',
@@ -116,8 +105,6 @@ class CalendarDayCell extends StatelessWidget {
       );
     }
 
-    final hasMemory = dotColors.isNotEmpty;
-
     return Padding(
       padding: const EdgeInsets.only(bottom: 6),
       child: Column(
@@ -129,9 +116,6 @@ class CalendarDayCell extends StatelessWidget {
             decoration: BoxDecoration(
               color: backgroundColor,
               borderRadius: BorderRadius.circular(12),
-              border: isToday && !isSelected
-                  ? Border.all(color: AppColors.b01, width: 1)
-                  : null,
             ),
             child: Text(
               '${date.day}',
@@ -139,64 +123,54 @@ class CalendarDayCell extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 5),
-          if (hasMemory)
-            SizedBox(
-              width: 42,
-              height: 42,
-              child: Stack(
-                children: [
-                  if (thumbnailPath != null)
-                    Transform.rotate(
-                      angle: 12 * 3.141592 / 180,
-                      child: Container(
-                        width: 42,
-                        height: 42,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(10),
-                          image: DecorationImage(
-                            image: AssetImage(thumbnailPath!),
-                            fit: BoxFit.cover,
-                            colorFilter: ColorFilter.mode(
-                              Colors.black.withValues(alpha: 0.15),
-                              BlendMode.srcATop,
-                            ),
+          SizedBox(
+            width: 42,
+            height: 42,
+            child: Stack(
+              children: [
+                if (thumbnailPath != null)
+                  Transform.rotate(
+                    angle: 12 * 3.141592 / 180,
+                    child: Container(
+                      width: 42,
+                      height: 42,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(10),
+                        image: DecorationImage(
+                          image: AssetImage(thumbnailPath!),
+                          fit: BoxFit.cover,
+                          colorFilter: ColorFilter.mode(
+                            Colors.black.withValues(alpha: 0.15),
+                            BlendMode.srcATop,
                           ),
                         ),
                       ),
                     ),
-                  Container(
-                    width: 42,
-                    height: 42,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      border: thumbnailPath != null
-                          ? Border.all(
-                              color: const Color(0xFFE5E5E5),
-                              width: 0.8,
-                            )
-                          : null,
-                      color: thumbnailPath == null ? AppColors.white : null,
-                    ),
-                    child: thumbnailPath != null
-                        ? ClipRRect(
-                            borderRadius: BorderRadius.circular(10),
-                            child: Image.asset(
-                              thumbnailPath!,
-                              fit: BoxFit.cover,
-                            ),
-                          )
-                        : Padding(
-                            padding: const EdgeInsets.all(6),
-                            child: SvgPicture.asset(
-                              AssetPaths.icons.common.calendar,
-                            ),
-                          ),
                   ),
-                ],
-              ),
-            )
-          else
-            const SizedBox(width: 42, height: 42),
+                Container(
+                  width: 42,
+                  height: 42,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(10),
+                    border: thumbnailPath != null
+                        ? Border.all(
+                            color: const Color(0xFFE5E5E5),
+                            width: 0.8,
+                          )
+                        : null,
+                    color: thumbnailPath == null ? AppColors.white : null,
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: Image.asset(
+                      thumbnailPath ?? AssetPaths.images.calendar.character,
+                      fit: thumbnailPath != null ? BoxFit.cover : BoxFit.contain,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
           const SizedBox(height: 6),
           buildDotRow(),
         ],
