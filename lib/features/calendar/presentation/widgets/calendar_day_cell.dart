@@ -28,7 +28,15 @@ class CalendarDayCell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final baseTextColor = isOutside ? AppColors.g04 : AppColors.black;
+    final isSunday = date.weekday == DateTime.sunday;
+    final isSaturday = date.weekday == DateTime.saturday;
+
+    final baseTextColor = isOutside
+        ? AppColors.g04
+        : (isSunday
+              ? AppColors.subRed03
+              : (isSaturday ? AppColors.b01 : AppColors.black));
+
     final backgroundColor = isSelected ? AppColors.b01 : Colors.transparent;
     final dayTextColor = isSelected ? AppColors.white : baseTextColor;
 
@@ -46,10 +54,7 @@ class CalendarDayCell extends StatelessWidget {
                 width: 6,
                 height: 6,
                 margin: const EdgeInsets.symmetric(horizontal: 2),
-                decoration: BoxDecoration(
-                  color: color,
-                  shape: BoxShape.circle,
-                ),
+                decoration: BoxDecoration(color: color, shape: BoxShape.circle),
               ),
           ],
         );
@@ -66,10 +71,7 @@ class CalendarDayCell extends StatelessWidget {
               width: 6,
               height: 6,
               margin: const EdgeInsets.symmetric(horizontal: 2),
-              decoration: BoxDecoration(
-                color: color,
-                shape: BoxShape.circle,
-              ),
+              decoration: BoxDecoration(color: color, shape: BoxShape.circle),
             ),
           const SizedBox(width: 4),
           Text(
@@ -104,10 +106,7 @@ class CalendarDayCell extends StatelessWidget {
               ),
               child: Text(
                 '${date.day}',
-                style: AppFont.b7_16.copyWith(
-                  color: dayTextColor,
-                  height: 1,
-                ),
+                style: AppFont.b7_16.copyWith(color: dayTextColor, height: 1),
               ),
             ),
             SizedBox(height: compactGap),
@@ -136,10 +135,7 @@ class CalendarDayCell extends StatelessWidget {
             ),
             child: Text(
               '${date.day}',
-              style: AppFont.b7_16.copyWith(
-                color: dayTextColor,
-                height: 1,
-              ),
+              style: AppFont.b7_16.copyWith(color: dayTextColor, height: 1),
             ),
           ),
           const SizedBox(height: 5),
@@ -174,7 +170,10 @@ class CalendarDayCell extends StatelessWidget {
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(10),
                       border: thumbnailPath != null
-                          ? Border.all(color: const Color(0xFFE5E5E5), width: 0.8)
+                          ? Border.all(
+                              color: const Color(0xFFE5E5E5),
+                              width: 0.8,
+                            )
                           : null,
                       color: thumbnailPath == null ? AppColors.white : null,
                     ),
@@ -197,10 +196,7 @@ class CalendarDayCell extends StatelessWidget {
               ),
             )
           else
-            const SizedBox(
-              width: 42,
-              height: 42,
-            ),
+            const SizedBox(width: 42, height: 42),
           const SizedBox(height: 6),
           buildDotRow(),
         ],

@@ -1,5 +1,24 @@
 import 'package:flutter/material.dart';
 
+@immutable
+class CalendarEvent {
+  const CalendarEvent({
+    required this.id,
+    required this.islandId,
+    required this.title,
+    required this.date,
+    this.imageUrl,
+    this.type = 'memory',
+  });
+
+  final String id;
+  final String islandId;
+  final String title;
+  final DateTime date;
+  final String? imageUrl;
+  final String type;
+}
+
 class CalendarIslandFilter {
   const CalendarIslandFilter({
     required this.id,

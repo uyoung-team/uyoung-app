@@ -29,6 +29,26 @@ class CalendarService {
     );
   }
 
+  Future<List<Map<String, dynamic>>> fetchMemoriesForMonth(
+    DateTime month,
+  ) async {
+    final client = _clientProvider.client;
+    if (client == null) return const [];
+
+    final firstDay = DateTime(month.year, month.month, 1);
+    final lastDay = DateTime(month.year, month.month + 1, 0, 23, 59, 59);
+
+    // island_memories와 islands 정보를 조인하여 조회
+    final response = await client
+        .from('island_memories')
+        .select('*, islands(id, name, theme_color)')
+        .gte('event_date', firstDay.toIso8601String())
+        .lte('event_date', lastDay.toIso8601String())
+        .order('event_date', ascending: true);
+
+    return List<Map<String, dynamic>>.from(response as List);
+  }
+
   static Color colorFromHex(String? value) {
     if (value == null || value.isEmpty) {
       return const Color(0xFF6EA8EB);

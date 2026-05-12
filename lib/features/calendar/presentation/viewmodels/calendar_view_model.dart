@@ -1,7 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:uyoung_app/features/calendar/data/calendar_models.dart';
 import 'package:uyoung_app/features/calendar/data/calendar_repository.dart';
-import 'package:uyoung_app/shared/services/asset_paths.dart';
 
 class CalendarViewModel extends ChangeNotifier {
   CalendarViewModel(this.repository);
@@ -11,6 +10,7 @@ class CalendarViewModel extends ChangeNotifier {
   DateTime _focusedMonth = DateTime(DateTime.now().year, DateTime.now().month);
   DateTime _selectedDay = DateTime.now();
   List<CalendarIslandFilter> _islandFilters = const [];
+  List<CalendarEvent> _allMemories = const [];
   bool _isLoading = false;
   bool _isBottomSheetOpen = false;
   String? _errorText;
@@ -32,6 +32,7 @@ class CalendarViewModel extends ChangeNotifier {
 
     try {
       _islandFilters = await repository.fetchIslandFilters();
+      _allMemories = await repository.fetchMemories(_focusedMonth);
     } catch (error) {
       _errorText = error.toString();
       _islandFilters = const [];
@@ -43,24 +44,24 @@ class CalendarViewModel extends ChangeNotifier {
 
   void goToPreviousMonth() {
     _focusedMonth = DateTime(_focusedMonth.year, _focusedMonth.month - 1);
-    notifyListeners();
+    load(); // 달이 바뀌면 다시 로드
   }
 
   void goToNextMonth() {
     _focusedMonth = DateTime(_focusedMonth.year, _focusedMonth.month + 1);
-    notifyListeners();
+    load(); // 달이 바뀌면 다시 로드
   }
 
   void jumpToToday() {
     final now = DateTime.now();
     _focusedMonth = DateTime(now.year, now.month);
     _selectedDay = DateTime(now.year, now.month, now.day);
-    notifyListeners();
+    load();
   }
 
   void setFocusedMonth(DateTime month) {
     _focusedMonth = DateTime(month.year, month.month);
-    notifyListeners();
+    load();
   }
 
   void selectDay(DateTime day) {
@@ -113,59 +114,53 @@ class CalendarViewModel extends ChangeNotifier {
   void toggleAlert(String islandId, bool enabled) {
     _islandFilters = _islandFilters
         .map(
-          (item) => item.id == islandId
-              ? item.copyWith(alertEnabled: enabled)
-              : item,
+          (item) =>
+              item.id == islandId ? item.copyWith(alertEnabled: enabled) : item,
         )
         .toList();
     notifyListeners();
   }
 
   List<CalendarDayMemoryGroup> memoriesForDay(DateTime day) {
+    // 선택된 섬 아이디 목록
     final selectedIslands = _islandFilters.where((item) => item.isSelected);
+    final selectedIslandIds = selectedIslands.map((e) => e.id).toSet();
+
+    // 해당 날짜의 메모리 필터링
+    final dayMemories = _allMemories.where(
+      (m) =>
+          m.date.year == day.year &&
+          m.date.month == day.month &&
+          m.date.day == day.day &&
+          selectedIslandIds.contains(m.islandId),
+    );
+
+    // 섬별로 그룹화
+    final Map<String, List<String>> grouped = {};
+    for (final m in dayMemories) {
+      if (m.imageUrl != null) {
+        grouped.update(
+          m.islandId,
+          (list) => list..add(m.imageUrl!),
+          ifAbsent: () => [m.imageUrl!],
+        );
+      }
+    }
+
     return selectedIslands
-        .where((item) => _hasMemoryForDay(item, day))
-        .map(
-          (item) => CalendarDayMemoryGroup(
-            islandId: item.id,
-            islandName: item.name,
-            color: item.color,
-            thumbnailPaths: _thumbnailPathsForDay(item, day),
-          ),
-        )
+        .where((island) => grouped.containsKey(island.id))
+        .map((island) {
+          return CalendarDayMemoryGroup(
+            islandId: island.id,
+            islandName: island.name,
+            color: island.color,
+            thumbnailPaths: grouped[island.id] ?? const [],
+          );
+        })
         .toList();
   }
 
   bool hasAnyMemoryForDay(DateTime day) {
     return memoriesForDay(day).isNotEmpty;
-  }
-
-  bool _hasMemoryForDay(CalendarIslandFilter item, DateTime day) {
-    final seed = item.id.hashCode + (day.month * 31) + day.day;
-    return seed % 3 != 0;
-  }
-
-  List<String> _thumbnailPathsForDay(CalendarIslandFilter item, DateTime day) {
-    final candidates = [
-      AssetPaths.images.character.character01,
-      AssetPaths.images.character.character02,
-      AssetPaths.images.character.character03,
-      AssetPaths.images.character.character04,
-      AssetPaths.images.character.character05,
-      AssetPaths.images.character.emoticon01,
-      AssetPaths.images.character.emoticon02,
-      AssetPaths.images.character.emoticon03,
-      AssetPaths.images.character.emoticon04,
-      AssetPaths.images.character.emoticon05,
-      AssetPaths.images.character.emoticon06,
-    ];
-
-    final base = (item.id.hashCode.abs() + day.day + day.month) % candidates.length;
-    final count = ((item.id.hashCode.abs() + day.day) % 4) + 1;
-
-    return List<String>.generate(
-      count,
-      (index) => candidates[(base + index) % candidates.length],
-    );
   }
 }
