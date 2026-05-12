@@ -14,6 +14,7 @@ class AppIcons {
   final BottomNavigationIcons bottomNavigation =
       const BottomNavigationIcons();
   final CommonIcons common = const CommonIcons();
+  final IslandDetailIcons islandDetail = const IslandDetailIcons();
   final PhotoDetailIcons photoDetail = const PhotoDetailIcons();
   final SmallCommonIcons smallCommon = const SmallCommonIcons();
   final SmallMyPageIcons smallMyPage = const SmallMyPageIcons();
@@ -82,6 +83,14 @@ class CommonIcons {
   final String setting = 'assets/icons/common/icon_setting.svg';
   final String sliderView = 'assets/icons/common/icon_slider_view.svg';
   final String today = 'assets/icons/common/icon_today.svg';
+}
+
+class IslandDetailIcons {
+  const IslandDetailIcons();
+
+  final String calendar = 'assets/icons/island_detail/icon_calendar.png';
+  final String character = 'assets/icons/island_detail/icon_character.png';
+  final String favorite = 'assets/icons/island_detail/icon_favorite.png';
 }
 
 class PhotoDetailIcons {

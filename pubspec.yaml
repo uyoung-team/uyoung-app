@@ -67,6 +67,7 @@ flutter:
     - assets/icons/bar/
     - assets/icons/bottom_navigation/
     - assets/icons/common/
+    - assets/icons/island_detail/
     - assets/icons/photodetail/
     - assets/icons/small_common/
     - assets/icons/small_mypage/
