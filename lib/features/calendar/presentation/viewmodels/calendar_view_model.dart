@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:uyoung_app/features/calendar/data/calendar_models.dart';
 import 'package:uyoung_app/features/calendar/data/calendar_repository.dart';
 
@@ -121,6 +121,22 @@ class CalendarViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  List<Color> getDotColors(DateTime day) {
+    return memoriesForDay(day).map((group) => group.color).toList();
+  }
+
+  String? getThumbnailPath(DateTime day) {
+    final groups = memoriesForDay(day);
+    if (groups.isEmpty || groups.first.thumbnailPaths.isEmpty) {
+      return null;
+    }
+    return groups.first.thumbnailPaths.first;
+  }
+
+  bool hasMemory(DateTime day) {
+    return memoriesForDay(day).isNotEmpty;
+  }
+
   List<CalendarDayMemoryGroup> memoriesForDay(DateTime day) {
     // 선택된 섬 아이디 목록
     final selectedIslands = _islandFilters.where((item) => item.isSelected);
@@ -161,6 +177,6 @@ class CalendarViewModel extends ChangeNotifier {
   }
 
   bool hasAnyMemoryForDay(DateTime day) {
-    return memoriesForDay(day).isNotEmpty;
+    return hasMemory(day);
   }
 }

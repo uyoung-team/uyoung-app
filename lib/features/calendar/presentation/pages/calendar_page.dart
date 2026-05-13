@@ -217,8 +217,6 @@ class _CalendarTableSection extends StatelessWidget {
         rowHeight: rowHeight,
         selectedDayPredicate: (day) => _isSameDate(day, viewModel.selectedDay),
         onDaySelected: (selectedDay, focusedDay) {
-          final groups = viewModel.memoriesForDay(selectedDay);
-
           viewModel.selectDay(selectedDay);
           if (!_isSameMonth(focusedDay, viewModel.focusedMonth)) {
             viewModel.setFocusedMonth(
@@ -226,7 +224,8 @@ class _CalendarTableSection extends StatelessWidget {
             );
           }
 
-          if (groups.isNotEmpty) {
+          if (viewModel.hasMemory(selectedDay)) {
+            final groups = viewModel.memoriesForDay(selectedDay);
             viewModel.openBottomSheet(selectedDay);
             WidgetsBinding.instance.addPostFrameCallback((_) {
               if (!context.mounted) {
@@ -268,20 +267,13 @@ class _CalendarTableSection extends StatelessWidget {
     bool isToday = false,
     bool forceOutside = false,
   }) {
-    final groups = viewModel.memoriesForDay(day);
-    final dotColors = groups.map((group) => group.color).toList();
-    final thumbnailPath =
-        groups.isEmpty || groups.first.thumbnailPaths.isEmpty
-        ? null
-        : groups.first.thumbnailPaths.first;
-
     return CalendarDayCell(
       date: day,
       isOutside: forceOutside || day.month != viewModel.focusedMonth.month,
       isSelected: isSelected,
       isToday: isToday,
-      dotColors: dotColors,
-      thumbnailPath: thumbnailPath,
+      dotColors: viewModel.getDotColors(day),
+      thumbnailPath: viewModel.getThumbnailPath(day),
       isCompactMode: isCompact,
       compactWeeks: weeks,
     );
