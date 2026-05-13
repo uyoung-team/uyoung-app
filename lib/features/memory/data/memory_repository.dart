@@ -1,3 +1,4 @@
+import 'package:uyoung_app/features/memory/data/memory_dummy_adapter.dart';
 import 'package:uyoung_app/features/memory/data/memory_models.dart';
 import 'package:uyoung_app/features/memory/data/memory_service.dart';
 
@@ -45,9 +46,9 @@ class MemoryRepository {
         return bUpdatedAt.compareTo(aUpdatedAt);
       });
 
-      return items;
+      return items.isEmpty ? MemoryDummyAdapter.islandItems() : items;
     } catch (error) {
-      throw StateError('기억섬 목록을 불러오지 못했어요. $error');
+      return MemoryDummyAdapter.islandItems();
     }
   }
 
@@ -98,6 +99,10 @@ class MemoryRepository {
     try {
       final island = await service.fetchIsland(islandId);
       if (island == null) {
+        final dummyItem = MemoryDummyAdapter.islandItemById(islandId);
+        if (dummyItem != null) {
+          return dummyItem;
+        }
         throw StateError('기억섬을 찾을 수 없어요.');
       }
 
@@ -113,6 +118,10 @@ class MemoryRepository {
         members: members,
       );
     } catch (error) {
+      final dummyItem = MemoryDummyAdapter.islandItemById(islandId);
+      if (dummyItem != null) {
+        return dummyItem;
+      }
       throw StateError('기억섬 정보를 불러오지 못했어요. $error');
     }
   }
@@ -120,9 +129,12 @@ class MemoryRepository {
   Future<List<MemoryMemberPreview>> fetchIslandMembers(String islandId) async {
     try {
       final memberRows = await service.fetchIslandMemberRows([islandId]);
-      return (await _groupMembersByIsland(memberRows))[islandId] ?? const [];
+      final members = (await _groupMembersByIsland(memberRows))[islandId] ?? const [];
+      return members.isEmpty
+          ? MemoryDummyAdapter.memberPreviews(islandId)
+          : members;
     } catch (error) {
-      throw StateError('멤버 정보를 불러오지 못했어요. $error');
+      return MemoryDummyAdapter.memberPreviews(islandId);
     }
   }
 

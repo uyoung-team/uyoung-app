@@ -72,6 +72,7 @@ flutter:
     - assets/icons/small_common/
     - assets/icons/small_mypage/
     - assets/images/common/
+    - assets/images/
     - assets/images/home/
     - assets/images/attendance/
     - assets/images/character/

@@ -92,3 +92,17 @@ class FavoritePhoto {
     );
   }
 }
+
+class MemoryPhotoSeed {
+  const MemoryPhotoSeed({
+    required this.path,
+    required this.createdAt,
+    required this.uploaderName,
+    this.profileImagePath,
+  });
+
+  final String path;
+  final DateTime createdAt;
+  final String uploaderName;
+  final String? profileImagePath;
+}

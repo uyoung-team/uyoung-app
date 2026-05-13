@@ -3,6 +3,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:uyoung_app/core/theme/app_colors.dart';
 import 'package:uyoung_app/core/theme/app_font.dart';
+import 'package:uyoung_app/features/memory/data/memory_dummy_adapter.dart';
 import 'package:uyoung_app/features/memory/data/memory_models.dart';
 import 'package:uyoung_app/features/memory/presentation/pages/album_memory_page.dart';
 import 'package:uyoung_app/features/memory/presentation/pages/all_memory_page.dart';
@@ -31,6 +32,21 @@ class _MemoryDetailPageState extends State<MemoryDetailPage> {
   final List<MemoryLocalPhoto> _localPhotos = [];
 
   static const double _tabBarHeight = 52;
+
+  @override
+  void initState() {
+    super.initState();
+    _localPhotos.addAll(
+      MemoryDummyAdapter.localPhotosForIsland(widget.item.id).map(
+        (photo) => MemoryLocalPhoto(
+          path: photo.path,
+          createdAt: photo.createdAt,
+          uploaderName: photo.uploaderName,
+          isLocalFile: false,
+        ),
+      ),
+    );
+  }
 
   @override
   void dispose() {
