@@ -28,7 +28,9 @@ class CalendarDayCell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final baseTextColor = isOutside ? AppColors.g04 : AppColors.g01;
+    final baseTextColor = isOutside
+        ? Colors.grey.shade400
+        : const Color(0xFF444444);
 
     final backgroundColor = isSelected ? AppColors.b01 : Colors.transparent;
     final dayTextColor = isSelected ? AppColors.white : baseTextColor;
@@ -163,19 +165,19 @@ class CalendarDayCell extends StatelessWidget {
                   ),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(10),
-                    child: Image.asset(
-                      thumbnailPath ?? AssetPaths.images.calendar.character,
-                      fit: thumbnailPath != null ? BoxFit.cover : BoxFit.contain,
-                      errorBuilder: (_, _, _) => Padding(
-                        padding: const EdgeInsets.all(6),
-                        child: SvgPicture.asset(
-                          AssetPaths.icons.common.calendar,
-                        ),
+                  child: Image.asset(
+                    thumbnailPath ?? AssetPaths.images.calendar.character,
+                    fit: thumbnailPath != null ? BoxFit.cover : BoxFit.contain,
+                    errorBuilder: (_, _, _) => Padding(
+                      padding: const EdgeInsets.all(6),
+                      child: SvgPicture.asset(
+                        AssetPaths.icons.common.calendar,
                       ),
                     ),
                   ),
                 ),
-              ],
+              ),
+            ],
             ),
           ),
           const SizedBox(height: 6),

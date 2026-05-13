@@ -31,7 +31,7 @@ class CalendarMemoryIslandSettingsPage extends StatelessWidget {
     );
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FB),
+      backgroundColor: AppColors.white,
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -41,6 +41,8 @@ class CalendarMemoryIslandSettingsPage extends StatelessWidget {
               child: Row(
                 children: [
                   IconButton(
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
                     onPressed: () => Navigator.of(context).pop(),
                     icon: const Icon(Icons.close, size: 26),
                   ),
@@ -54,7 +56,7 @@ class CalendarMemoryIslandSettingsPage extends StatelessWidget {
                 ],
               ),
             ),
-            Container(height: 1, color: AppColors.bg02),
+            Container(height: 1, color: AppColors.g04),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
               child: Row(
@@ -84,13 +86,13 @@ class CalendarMemoryIslandSettingsPage extends StatelessWidget {
                 ],
               ),
             ),
-            Container(height: 10, color: AppColors.back),
+            Container(height: 10, color: AppColors.g05),
             const SizedBox(height: 24),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 18),
               child: Text(
                 '알림 설정',
-                style: AppFont.b9_12.copyWith(color: AppColors.g02),
+                style: AppFont.b9_12.copyWith(color: const Color(0xFF707070)),
               ),
             ),
             const SizedBox(height: 16),

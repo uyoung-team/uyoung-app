@@ -3,7 +3,6 @@ import 'package:uyoung_app/core/theme/app_colors.dart';
 import 'package:uyoung_app/core/theme/app_font.dart';
 import 'package:uyoung_app/features/calendar/data/calendar_models.dart';
 import 'package:uyoung_app/features/calendar/presentation/pages/calendar_memory_island_detail_page.dart';
-import 'package:uyoung_app/shared/widgets/app_headline_text.dart';
 
 class CalendarMemoryBottomSheet extends StatelessWidget {
   const CalendarMemoryBottomSheet({
@@ -108,7 +107,10 @@ class _CalendarMemoryIslandSection extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 8),
-            AppHeadlineText(group.islandName, style: AppFont.h6_18),
+            Text(
+              group.islandName,
+              style: AppFont.h6_18.copyWith(color: AppColors.black),
+            ),
           ],
         ),
         const SizedBox(height: 15),
@@ -161,6 +163,7 @@ class _MemoryPhotoRow extends StatelessWidget {
     return SizedBox(
       height: 140,
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.start,
         children: [
           GestureDetector(
             onTap: () => _openDetailPage(context),

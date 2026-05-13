@@ -80,7 +80,7 @@ class _CalendarMemoryIslandDetailPageState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FB),
+      backgroundColor: AppColors.back,
       bottomNavigationBar: _isSelectionMode
           ? Container(
               height: 86,
@@ -104,15 +104,15 @@ class _CalendarMemoryIslandDetailPageState
                     ),
                     Align(
                       alignment: Alignment.centerRight,
-                      child: GestureDetector(
-                        onTap: _selectedIndexes.isEmpty ? null : _deleteSelected,
-                        child: Opacity(
-                          opacity: _selectedIndexes.isEmpty ? 0.3 : 1,
-                          child: SvgPicture.asset(
-                            AssetPaths.icons.common.delete,
-                            width: 18,
-                            height: 18,
-                          ),
+                        child: GestureDetector(
+                          onTap: _selectedIndexes.isEmpty ? null : _deleteSelected,
+                          child: Opacity(
+                            opacity: _selectedIndexes.isEmpty ? 0.3 : 1,
+                            child: SvgPicture.asset(
+                              AssetPaths.icons.bar.delete,
+                              width: 18,
+                              height: 18,
+                            ),
                         ),
                       ),
                     ),
