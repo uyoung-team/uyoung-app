@@ -98,7 +98,10 @@ class CalendarDayCell extends StatelessWidget {
               ),
               child: Text(
                 '${date.day}',
-                style: AppFont.b7_16.copyWith(color: dayTextColor, height: 1),
+                style: AppFont.b7_16.copyWith(
+                  color: dayTextColor,
+                  height: 0.0,
+                ),
               ),
             ),
             SizedBox(height: compactGap),
@@ -122,7 +125,10 @@ class CalendarDayCell extends StatelessWidget {
             ),
             child: Text(
               '${date.day}',
-              style: AppFont.b7_16.copyWith(color: dayTextColor, height: 1),
+              style: AppFont.b7_16.copyWith(
+                color: dayTextColor,
+                height: 0.0,
+              ),
             ),
           ),
           const SizedBox(height: 5),
@@ -165,19 +171,21 @@ class CalendarDayCell extends StatelessWidget {
                   ),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(10),
-                  child: Image.asset(
-                    thumbnailPath ?? AssetPaths.images.calendar.character,
-                    fit: thumbnailPath != null ? BoxFit.cover : BoxFit.contain,
-                    errorBuilder: (_, _, _) => Padding(
-                      padding: const EdgeInsets.all(6),
-                      child: SvgPicture.asset(
-                        AssetPaths.icons.common.calendar,
+                    child: Image.asset(
+                      thumbnailPath ?? AssetPaths.images.calendar.character,
+                      fit: thumbnailPath != null
+                          ? BoxFit.cover
+                          : BoxFit.contain,
+                      errorBuilder: (_, _, _) => Padding(
+                        padding: const EdgeInsets.all(6),
+                        child: SvgPicture.asset(
+                          AssetPaths.icons.common.calendar,
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
-            ],
+              ],
             ),
           ),
           const SizedBox(height: 6),
