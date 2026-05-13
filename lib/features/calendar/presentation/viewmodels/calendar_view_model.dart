@@ -8,7 +8,7 @@ class CalendarViewModel extends ChangeNotifier {
   final CalendarRepository repository;
 
   DateTime _focusedMonth = DateTime(DateTime.now().year, DateTime.now().month);
-  DateTime _selectedDay = DateTime.now();
+  DateTime? _selectedDay;
   List<CalendarIslandFilter> _islandFilters = const [];
   List<CalendarEvent> _allMemories = const [];
   bool _isLoading = false;
@@ -16,7 +16,7 @@ class CalendarViewModel extends ChangeNotifier {
   String? _errorText;
 
   DateTime get focusedMonth => _focusedMonth;
-  DateTime get selectedDay => _selectedDay;
+  DateTime? get selectedDay => _selectedDay;
   List<CalendarIslandFilter> get islandFilters =>
       List.unmodifiable(_islandFilters);
   bool get isLoading => _isLoading;
@@ -62,6 +62,11 @@ class CalendarViewModel extends ChangeNotifier {
   void setFocusedMonth(DateTime month) {
     _focusedMonth = DateTime(month.year, month.month);
     load();
+  }
+
+  void clearSelectedDay() {
+    _selectedDay = null;
+    notifyListeners();
   }
 
   void selectDay(DateTime day) {

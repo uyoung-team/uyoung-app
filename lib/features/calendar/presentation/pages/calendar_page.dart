@@ -215,7 +215,9 @@ class _CalendarTableSection extends StatelessWidget {
         sixWeekMonthsEnforced: false,
         availableGestures: AvailableGestures.horizontalSwipe,
         rowHeight: rowHeight,
-        selectedDayPredicate: (day) => _isSameDate(day, viewModel.selectedDay),
+        selectedDayPredicate: (day) =>
+            viewModel.selectedDay != null &&
+            _isSameDate(day, viewModel.selectedDay!),
         onDaySelected: (selectedDay, focusedDay) {
           viewModel.selectDay(selectedDay);
           if (!_isSameMonth(focusedDay, viewModel.focusedMonth)) {
@@ -251,7 +253,14 @@ class _CalendarTableSection extends StatelessWidget {
           selectedBuilder: (context, day, _) =>
               _buildCalendarCell(day, weeks, isCompact, true),
           todayBuilder: (context, day, _) =>
-              _buildCalendarCell(day, weeks, isCompact, _isSameDate(day, viewModel.selectedDay), isToday: true),
+              _buildCalendarCell(
+                day,
+                weeks,
+                isCompact,
+                viewModel.selectedDay != null &&
+                    _isSameDate(day, viewModel.selectedDay!),
+                isToday: true,
+              ),
           outsideBuilder: (context, day, _) =>
               _buildCalendarCell(day, weeks, isCompact, false, forceOutside: true),
         ),
@@ -427,6 +436,7 @@ void _openMonthPicker(BuildContext context, CalendarViewModel viewModel) {
                           viewModel.setFocusedMonth(
                             DateTime(tempYear, tempMonth, 1),
                           );
+                          viewModel.clearSelectedDay();
                           Navigator.of(dialogContext).pop();
                         },
                         child: Text(
