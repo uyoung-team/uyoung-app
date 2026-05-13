@@ -102,10 +102,13 @@ class _CalendarMemoryIslandManagePageState
           },
           child: _buildIslandRow(
             island: island,
-            trailing: SvgPicture.asset(
-              AssetPaths.icons.common.previous,
-              width: 12,
-              height: 12,
+            trailing: Transform.rotate(
+              angle: 3.141592,
+              child: SvgPicture.asset(
+                AssetPaths.icons.common.previous,
+                width: 12,
+                height: 12,
+              ),
             ),
           ),
         );

@@ -78,10 +78,13 @@ class CalendarMemoryIslandSettingsPage extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 8),
-                  SvgPicture.asset(
-                    AssetPaths.icons.common.previous,
-                    width: 14,
-                    height: 14,
+                  Transform.rotate(
+                    angle: 3.141592,
+                    child: SvgPicture.asset(
+                      AssetPaths.icons.common.previous,
+                      width: 14,
+                      height: 14,
+                    ),
                   ),
                 ],
               ),
