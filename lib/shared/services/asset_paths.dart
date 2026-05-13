@@ -204,10 +204,10 @@ class HomeImages {
 class LoginImages {
   const LoginImages();
 
-  final String background = 'assets/images/login.png';
-  final String kakao = 'assets/images/kakao_login.png';
-  final String google = 'assets/images/google_login.png';
-  final String apple = 'assets/images/apple_login.png';
+  final String background = 'assets/images/login/login_bg.png';
+  final String kakao = 'assets/images/login/kakao_login.png';
+  final String google = 'assets/images/login/google_login.png';
+  final String apple = 'assets/images/login/apple_login.png';
 }
 
 class SplashImages {
