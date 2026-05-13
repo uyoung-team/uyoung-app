@@ -131,6 +131,7 @@ class AppImages {
   final CalendarImages calendar = const CalendarImages();
   final CharacterImages character = const CharacterImages();
   final HomeImages home = const HomeImages();
+  final LoginImages login = const LoginImages();
   final SplashImages splash = const SplashImages();
 }
 
@@ -198,6 +199,15 @@ class HomeImages {
   final String iconAttend = 'assets/images/home/icon_attend.png';
   final String myPearl = 'assets/images/home/home_my_pearl.png';
   final String plusPearl = 'assets/images/home/home_plus_pearl.png';
+}
+
+class LoginImages {
+  const LoginImages();
+
+  final String background = 'assets/images/login.png';
+  final String kakao = 'assets/images/kakao_login.png';
+  final String google = 'assets/images/google_login.png';
+  final String apple = 'assets/images/apple_login.png';
 }
 
 class SplashImages {
