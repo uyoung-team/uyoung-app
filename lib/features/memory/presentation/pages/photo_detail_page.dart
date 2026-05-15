@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:uyoung_app/core/theme/app_colors.dart';
 import 'package:uyoung_app/core/theme/app_font.dart';
+import 'package:uyoung_app/features/memory/presentation/widgets/change_day_sheet.dart';
 import 'package:uyoung_app/features/memory/presentation/widgets/comment_input_bar.dart';
+import 'package:uyoung_app/features/memory/presentation/widgets/location_sheet.dart';
 import 'package:uyoung_app/shared/services/asset_paths.dart';
 import 'package:uyoung_app/shared/widgets/app_headline_text.dart';
 
@@ -35,6 +37,7 @@ class PhotoDetailPage extends StatefulWidget {
 }
 
 class _PhotoDetailPageState extends State<PhotoDetailPage> {
+  final double _popupWidth = 220;
   final List<PlacedSticker> _stickers = [];
 
   String? _pendingStickerAsset;
@@ -60,10 +63,16 @@ class _PhotoDetailPageState extends State<PhotoDetailPage> {
   }
 
   AppBar _appBar(BuildContext context) {
+    final GlobalKey moreKey = GlobalKey();
+
     return AppBar(
       backgroundColor: AppColors.white,
       surfaceTintColor: Colors.transparent,
       elevation: 0,
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back_ios, color: AppColors.black),
+        onPressed: () => Navigator.pop(context),
+      ),
       centerTitle: true,
       title: Column(
         children: [
@@ -89,9 +98,10 @@ class _PhotoDetailPageState extends State<PhotoDetailPage> {
         ),
         Padding(
           padding: const EdgeInsets.only(right: 14),
-          child: IconButton(
-            onPressed: () => _showMoreSheet(context),
-            icon: SvgPicture.asset(
+          child: GestureDetector(
+            key: moreKey,
+            onTap: () => _showMorePopup(context, moreKey),
+            child: SvgPicture.asset(
               AssetPaths.icons.common.meatball,
               width: 22,
               height: 22,
@@ -102,63 +112,172 @@ class _PhotoDetailPageState extends State<PhotoDetailPage> {
     );
   }
 
-  void _showMoreSheet(BuildContext context) {
-    showModalBottomSheet(
+  void _showMorePopup(BuildContext context, GlobalKey key) {
+    final renderBox = key.currentContext?.findRenderObject() as RenderBox?;
+    if (renderBox == null) {
+      return;
+    }
+
+    final position = renderBox.localToGlobal(Offset.zero);
+    final size = renderBox.size;
+    final screenWidth = MediaQuery.of(context).size.width;
+
+    double left = position.dx - (_popupWidth - size.width);
+    if (left < 16) left = 16;
+    if (left + _popupWidth > screenWidth) {
+      left = screenWidth - _popupWidth - 16;
+    }
+
+    showDialog(
       context: context,
-      backgroundColor: Colors.transparent,
+      barrierColor: Colors.black.withValues(alpha: 0.25),
+      barrierDismissible: true,
       builder: (_) {
-        return Container(
-          decoration: const BoxDecoration(
-            color: AppColors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-          ),
-          padding: const EdgeInsets.fromLTRB(18, 16, 18, 24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _moreItem(
-                icon: Icons.schedule_rounded,
-                label: '날짜 및 시간 조정',
+        return Stack(
+          children: [
+            Positioned(
+              left: left,
+              top: position.dy,
+              child: Material(
+                color: Colors.transparent,
+                child: Container(
+                  width: _popupWidth,
+                  decoration: BoxDecoration(
+                    color: AppColors.white,
+                    borderRadius: BorderRadius.circular(18),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.black.withValues(alpha: 0.12),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _popupItem(
+                        iconPath: AssetPaths.icons.bar.calendar,
+                        label: '날짜 및 시간 조정',
+                        onTap: () {
+                          Navigator.pop(context);
+                          _showChangeDaySheet(context);
+                        },
+                      ),
+                      _divider(),
+                      _popupItem(
+                        iconPath: AssetPaths.icons.bar.location,
+                        label: '위치 조정',
+                        onTap: () {
+                          Navigator.pop(context);
+                          _showLocationSheet(context);
+                        },
+                      ),
+                      _divider(),
+                      _popupItem(
+                        iconPath: AssetPaths.icons.common.delete,
+                        label: '삭제하기',
+                        color: AppColors.subRed03,
+                        onTap: () {
+                          Navigator.pop(context);
+                          _showDeleteDialog(context);
+                        },
+                      ),
+                    ],
+                  ),
+                ),
               ),
-              const SizedBox(height: 8),
-              _moreItem(
-                icon: Icons.location_on_outlined,
-                label: '위치 조정',
-              ),
-              const SizedBox(height: 8),
-              _moreItem(
-                icon: Icons.delete_outline_rounded,
-                label: '삭제하기',
-                color: AppColors.subRed03,
-              ),
-            ],
-          ),
+            ),
+          ],
         );
       },
     );
   }
 
-  Widget _moreItem({
-    required IconData icon,
+  void _showChangeDaySheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => const ChangeDaySheet(),
+    );
+  }
+
+  void _showLocationSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => const LocationSheet(),
+    );
+  }
+
+  Future<void> _showDeleteDialog(BuildContext context) async {
+    final shouldDelete = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: Text('삭제하기', style: AppFont.b5_20),
+          content: Text(
+            '이 사진을 삭제할까요?',
+            style: AppFont.b8_14.copyWith(color: AppColors.g02),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: Text('취소', style: AppFont.b8_14),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(dialogContext, true),
+              style: FilledButton.styleFrom(
+                backgroundColor: AppColors.subRed03,
+              ),
+              child: Text(
+                '삭제',
+                style: AppFont.b8_14.copyWith(color: AppColors.white),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (shouldDelete == true && context.mounted) {
+      final messenger = ScaffoldMessenger.of(context);
+      Navigator.pop(context);
+      messenger
+        ..hideCurrentSnackBar()
+        ..showSnackBar(const SnackBar(content: Text('사진을 삭제했어요.')));
+    }
+  }
+
+  Widget _popupItem({
+    required String iconPath,
     required String label,
+    required VoidCallback onTap,
     Color color = AppColors.black,
   }) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.bg02),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, color: color),
-          const SizedBox(width: 12),
-          Text(label, style: AppFont.b7_16.copyWith(color: color)),
-        ],
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        child: Row(
+          children: [
+            SvgPicture.asset(
+              iconPath,
+              width: 20,
+              height: 20,
+              colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
+            ),
+            const SizedBox(width: 12),
+            Text(label, style: AppFont.b7_16.copyWith(color: color)),
+          ],
+        ),
       ),
     );
   }
+
+  Widget _divider() => Container(height: 1, color: AppColors.bg03);
 
   Widget _body(BuildContext context) {
     return SingleChildScrollView(
