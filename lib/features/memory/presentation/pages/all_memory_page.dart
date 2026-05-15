@@ -36,7 +36,7 @@ class AllMemoryPage extends StatelessWidget {
     }
 
     return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+      padding: const EdgeInsets.fromLTRB(18, 10, 18, 120),
       itemCount: dates.length,
       itemBuilder: (context, index) {
         final date = dates[index];

@@ -65,42 +65,43 @@ class _PromoSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
-      child: SizedBox(
-        height: 170,
-        child: Stack(
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(top: 36),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '아직 완성되지 않은\n조개 이야기를 확인해 봐요!',
-                    style: AppFont.h4_22,
-                  ),
-                  const SizedBox(height: 8),
-                  GestureDetector(
-                    onTap: onTap,
-                    child: Text(
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        child: SizedBox(
+          height: 170,
+          child: Stack(
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(top: 36),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '아직 완성되지 않은\n조개 이야기를 확인해 봐요!',
+                      style: AppFont.h4_22,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
                       '자세히 보기 >',
                       style: AppFont.b8_14.copyWith(color: AppColors.g02),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-            Positioned(
-              right: -30,
-              bottom: -10,
-              child: Image.asset(
-                AssetPaths.images.shellStory.promo,
-                width: 200,
-                fit: BoxFit.contain,
+              Positioned(
+                right: -30,
+                bottom: -10,
+                child: Image.asset(
+                  AssetPaths.images.shellStory.promo,
+                  width: 200,
+                  fit: BoxFit.contain,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

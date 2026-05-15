@@ -132,12 +132,16 @@ class _PearlBox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {
-        Navigator.of(context).push(
+      onTap: () async {
+        await Navigator.of(context).push(
           MaterialPageRoute<void>(
             builder: (_) => const PearlChargePage(),
           ),
         );
+        if (!context.mounted) {
+          return;
+        }
+        await context.read<HomeViewModel>().load();
       },
       child: SizedBox(
         width: 82 * scale,
