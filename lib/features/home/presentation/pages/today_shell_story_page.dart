@@ -21,6 +21,12 @@ class _TodayShellStoryPageState extends State<TodayShellStoryPage> {
     super.dispose();
   }
 
+  void _showPreparingMessage(String message) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(message)));
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -37,7 +43,10 @@ class _TodayShellStoryPageState extends State<TodayShellStoryPage> {
             Column(
               children: [
                 const SizedBox(height: 8),
-                _AppBarRow(onBack: () => Navigator.of(context).pop()),
+                _AppBarRow(
+                  onBack: () => Navigator.of(context).pop(),
+                  onMenuTap: () => _showPreparingMessage('메뉴 기능은 준비 중이에요.'),
+                ),
                 const SizedBox(height: 12),
                 const _TitleSection(),
                 const SizedBox(height: 12),
@@ -49,7 +58,13 @@ class _TodayShellStoryPageState extends State<TodayShellStoryPage> {
                       setState(() => _currentPage = index);
                     },
                     itemBuilder: (_, index) =>
-                        _FramePage(content: todayShellFrameContents[index]),
+                        _FramePage(
+                          content: todayShellFrameContents[index],
+                          onActionTap: () {
+                            final content = todayShellFrameContents[index];
+                            _showPreparingMessage('${content.actionText.replaceAll(' >', '')} 기능은 준비 중이에요.');
+                          },
+                        ),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -117,9 +132,13 @@ class _TodayShellStoryPageState extends State<TodayShellStoryPage> {
 }
 
 class _AppBarRow extends StatelessWidget {
-  const _AppBarRow({required this.onBack});
+  const _AppBarRow({
+    required this.onBack,
+    required this.onMenuTap,
+  });
 
   final VoidCallback onBack;
+  final VoidCallback onMenuTap;
 
   @override
   Widget build(BuildContext context) {
@@ -132,7 +151,10 @@ class _AppBarRow extends StatelessWidget {
             icon: const Icon(Icons.arrow_back_ios_new_rounded),
           ),
           const Spacer(),
-          Image.asset(AssetPaths.images.shellStory.menu, width: 24),
+          GestureDetector(
+            onTap: onMenuTap,
+            child: Image.asset(AssetPaths.images.shellStory.menu, width: 24),
+          ),
         ],
       ),
     );
@@ -171,9 +193,13 @@ class _TitleSection extends StatelessWidget {
 }
 
 class _FramePage extends StatelessWidget {
-  const _FramePage({required this.content});
+  const _FramePage({
+    required this.content,
+    required this.onActionTap,
+  });
 
   final ShellFrameContent content;
+  final VoidCallback onActionTap;
 
   @override
   Widget build(BuildContext context) {
@@ -190,9 +216,12 @@ class _FramePage extends StatelessWidget {
               const SizedBox(height: 12),
               Text(content.title, style: AppFont.h6_18, textAlign: TextAlign.center),
               const SizedBox(height: 6),
-              Text(
-                content.actionText,
-                style: AppFont.b8_14.copyWith(color: AppColors.g02),
+              GestureDetector(
+                onTap: onActionTap,
+                child: Text(
+                  content.actionText,
+                  style: AppFont.b8_14.copyWith(color: AppColors.g02),
+                ),
               ),
               const SizedBox(height: 28),
               Column(

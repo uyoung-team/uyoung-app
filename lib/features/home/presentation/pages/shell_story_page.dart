@@ -3,6 +3,7 @@ import 'package:uyoung_app/core/theme/app_colors.dart';
 import 'package:uyoung_app/core/theme/app_font.dart';
 import 'package:uyoung_app/features/home/data/shell_story_dummy.dart';
 import 'package:uyoung_app/features/home/data/shell_story_model.dart';
+import 'package:uyoung_app/features/home/presentation/pages/today_shell_story_page.dart';
 import 'package:uyoung_app/features/home/presentation/pages/unfinished_shell_story_list_page.dart';
 import 'package:uyoung_app/shared/services/asset_paths.dart';
 
@@ -19,9 +20,21 @@ class ShellStoryPage extends StatelessWidget {
         centerTitle: true,
         title: Text('조개 이야기', style: AppFont.h5_20),
         actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 12),
-            child: Image.asset(AssetPaths.images.shellStory.filter, width: 42),
+          GestureDetector(
+            onTap: () {
+              ScaffoldMessenger.of(context)
+                ..hideCurrentSnackBar()
+                ..showSnackBar(
+                  const SnackBar(content: Text('필터 기능은 준비 중이에요.')),
+                );
+            },
+            child: Padding(
+              padding: const EdgeInsets.only(right: 12),
+              child: Image.asset(
+                AssetPaths.images.shellStory.filter,
+                width: 42,
+              ),
+            ),
           ),
         ],
       ),
@@ -136,7 +149,13 @@ class _StoryCard extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       child: GestureDetector(
-        onTap: () {},
+        onTap: () {
+          Navigator.of(context).push(
+            MaterialPageRoute<void>(
+              builder: (_) => const TodayShellStoryPage(),
+            ),
+          );
+        },
         child: Stack(
           children: [
             ClipRRect(
