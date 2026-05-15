@@ -1,4 +1,7 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:uyoung_app/features/memory/data/memory_models.dart';
 import 'package:uyoung_app/features/memory/data/memory_repository.dart';
 
@@ -34,6 +37,8 @@ class CreateMemoryViewModel extends ChangeNotifier {
   final TextEditingController titleController = TextEditingController();
   final List<InviteeUser> _selectedMembers = [];
   String? selectedColor;
+  XFile? selectedImage;
+  Uint8List? selectedImageBytes;
   bool isSubmitting = false;
 
   List<InviteeUser> get selectedMembers => List.unmodifiable(_selectedMembers);
@@ -46,6 +51,12 @@ class CreateMemoryViewModel extends ChangeNotifier {
 
   void setColor(String color) {
     selectedColor = color;
+    notifyListeners();
+  }
+
+  Future<void> setSelectedImage(XFile file) async {
+    selectedImage = file;
+    selectedImageBytes = await file.readAsBytes();
     notifyListeners();
   }
 
@@ -80,9 +91,14 @@ class CreateMemoryViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
+      final bgUrl = selectedImage == null
+          ? null
+          : await _repository.uploadIslandBackground(selectedImage!);
+
       return await _repository.createIsland(
         islandName: _resolveIslandName(),
         color: selectedColor!,
+        bgUrl: bgUrl,
         inviteeIds: _selectedMembers.map((user) => user.id).toList(),
       );
     } finally {

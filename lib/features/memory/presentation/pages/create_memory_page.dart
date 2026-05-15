@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:uyoung_app/core/theme/app_colors.dart';
 import 'package:uyoung_app/core/theme/app_font.dart';
@@ -31,6 +32,15 @@ class _CreateMemoryPageState extends State<CreateMemoryPage> {
 class _CreateMemoryStepOneView extends StatelessWidget {
   const _CreateMemoryStepOneView();
 
+  Future<void> _pickImage(BuildContext context) async {
+    final file = await ImagePicker().pickImage(source: ImageSource.gallery);
+    if (file == null || !context.mounted) {
+      return;
+    }
+
+    await context.read<CreateMemoryViewModel>().setSelectedImage(file);
+  }
+
   @override
   Widget build(BuildContext context) {
     final vm = context.watch<CreateMemoryViewModel>();
@@ -42,8 +52,9 @@ class _CreateMemoryStepOneView extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _HeaderSection(
+              imageBytes: vm.selectedImageBytes,
               onBack: () => Navigator.pop(context),
-              onPickGallery: () => _showPreparingSnackBar(context, '배경 이미지 선택'),
+              onPickGallery: () => _pickImage(context),
             ),
             const SizedBox(height: 28),
             Padding(
@@ -196,10 +207,12 @@ class _CreateMemoryStepOneView extends StatelessWidget {
 
 class _HeaderSection extends StatelessWidget {
   const _HeaderSection({
+    required this.imageBytes,
     required this.onBack,
     required this.onPickGallery,
   });
 
+  final Uint8List? imageBytes;
   final VoidCallback onBack;
   final VoidCallback onPickGallery;
 
@@ -211,12 +224,15 @@ class _HeaderSection extends StatelessWidget {
           width: double.infinity,
           height: 300,
           color: AppColors.bg02,
-          alignment: Alignment.center,
-          child: const Icon(
-            Icons.image_outlined,
-            color: AppColors.white,
-            size: 48,
-          ),
+          child: imageBytes == null
+              ? const Center(
+                  child: Icon(
+                    Icons.image_outlined,
+                    color: AppColors.white,
+                    size: 48,
+                  ),
+                )
+              : Image.memory(imageBytes!, fit: BoxFit.cover),
         ),
         Positioned(
           top: MediaQuery.of(context).padding.top + 8,
@@ -272,14 +288,6 @@ class _HeaderSection extends StatelessWidget {
       ],
     );
   }
-}
-
-void _showPreparingSnackBar(BuildContext context, String label) {
-  ScaffoldMessenger.of(context)
-    ..hideCurrentSnackBar()
-    ..showSnackBar(
-      SnackBar(content: Text('$label 기능은 다음 단계에서 이어서 구현할게요.')),
-    );
 }
 
 Color _hexToColor(String hex) {

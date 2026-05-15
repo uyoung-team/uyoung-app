@@ -1,3 +1,4 @@
+import 'package:image_picker/image_picker.dart';
 import 'package:uyoung_app/features/memory/data/memory_dummy_adapter.dart';
 import 'package:uyoung_app/features/memory/data/memory_models.dart';
 import 'package:uyoung_app/features/memory/data/memory_service.dart';
@@ -58,6 +59,14 @@ class MemoryRepository {
       return rows.map(InviteeUser.fromMap).toList();
     } catch (error) {
       throw StateError('초대할 사용자를 불러오지 못했어요. $error');
+    }
+  }
+
+  Future<String> uploadIslandBackground(XFile imageFile) async {
+    try {
+      return await service.uploadIslandBackground(imageFile);
+    } catch (error) {
+      throw StateError('배경 이미지를 업로드하지 못했어요. $error');
     }
   }
 

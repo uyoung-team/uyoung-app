@@ -1,3 +1,7 @@
+import 'dart:typed_data';
+
+import 'package:image_picker/image_picker.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uyoung_app/core/network/supabase_client_provider.dart';
 
 class MemoryService {
@@ -110,6 +114,34 @@ class MemoryService {
     );
 
     return response as String;
+  }
+
+  Future<String> uploadIslandBackground(XFile imageFile) async {
+    final client = _clientProvider.client;
+    if (client == null) {
+      throw StateError('로그인이 필요합니다.');
+    }
+
+    final Uint8List bytes = await imageFile.readAsBytes();
+    final originalName =
+        imageFile.name.isEmpty ? 'background.jpg' : imageFile.name;
+    final sanitizedName = originalName.replaceAll(
+      RegExp(r'[^a-zA-Z0-9._-]'),
+      '_',
+    );
+    final path =
+        'memory_islands/${DateTime.now().microsecondsSinceEpoch}_$sanitizedName';
+
+    await client.storage.from('island_backgrounds').uploadBinary(
+      path,
+      bytes,
+      fileOptions: FileOptions(
+        upsert: true,
+        contentType: _contentTypeFor(sanitizedName),
+      ),
+    );
+
+    return client.storage.from('island_backgrounds').getPublicUrl(path);
   }
 
   Future<String?> fetchInviteCode(String islandId) async {
@@ -316,5 +348,22 @@ class MemoryService {
     );
 
     return response == true;
+  }
+
+  String _contentTypeFor(String fileName) {
+    final extension = fileName.split('.').last.toLowerCase();
+    switch (extension) {
+      case 'png':
+        return 'image/png';
+      case 'gif':
+        return 'image/gif';
+      case 'webp':
+        return 'image/webp';
+      case 'jpg':
+      case 'jpeg':
+        return 'image/jpeg';
+      default:
+        return 'application/octet-stream';
+    }
   }
 }
