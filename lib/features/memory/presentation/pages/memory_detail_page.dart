@@ -144,7 +144,6 @@ class _MemoryDetailPageState extends State<MemoryDetailPage> {
                         decoration: BoxDecoration(
                           color: AppColors.white,
                           borderRadius: BorderRadius.circular(36),
-                          border: Border.all(color: AppColors.bg02),
                         ),
                         child: Row(
                           children: [

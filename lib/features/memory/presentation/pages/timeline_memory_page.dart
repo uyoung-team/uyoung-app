@@ -52,7 +52,7 @@ class _TimelineMemoryPageState extends State<TimelineMemoryPage> {
     return Column(
       children: [
         SizedBox(
-          height: 220,
+          height: 300,
           width: double.infinity,
           child: Image.asset(
             'assets/images/map.png',
