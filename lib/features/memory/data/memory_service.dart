@@ -131,6 +131,60 @@ class MemoryService {
     return response['invite_code']?.toString();
   }
 
+  Future<void> updateIslandMemberSettings({
+    required String islandId,
+    bool? isFavorite,
+    bool? isMuted,
+  }) async {
+    final client = _clientProvider.client;
+    final userId = client?.auth.currentUser?.id;
+    if (client == null || userId == null) {
+      throw StateError('로그인이 필요합니다.');
+    }
+
+    final updates = <String, dynamic>{};
+    if (isFavorite != null) {
+      updates['is_favorite'] = isFavorite;
+    }
+    if (isMuted != null) {
+      updates['is_muted'] = isMuted;
+    }
+
+    if (updates.isEmpty) {
+      return;
+    }
+
+    await client
+        .from('island_members')
+        .update(updates)
+        .eq('island_id', islandId)
+        .eq('user_id', userId);
+  }
+
+  Future<void> updateIslandName({
+    required String islandId,
+    required String name,
+  }) async {
+    final client = _clientProvider.client;
+    if (client == null) {
+      throw StateError('로그인이 필요합니다.');
+    }
+
+    await client.from('islands').update({'name': name}).eq('id', islandId);
+  }
+
+  Future<void> leaveIsland(String islandId) async {
+    final client = _clientProvider.client;
+    if (client == null) {
+      throw StateError('로그인이 필요합니다.');
+    }
+
+    await client.rpc(
+      'leave_island',
+      params: {'target_island_id': islandId},
+    );
+  }
+
   Future<List<Map<String, dynamic>>> fetchIslandByIds(List<String> islandIds) async {
     final client = _clientProvider.client;
     if (client == null || islandIds.isEmpty) {
@@ -152,6 +206,56 @@ class MemoryService {
   Future<Map<String, dynamic>?> fetchIsland(String islandId) async {
     final rows = await fetchIslandByIds([islandId]);
     return rows.isEmpty ? null : rows.first;
+  }
+
+  Future<Map<String, dynamic>?> fetchIslandByInviteCode(String inviteCode) async {
+    final client = _clientProvider.client;
+    if (client == null || inviteCode.isEmpty) {
+      return null;
+    }
+
+    final response = await client
+        .from('islands')
+        .select('id, name, bg_image_url, invite_code, updated_at')
+        .eq('invite_code', inviteCode)
+        .maybeSingle();
+
+    return response == null ? null : Map<String, dynamic>.from(response);
+  }
+
+  Future<void> joinIslandByInviteCode(String inviteCode) async {
+    final client = _clientProvider.client;
+    final userId = client?.auth.currentUser?.id;
+    if (client == null || userId == null) {
+      throw StateError('로그인 후 입장할 수 있어요.');
+    }
+
+    final island = await fetchIslandByInviteCode(inviteCode);
+    if (island == null) {
+      throw StateError('유효하지 않은 초대 링크예요.');
+    }
+
+    final islandId = island['id']?.toString();
+    if (islandId == null || islandId.isEmpty) {
+      throw StateError('기억섬 정보를 찾을 수 없어요.');
+    }
+
+    final existingMembership = await client
+        .from('island_members')
+        .select('id')
+        .eq('island_id', islandId)
+        .eq('user_id', userId)
+        .maybeSingle();
+
+    if (existingMembership == null) {
+      await client.from('island_members').insert({
+        'island_id': islandId,
+        'user_id': userId,
+        'role': 'member',
+        'is_favorite': false,
+        'is_muted': false,
+      });
+    }
   }
 
   Future<void> inviteMembersToIsland({

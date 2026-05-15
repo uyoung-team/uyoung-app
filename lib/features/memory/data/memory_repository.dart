@@ -126,6 +126,84 @@ class MemoryRepository {
     }
   }
 
+  Future<MemoryIslandItem> renameIsland({
+    required MemoryIslandItem item,
+    required String name,
+  }) async {
+    try {
+      await service.updateIslandName(islandId: item.id, name: name);
+      return item.copyWith(title: name);
+    } catch (error) {
+      throw StateError('기억섬 이름을 변경하지 못했어요. $error');
+    }
+  }
+
+  Future<MemoryIslandItem> updateIslandSettings({
+    required MemoryIslandItem item,
+    bool? isFavorite,
+    bool? isMuted,
+  }) async {
+    try {
+      await service.updateIslandMemberSettings(
+        islandId: item.id,
+        isFavorite: isFavorite,
+        isMuted: isMuted,
+      );
+      return item.copyWith(
+        isFavorite: isFavorite ?? item.isFavorite,
+        isNotificationOn: isMuted != null ? !isMuted : item.isNotificationOn,
+      );
+    } catch (error) {
+      throw StateError('기억섬 설정을 변경하지 못했어요. $error');
+    }
+  }
+
+  Future<void> leaveIsland(String islandId) async {
+    try {
+      await service.leaveIsland(islandId);
+    } catch (error) {
+      throw StateError('기억섬에서 나가지 못했어요. $error');
+    }
+  }
+
+  String buildInviteLink(String inviteCode) {
+    return 'https://momenture.app/invite?code=$inviteCode';
+  }
+
+  Future<IslandInviteDetail?> fetchIslandInviteDetail(String inviteCode) async {
+    try {
+      final island = await service.fetchIslandByInviteCode(inviteCode);
+      if (island == null) {
+        return null;
+      }
+
+      final islandId = island['id']?.toString() ?? '';
+      final members = await fetchIslandMembers(islandId);
+      return IslandInviteDetail(
+        islandId: islandId,
+        name: (island['name'] ?? '').toString(),
+        inviteCode: (island['invite_code'] ?? inviteCode).toString(),
+        bgImageUrl: island['bg_image_url']?.toString(),
+        members: members,
+      );
+    } catch (error) {
+      throw StateError('초대 정보를 불러오지 못했어요. $error');
+    }
+  }
+
+  Future<IslandInviteDetail> joinIslandByInviteCode(String inviteCode) async {
+    try {
+      final detail = await fetchIslandInviteDetail(inviteCode);
+      if (detail == null) {
+        throw StateError('유효하지 않은 초대 링크예요.');
+      }
+      await service.joinIslandByInviteCode(inviteCode);
+      return detail;
+    } catch (error) {
+      throw StateError('기억섬 입장에 실패했어요. $error');
+    }
+  }
+
   Future<List<MemoryMemberPreview>> fetchIslandMembers(String islandId) async {
     try {
       final memberRows = await service.fetchIslandMemberRows([islandId]);

@@ -38,6 +38,56 @@ class MemoryIslandItem {
   final DateTime? updatedAt;
   final String? inviteCode;
   final List<MemoryMemberPreview> members;
+
+  MemoryIslandItem copyWith({
+    String? id,
+    String? title,
+    bool? isFavorite,
+    bool? isNotificationOn,
+    String? imagePath,
+    DateTime? updatedAt,
+    String? inviteCode,
+    List<MemoryMemberPreview>? members,
+  }) {
+    return MemoryIslandItem(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      isFavorite: isFavorite ?? this.isFavorite,
+      isNotificationOn: isNotificationOn ?? this.isNotificationOn,
+      imagePath: imagePath ?? this.imagePath,
+      updatedAt: updatedAt ?? this.updatedAt,
+      inviteCode: inviteCode ?? this.inviteCode,
+      members: members ?? this.members,
+    );
+  }
+}
+
+class IslandInviteDetail {
+  const IslandInviteDetail({
+    required this.islandId,
+    required this.name,
+    required this.inviteCode,
+    this.bgImageUrl,
+    this.members = const [],
+  });
+
+  final String islandId;
+  final String name;
+  final String inviteCode;
+  final String? bgImageUrl;
+  final List<MemoryMemberPreview> members;
+
+  MemoryIslandItem toIslandItem() {
+    return MemoryIslandItem(
+      id: islandId,
+      title: name,
+      isFavorite: false,
+      isNotificationOn: true,
+      imagePath: bgImageUrl,
+      inviteCode: inviteCode,
+      members: members,
+    );
+  }
 }
 
 class InviteeUser {
