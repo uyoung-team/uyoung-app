@@ -27,10 +27,12 @@ class PhotoDetailPage extends StatefulWidget {
     super.key,
     required this.imagePath,
     this.uploaderName = '버블 메이트',
+    this.uploaderProfile,
   });
 
   final String imagePath;
   final String uploaderName;
+  final String? uploaderProfile;
 
   @override
   State<PhotoDetailPage> createState() => _PhotoDetailPageState();
@@ -290,10 +292,17 @@ class _PhotoDetailPageState extends State<PhotoDetailPage> {
             padding: const EdgeInsets.symmetric(horizontal: 18),
             child: Row(
               children: [
-                const CircleAvatar(
+                CircleAvatar(
                   radius: 18,
                   backgroundColor: AppColors.bg02,
-                  child: Icon(Icons.person_outline, color: AppColors.g02),
+                  backgroundImage: widget.uploaderProfile != null &&
+                          widget.uploaderProfile!.isNotEmpty
+                      ? AssetImage(widget.uploaderProfile!)
+                      : null,
+                  child: widget.uploaderProfile == null ||
+                          widget.uploaderProfile!.isEmpty
+                      ? const Icon(Icons.person_outline, color: AppColors.g02)
+                      : null,
                 ),
                 const SizedBox(width: 10),
                 Text(

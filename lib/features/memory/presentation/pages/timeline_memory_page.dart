@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:uyoung_app/core/theme/app_colors.dart';
 import 'package:uyoung_app/core/theme/app_font.dart';
+import 'package:uyoung_app/features/memory/data/memory_location_dummy.dart';
 import 'package:uyoung_app/features/memory/presentation/pages/memory_local_photo.dart';
+import 'package:uyoung_app/features/memory/presentation/pages/photo_detail_page.dart';
 import 'package:uyoung_app/features/memory/presentation/widgets/memory_photo_thumbnail.dart';
 
 class TimelineMemoryPage extends StatefulWidget {
@@ -44,6 +46,9 @@ class _TimelineMemoryPageState extends State<TimelineMemoryPage> {
                 date.day == _selectedDate!.day;
           }).toList();
 
+    final groupedByLocation = _groupByLocation(filteredPhotos);
+    final locationKeys = groupedByLocation.keys.toList()..sort();
+
     return Column(
       children: [
         SizedBox(
@@ -84,30 +89,45 @@ class _TimelineMemoryPageState extends State<TimelineMemoryPage> {
                     ),
                   )
                 else ...[
-                  const SizedBox(height: 10),
-                  _locationLabel('위치 미지정'),
-                  const SizedBox(height: 10),
-                  GridView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 18),
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: filteredPhotos.length,
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 3,
-                          mainAxisSpacing: 8,
-                          crossAxisSpacing: 8,
-                          childAspectRatio: 1,
-                        ),
-                    itemBuilder: (_, i) {
-                      final photo = filteredPhotos[i];
-                      return ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: MemoryPhotoThumbnail(photo: photo),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 18),
+                  for (final location in locationKeys) ...[
+                    const SizedBox(height: 10),
+                    _locationLabel(location),
+                    const SizedBox(height: 10),
+                    GridView.builder(
+                      padding: const EdgeInsets.symmetric(horizontal: 18),
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: groupedByLocation[location]!.length,
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 3,
+                            mainAxisSpacing: 8,
+                            crossAxisSpacing: 8,
+                            childAspectRatio: 1,
+                          ),
+                      itemBuilder: (_, i) {
+                        final photo = groupedByLocation[location]![i];
+                        return GestureDetector(
+                          onTap: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute<void>(
+                                builder: (_) => PhotoDetailPage(
+                                  imagePath: photo.path,
+                                  uploaderName: photo.uploaderName,
+                                  uploaderProfile: photo.uploaderProfile,
+                                ),
+                              ),
+                            );
+                          },
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: MemoryPhotoThumbnail(photo: photo),
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 18),
+                  ],
                 ],
               ],
             ),
@@ -159,5 +179,19 @@ class _TimelineMemoryPageState extends State<TimelineMemoryPage> {
         ],
       ),
     );
+  }
+
+  Map<String, List<MemoryLocalPhoto>> _groupByLocation(
+    List<MemoryLocalPhoto> photos,
+  ) {
+    final grouped = <String, List<MemoryLocalPhoto>>{};
+
+    for (final photo in photos) {
+      final info = MemoryLocationDummy.get(photo.path);
+      final label = info?.label ?? info?.groupKey ?? '위치 미지정';
+      (grouped[label] ??= []).add(photo);
+    }
+
+    return grouped;
   }
 }

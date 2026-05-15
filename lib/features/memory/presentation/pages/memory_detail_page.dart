@@ -42,6 +42,7 @@ class _MemoryDetailPageState extends State<MemoryDetailPage> {
           path: photo.path,
           createdAt: photo.createdAt,
           uploaderName: photo.uploaderName,
+          uploaderProfile: photo.profileImagePath,
           isLocalFile: false,
         ),
       ),
@@ -67,6 +68,7 @@ class _MemoryDetailPageState extends State<MemoryDetailPage> {
           path: pickedFile.path,
           createdAt: DateTime.now(),
           uploaderName: '나',
+          uploaderProfile: null,
           isLocalFile: true,
         ),
       );
