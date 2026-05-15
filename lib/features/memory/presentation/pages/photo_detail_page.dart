@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:uyoung_app/core/theme/app_colors.dart';
 import 'package:uyoung_app/core/theme/app_font.dart';
+import 'package:uyoung_app/features/memory/data/memory_repository.dart';
+import 'package:uyoung_app/features/memory/data/memory_service.dart';
 import 'package:uyoung_app/features/memory/presentation/widgets/change_day_sheet.dart';
 import 'package:uyoung_app/features/memory/presentation/widgets/comment_input_bar.dart';
 import 'package:uyoung_app/features/memory/presentation/widgets/location_sheet.dart';
@@ -41,6 +43,7 @@ class PhotoDetailPage extends StatefulWidget {
 class _PhotoDetailPageState extends State<PhotoDetailPage> {
   final double _popupWidth = 220;
   final List<PlacedSticker> _stickers = [];
+  final MemoryRepository _repository = const MemoryRepository(MemoryService());
 
   String? _pendingStickerAsset;
   double _pendingDxRatio = 0.5;
@@ -48,6 +51,8 @@ class _PhotoDetailPageState extends State<PhotoDetailPage> {
   final double _pendingSize = 72;
   double _photoWidth = 0;
   double _photoHeight = 530;
+  bool _isFavorite = false;
+  bool _isTogglingFavorite = false;
 
   @override
   Widget build(BuildContext context) {
@@ -253,6 +258,33 @@ class _PhotoDetailPageState extends State<PhotoDetailPage> {
     }
   }
 
+  Future<void> _toggleFavorite() async {
+    setState(() {
+      _isTogglingFavorite = true;
+      _isFavorite = !_isFavorite;
+    });
+
+    try {
+      await _repository.toggleFavoritePhoto(
+        islandId: 'preview-island',
+        photoKey: widget.imagePath,
+      );
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _isFavorite = !_isFavorite;
+      });
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isTogglingFavorite = false;
+        });
+      }
+    }
+  }
+
   Widget _popupItem({
     required String iconPath,
     required String label,
@@ -311,11 +343,15 @@ class _PhotoDetailPageState extends State<PhotoDetailPage> {
                 ),
                 const Spacer(),
                 GestureDetector(
-                  onTap: () {},
+                  onTap: _isTogglingFavorite ? null : _toggleFavorite,
                   child: SvgPicture.asset(
                     AssetPaths.icons.photoDetail.favorite,
                     width: 28,
                     height: 28,
+                    colorFilter: ColorFilter.mode(
+                      _isFavorite ? AppColors.b01 : AppColors.g03,
+                      BlendMode.srcIn,
+                    ),
                   ),
                 ),
               ],

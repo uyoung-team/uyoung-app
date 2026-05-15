@@ -9,6 +9,8 @@ import 'package:uyoung_app/features/memory/data/memory_service.dart';
 import 'package:uyoung_app/features/memory/presentation/pages/favorite_photos_page.dart';
 import 'package:uyoung_app/features/memory/presentation/pages/island_invite_page.dart';
 import 'package:uyoung_app/features/memory/presentation/viewmodels/island_detail_view_model.dart';
+import 'package:uyoung_app/features/my_page/data/my_page_models.dart';
+import 'package:uyoung_app/features/my_page/presentation/pages/friend_profile_page.dart';
 import 'package:uyoung_app/shared/widgets/app_headline_text.dart';
 
 class MemberInquiryPage extends StatelessWidget {
@@ -220,7 +222,7 @@ class _MemberInquiryView extends StatelessWidget {
                         ),
                       )
                     else
-                      ...viewModel.members.map(_memberTile),
+                      ...viewModel.members.map((member) => _memberTile(context, member)),
                   ],
                 ),
               ),
@@ -231,7 +233,7 @@ class _MemberInquiryView extends StatelessWidget {
     );
   }
 
-  Widget _memberTile(MemoryMemberPreview member) {
+  Widget _memberTile(BuildContext context, MemoryMemberPreview member) {
     final displayName = member.nickname.trim().isEmpty ? '이름 없음' : member.nickname.trim();
 
     return ListTile(
@@ -250,7 +252,20 @@ class _MemberInquiryView extends StatelessWidget {
               ),
       ),
       title: Text(displayName, style: AppFont.b7_16),
-      onTap: () {},
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute<void>(
+            builder: (_) => FriendProfilePage(
+              friend: FriendItem(
+                id: member.id,
+                nickname: displayName,
+                userCode: member.id,
+                profileImageUrl: member.avatarUrl,
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

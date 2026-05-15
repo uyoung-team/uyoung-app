@@ -10,6 +10,7 @@ import 'package:uyoung_app/features/home/data/home_repository.dart';
 import 'package:uyoung_app/features/home/data/home_service.dart';
 import 'package:uyoung_app/features/home/presentation/pages/notification_page.dart';
 import 'package:uyoung_app/features/home/presentation/viewmodels/home_view_model.dart';
+import 'package:uyoung_app/features/my_page/presentation/pages/pearl_charge_page.dart';
 import 'package:uyoung_app/shared/services/asset_paths.dart';
 
 class HomePage extends StatelessWidget {
@@ -132,11 +133,11 @@ class _PearlBox extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        ScaffoldMessenger.of(context)
-          ..hideCurrentSnackBar()
-          ..showSnackBar(
-            const SnackBar(content: Text('진주 충전 화면은 다음 단계에서 연결됩니다.')),
-          );
+        Navigator.of(context).push(
+          MaterialPageRoute<void>(
+            builder: (_) => const PearlChargePage(),
+          ),
+        );
       },
       child: SizedBox(
         width: 82 * scale,
