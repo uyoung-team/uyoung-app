@@ -82,6 +82,7 @@ flutter:
     - assets/images/shop/
     - assets/images/my_page/
     - assets/images/splash/
+    - assets/images/shell_story/
   fonts:
     - family: OwnglyphKonghae
       fonts:

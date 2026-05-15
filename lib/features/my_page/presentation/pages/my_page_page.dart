@@ -7,6 +7,7 @@ import 'package:uyoung_app/core/theme/app_font.dart';
 import 'package:uyoung_app/core/theme/app_radius.dart';
 import 'package:uyoung_app/core/theme/app_spacing.dart';
 import 'package:uyoung_app/features/home/presentation/pages/notification_page.dart';
+import 'package:uyoung_app/features/home/presentation/pages/shell_story_page.dart';
 import 'package:uyoung_app/features/login/data/login_repository.dart';
 import 'package:uyoung_app/features/login/data/login_service.dart';
 import 'package:uyoung_app/features/my_page/data/my_page_repository.dart';
@@ -95,7 +96,7 @@ class _MyPageView extends StatelessWidget {
                       onTap: () {
                         Navigator.of(context).push(
                           MaterialPageRoute<void>(
-                            builder: (_) => const FriendInvitePage(),
+                            builder: (_) => const ShellStoryPage(),
                           ),
                         );
                       },

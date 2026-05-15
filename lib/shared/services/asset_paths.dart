@@ -132,6 +132,7 @@ class AppImages {
   final CharacterImages character = const CharacterImages();
   final HomeImages home = const HomeImages();
   final LoginImages login = const LoginImages();
+  final ShellStoryImages shellStory = const ShellStoryImages();
   final SplashImages splash = const SplashImages();
 }
 
@@ -208,6 +209,42 @@ class LoginImages {
   final String kakao = 'assets/images/login/kakao_login.png';
   final String google = 'assets/images/login/google_login.png';
   final String apple = 'assets/images/login/apple_login.png';
+}
+
+class ShellStoryImages {
+  const ShellStoryImages();
+
+  final String promo = 'assets/images/shell_story/shell_story.png';
+  final String frame = 'assets/images/shell_story/memory_frame.png';
+  final String unfinishedFrame =
+      'assets/images/shell_story/unfinished_seacontent_frame.png';
+  final String background =
+      'assets/images/shell_story/seacontent_background.png';
+  final String contentFrame =
+      'assets/images/shell_story/seacontent_frame.png';
+  final String progressAlert =
+      'assets/images/shell_story/seacontent_alret.png';
+  final String leftShell = 'assets/images/shell_story/small_shell_left.png';
+  final String rightShell = 'assets/images/shell_story/small_shell_right.png';
+  final String filledIndicator =
+      'assets/images/shell_story/shell_filled.png';
+  final String emptyIndicator = 'assets/images/shell_story/shell_empty.png';
+  final String menu = 'assets/images/shell_story/menu.png';
+  final String filter = 'assets/images/shell_story/filter.png';
+  final String seaotter = 'assets/images/shell_story/shell_story_seaotter.png';
+  final String open = 'assets/images/shell_story/open_shell_story.png';
+  final String sample04 = 'assets/images/shell_story/sample4.png';
+  final String sample11 = 'assets/images/shell_story/sample11.png';
+  final String memorySeaotter01 =
+      'assets/images/shell_story/memory_seaotter1.png';
+  final String memorySeaotter02 =
+      'assets/images/shell_story/memory_seaotter2.png';
+  final String memorySeaotter03 =
+      'assets/images/shell_story/memory_seaotter3.png';
+  final String leeProfile = 'assets/images/shell_story/lee_profile.png';
+  final String yoonProfile = 'assets/images/shell_story/yoon_profile.png';
+  final String choProfile = 'assets/images/shell_story/cho_profile.png';
+  final String choiProfile = 'assets/images/shell_story/choi_profile.png';
 }
 
 class SplashImages {
