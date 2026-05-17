@@ -51,13 +51,7 @@ class FriendProfilePage extends StatelessWidget {
               width: 134,
               height: 48,
               child: FilledButton(
-                onPressed: () {
-                  ScaffoldMessenger.of(context)
-                    ..hideCurrentSnackBar()
-                    ..showSnackBar(
-                      const SnackBar(content: Text('놀러가기 기능은 다음 단계에서 연결할게요.')),
-                    );
-                },
+                onPressed: () {},
                 style: FilledButton.styleFrom(
                   backgroundColor: AppColors.b02,
                   foregroundColor: AppColors.white,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:uyoung_app/core/theme/app_colors.dart';
 import 'package:uyoung_app/core/theme/app_font.dart';
 import 'package:uyoung_app/features/memory/data/memory_models.dart';
+import 'package:uyoung_app/features/memory/presentation/pages/memory_detail_page.dart';
 import 'package:uyoung_app/shared/widgets/app_headline_text.dart';
 
 class MemorySearchPage extends StatefulWidget {
@@ -181,11 +182,11 @@ class _SearchMemoryCard extends StatelessWidget {
       child: InkWell(
         borderRadius: BorderRadius.circular(18),
         onTap: () {
-          ScaffoldMessenger.of(context)
-            ..hideCurrentSnackBar()
-            ..showSnackBar(
-              SnackBar(content: Text('${item.title} 상세는 다음 단계에서 연결할게요.')),
-            );
+          Navigator.of(context).push(
+            MaterialPageRoute<void>(
+              builder: (_) => MemoryDetailPage(item: item),
+            ),
+          );
         },
         child: Container(
           decoration: BoxDecoration(

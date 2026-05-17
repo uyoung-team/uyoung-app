@@ -215,23 +215,15 @@ class _MyPageView extends StatelessWidget {
                 onTap: () => _signOut(context),
               ),
               const SizedBox(height: 20),
-              _FooterActionText(
-                title: '계정탈퇴',
-                onTap: () => _showPreparingMessage(context, '계정탈퇴'),
+              Text(
+                '계정탈퇴',
+                style: AppFont.b7_16.copyWith(color: AppColors.black),
               ),
             ],
           ),
         ),
       ),
     );
-  }
-
-  static void _showPreparingMessage(BuildContext context, String label) {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(content: Text('$label 기능은 준비 중이에요.')),
-      );
   }
 
   static Future<void> _copyProfileCode(

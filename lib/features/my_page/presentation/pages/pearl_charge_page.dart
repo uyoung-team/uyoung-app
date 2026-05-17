@@ -44,49 +44,42 @@ class _PearlPackageCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        ScaffoldMessenger.of(context)
-          ..hideCurrentSnackBar()
-          ..showSnackBar(const SnackBar(content: Text('결제 기능은 준비 중이에요.')));
-      },
-      child: AppSurfaceCard(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        child: Row(
-          children: [
-            Container(
-              width: 44,
-              height: 44,
-              decoration: const BoxDecoration(
-                color: AppColors.b03,
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.bubble_chart_rounded,
-                color: AppColors.b01,
-              ),
+    return AppSurfaceCard(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      child: Row(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: const BoxDecoration(
+              color: AppColors.b03,
+              shape: BoxShape.circle,
             ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    item.title,
-                    style: AppFont.b8_14.copyWith(color: AppColors.g02),
-                  ),
-                  const SizedBox(height: 2),
-                  AppHeadlineText(item.countLabel, style: AppFont.h7_16),
-                ],
-              ),
+            child: const Icon(
+              Icons.bubble_chart_rounded,
+              color: AppColors.b01,
             ),
-            const SizedBox(width: 12),
-            Text(
-              item.priceLabel,
-              style: AppFont.b6_18.copyWith(color: AppColors.g01),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  item.title,
+                  style: AppFont.b8_14.copyWith(color: AppColors.g02),
+                ),
+                const SizedBox(height: 2),
+                AppHeadlineText(item.countLabel, style: AppFont.h7_16),
+              ],
             ),
-          ],
-        ),
+          ),
+          const SizedBox(width: 12),
+          Text(
+            item.priceLabel,
+            style: AppFont.b6_18.copyWith(color: AppColors.g01),
+          ),
+        ],
       ),
     );
   }
