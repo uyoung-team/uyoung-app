@@ -21,13 +21,7 @@ class ShellStoryPage extends StatelessWidget {
         title: Text('조개 이야기', style: AppFont.h5_20),
         actions: [
           GestureDetector(
-            onTap: () {
-              ScaffoldMessenger.of(context)
-                ..hideCurrentSnackBar()
-                ..showSnackBar(
-                  const SnackBar(content: Text('필터 기능은 준비 중이에요.')),
-                );
-            },
+            onTap: () {},
             child: Padding(
               padding: const EdgeInsets.only(right: 12),
               child: Image.asset(
