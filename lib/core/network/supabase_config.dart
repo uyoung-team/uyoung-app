@@ -11,5 +11,10 @@ class SupabaseConfig {
     defaultValue: 'sb_publishable_UNOYiEZ_6hUFn5J3sg31iA_Kbi8cZqt',
   );
 
+  static const String inviteBaseUrl = String.fromEnvironment(
+    'MEMORY_INVITE_BASE_URL',
+    defaultValue: 'https://momenture.app/invite',
+  );
+
   static bool get isConfigured => url.isNotEmpty && anonKey.isNotEmpty;
 }

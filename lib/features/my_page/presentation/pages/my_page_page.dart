@@ -2,6 +2,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:uyoung_app/core/network/supabase_config.dart';
 import 'package:uyoung_app/core/theme/app_colors.dart';
 import 'package:uyoung_app/core/theme/app_font.dart';
 import 'package:uyoung_app/core/theme/app_radius.dart';
@@ -126,7 +128,7 @@ class _MyPageView extends StatelessWidget {
               _MenuRow(
                 svgPath: AssetPaths.icons.smallMyPage.private,
                 title: '프로필 URL 복사',
-                onTap: () => _copyProfileCode(context, viewModel.userCode),
+                onTap: () => _copyProfileUrl(context),
               ),
               _MenuRow(
                 svgPath: AssetPaths.icons.smallMyPage.invite,
@@ -226,17 +228,54 @@ class _MyPageView extends StatelessWidget {
     );
   }
 
-  static Future<void> _copyProfileCode(
-    BuildContext context,
-    String userCode,
-  ) async {
-    await Clipboard.setData(ClipboardData(text: userCode));
+  static Future<void> _copyProfileUrl(BuildContext context) async {
+    final user = Supabase.instance.client.auth.currentUser;
+    if (user == null) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(const SnackBar(content: Text('로그인 정보가 없어요.')));
+      return;
+    }
+
+    final profileBaseUrl = SupabaseConfig.inviteBaseUrl.replaceFirst(
+      RegExp(r'/invite$'),
+      '/profile',
+    );
+    final profileUrl = '$profileBaseUrl?userId=${user.id}';
+
+    await Clipboard.setData(ClipboardData(text: profileUrl));
     if (!context.mounted) {
       return;
     }
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(const SnackBar(content: Text('초대 코드가 복사되었어요.')));
+
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      barrierColor: Colors.transparent,
+      builder: (dialogContext) {
+        Future.delayed(const Duration(milliseconds: 1100), () {
+          if (dialogContext.mounted) {
+            Navigator.of(dialogContext).pop();
+          }
+        });
+
+        return Dialog(
+          backgroundColor: const Color(0xFF7B7B80),
+          insetPadding: const EdgeInsets.symmetric(horizontal: 135),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            child: Text(
+              '복사 완료!',
+              textAlign: TextAlign.center,
+              style: AppFont.b7_16.copyWith(color: AppColors.white),
+            ),
+          ),
+        );
+      },
+    );
   }
 
   static Future<void> _signOut(BuildContext context) async {
