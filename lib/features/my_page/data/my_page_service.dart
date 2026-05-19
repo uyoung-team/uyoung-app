@@ -27,6 +27,22 @@ class MyPageService {
     return Map<String, dynamic>.from(response);
   }
 
+  Future<void> updateProfile({
+    required String nickname,
+  }) async {
+    final client = _clientProvider.client;
+    final userId = client?.auth.currentUser?.id;
+
+    if (client == null || userId == null) {
+      throw StateError('로그인이 필요합니다.');
+    }
+
+    await client.from('profiles').upsert({
+      'id': userId,
+      'nickname': nickname.trim(),
+    }, onConflict: 'id');
+  }
+
   Future<List<Map<String, dynamic>>> fetchUserAssets() async {
     final client = _clientProvider.client;
     final userId = client?.auth.currentUser?.id;
@@ -138,6 +154,33 @@ class MyPageService {
     }
 
     return profile;
+  }
+
+  Future<void> addFriendByCode(String userCode) async {
+    final client = _clientProvider.client;
+    if (client == null || userCode.trim().isEmpty) {
+      throw StateError('친구 코드를 입력해주세요.');
+    }
+
+    await client.rpc(
+      'add_friend_by_code',
+      params: {'input_code': userCode.trim()},
+    );
+  }
+
+  Future<void> deleteFriend(String friendId) async {
+    final client = _clientProvider.client;
+    final userId = client?.auth.currentUser?.id;
+
+    if (client == null || userId == null) {
+      throw StateError('로그인이 필요합니다.');
+    }
+
+    await client
+        .from('friends')
+        .delete()
+        .eq('user_id', userId)
+        .eq('friend_id', friendId);
   }
 
   Future<List<Map<String, dynamic>>> fetchInquiries() async {

@@ -1,161 +1,297 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:provider/provider.dart';
 import 'package:uyoung_app/app/routes/app_router.dart';
 import 'package:uyoung_app/core/theme/app_colors.dart';
 import 'package:uyoung_app/core/theme/app_font.dart';
 import 'package:uyoung_app/core/theme/app_radius.dart';
 import 'package:uyoung_app/core/theme/app_spacing.dart';
-import 'package:uyoung_app/shared/widgets/app_headline_text.dart';
-import 'package:uyoung_app/shared/widgets/app_surface_card.dart';
+import 'package:uyoung_app/features/home/data/home_repository.dart';
+import 'package:uyoung_app/features/home/data/home_service.dart';
+import 'package:uyoung_app/features/home/presentation/pages/notification_page.dart';
+import 'package:uyoung_app/features/home/presentation/viewmodels/home_view_model.dart';
+import 'package:uyoung_app/features/my_page/presentation/pages/pearl_charge_page.dart';
+import 'package:uyoung_app/shared/services/asset_paths.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    return ChangeNotifierProvider(
+      create: (_) => HomeViewModel(const HomeRepository(HomeService()))..load(),
+      child: const _HomeView(),
+    );
+  }
+}
+
+class _HomeView extends StatelessWidget {
+  const _HomeView();
+
+  @override
+  Widget build(BuildContext context) {
+    final viewModel = context.watch<HomeViewModel>();
+
     return Scaffold(
-      backgroundColor: AppColors.back,
-      body: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            return SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.md,
-                AppSpacing.md,
-                AppSpacing.md,
-                AppSpacing.xl,
+      backgroundColor: AppColors.white,
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final width = constraints.maxWidth;
+          final scale = (width / 390).clamp(0.92, 1.15);
+
+          return Stack(
+            children: [
+              Positioned.fill(
+                child: Image.asset(
+                  AssetPaths.images.home.background,
+                  fit: BoxFit.cover,
+                  alignment: Alignment.topCenter,
+                ),
               ),
-              child: Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 760),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const _HomeHeaderSection(),
-                      const SizedBox(height: AppSpacing.lg),
-                      const _AttendanceEntryCard(),
-                    ],
+              Positioned(
+                left: 18 * scale,
+                top: 57 * scale,
+                child: _PearlBox(
+                  scale: scale,
+                  pearlCountLabel: viewModel.pearlCount.toString(),
+                ),
+              ),
+              Positioned(
+                top: 53 * scale,
+                right: 20 * scale,
+                child: _NotificationButton(
+                  scale: scale,
+                  hasUnread: viewModel.hasUnread,
+                  onTap: () async {
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const NotificationPage(),
+                    ),
+                  );
+                    await viewModel.load();
+                  },
+                ),
+              ),
+              Positioned(
+                left: 18 * scale,
+                top: 106 * scale,
+                child: _AttendanceShortcut(
+                  scale: scale,
+                  onTap: () async {
+                    await Navigator.pushNamed(context, AppRouter.attendance);
+                    await viewModel.load();
+                  },
+                ),
+              ),
+              Positioned(
+                left: ((width - (199 * scale)) / 2).clamp(0.0, width),
+                top: 326 * scale,
+                child: Image.asset(
+                  AssetPaths.images.home.character,
+                  width: 199 * scale,
+                  height: 218 * scale,
+                  fit: BoxFit.contain,
+                ),
+              ),
+              if (viewModel.errorText != null)
+                Positioned(
+                  left: AppSpacing.md,
+                  right: AppSpacing.md,
+                  bottom: 120,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.md,
+                      vertical: AppSpacing.sm,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.white.withValues(alpha: 0.92),
+                      borderRadius: BorderRadius.circular(AppRadius.lg),
+                    ),
+                    child: Text(
+                      viewModel.errorText!,
+                      style: AppFont.b8_14.copyWith(color: AppColors.subRed03),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _PearlBox extends StatelessWidget {
+  const _PearlBox({required this.scale, required this.pearlCountLabel});
+
+  final double scale;
+  final String pearlCountLabel;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () async {
+        await Navigator.of(context).push(
+          MaterialPageRoute<void>(
+            builder: (_) => const PearlChargePage(),
+          ),
+        );
+        if (!context.mounted) {
+          return;
+        }
+        await context.read<HomeViewModel>().load();
+      },
+      child: SizedBox(
+        width: 82 * scale,
+        height: 36 * scale,
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: Image.asset(
+                AssetPaths.images.home.myPearl,
+                fit: BoxFit.fill,
+              ),
+            ),
+            Positioned.fill(
+              child: Align(
+                alignment: Alignment.centerRight,
+                child: Padding(
+                  padding: EdgeInsets.only(right: 14 * scale),
+                  child: Text(
+                    pearlCountLabel,
+                    style: AppFont.h4_22.copyWith(
+                      color: AppColors.black,
+                      fontSize: 22 * scale,
+                    ),
                   ),
                 ),
               ),
-            );
-          },
+            ),
+          ],
         ),
       ),
     );
   }
 }
 
-class _HomeHeaderSection extends StatelessWidget {
-  const _HomeHeaderSection();
+class _NotificationButton extends StatelessWidget {
+  const _NotificationButton({
+    required this.scale,
+    required this.hasUnread,
+    required this.onTap,
+  });
+
+  final double scale;
+  final bool hasUnread;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(AppRadius.xl),
-        gradient: const LinearGradient(
-          colors: [
-            Color(0xFF4B6BFB),
-            Color(0xFF6A86FF),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+    return GestureDetector(
+      onTap: onTap,
+      child: Stack(
+        clipBehavior: Clip.none,
         children: [
-          Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.sm,
-              vertical: AppSpacing.xs,
-            ),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.16),
-              borderRadius: BorderRadius.circular(AppRadius.xl),
-            ),
-            child: Text(
-              'HOME',
-              style: theme.textTheme.labelLarge?.copyWith(
-                color: Colors.white,
-                letterSpacing: 0.8,
-              ),
+          SvgPicture.asset(
+            AssetPaths.icons.common.notification01,
+            width: 44 * scale,
+            height: 44 * scale,
+            colorFilter: const ColorFilter.mode(
+              AppColors.black,
+              BlendMode.srcIn,
             ),
           ),
-          const SizedBox(height: AppSpacing.md),
-          AppHeadlineText(
-            '안녕하세요,\n오늘의 흐름을 여기서 시작해볼까요?',
-            style: AppFont.h4_22,
-            color: Colors.white,
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          Text(
-            '오늘 필요한 흐름부터 바로 이어갈 수 있도록 홈을 정리했습니다.',
-            style: theme.textTheme.bodyLarge?.copyWith(
-              color: Colors.white.withValues(alpha: 0.88),
+          if (hasUnread)
+            Positioned(
+              top: 1 * scale,
+              right: -2 * scale,
+              child: const _UnreadDot(),
             ),
-          ),
         ],
       ),
     );
   }
 }
 
-class _AttendanceEntryCard extends StatelessWidget {
-  const _AttendanceEntryCard();
+class _AttendanceShortcut extends StatelessWidget {
+  const _AttendanceShortcut({required this.scale, required this.onTap});
+
+  final double scale;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return AppSurfaceCard(
-      backgroundColor: const Color(0xFFFDF6E9),
-      child: InkWell(
-        onTap: () => Navigator.of(context).pushNamed(AppRouter.attendance),
-        borderRadius: BorderRadius.circular(AppRadius.xl),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+    return GestureDetector(
+      behavior: HitTestBehavior.translucent,
+      onTap: onTap,
+      child: SizedBox(
+        width: 72 * scale,
+        height: 75 * scale,
+        child: Stack(
+          clipBehavior: Clip.none,
+          alignment: Alignment.topCenter,
           children: [
-            Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                color: const Color(0xFFFFE1A8),
-                borderRadius: BorderRadius.circular(AppRadius.lg),
-              ),
-              child: const Icon(
-                Icons.check_circle_outline,
-                color: Color(0xFF8B5E00),
-              ),
-            ),
-            const SizedBox(width: AppSpacing.md),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  AppHeadlineText('출석체크', style: AppFont.h6_18),
-                  const SizedBox(height: AppSpacing.xs),
-                  Text(
-                    '오늘의 출석 상태와 보상 영역으로 이어질 카드 자리입니다.',
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: AppColors.black,
-                    ),
+            Positioned(
+              top: 0,
+              child: Container(
+                width: 56 * scale,
+                height: 56 * scale,
+                decoration: const BoxDecoration(
+                  color: AppColors.white,
+                  shape: BoxShape.circle,
+                ),
+                alignment: Alignment.center,
+                child: Transform.translate(
+                  offset: Offset(0, -2 * scale),
+                  child: Image.asset(
+                    AssetPaths.images.home.iconAttend,
+                    width: 32 * scale,
+                    height: 37 * scale,
+                    fit: BoxFit.contain,
                   ),
-                ],
+                ),
               ),
             ),
-            const SizedBox(width: AppSpacing.sm),
-            const Icon(
-              Icons.arrow_forward_ios_rounded,
-              size: 18,
-              color: AppColors.g02,
+            Positioned(
+              bottom: 0,
+              child: Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: 8 * scale,
+                  vertical: 1 * scale,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.b02,
+                  borderRadius: BorderRadius.circular(11 * scale),
+                ),
+                child: Text(
+                  '출석체크',
+                  style: AppFont.b7_16.copyWith(
+                    color: AppColors.white,
+                    fontSize: 16 * scale,
+                  ),
+                ),
+              ),
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _UnreadDot extends StatelessWidget {
+  const _UnreadDot();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 10,
+      height: 10,
+      decoration: const BoxDecoration(
+        color: AppColors.subRed03,
+        shape: BoxShape.circle,
       ),
     );
   }

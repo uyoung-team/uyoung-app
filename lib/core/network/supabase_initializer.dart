@@ -1,4 +1,5 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:uyoung_app/core/network/supabase_config.dart';
 
 class SupabaseInitializer {
   const SupabaseInitializer._();
@@ -12,16 +13,13 @@ class SupabaseInitializer {
       return;
     }
 
-    const supabaseUrl = String.fromEnvironment('SUPABASE_URL');
-    const supabaseAnonKey = String.fromEnvironment('SUPABASE_ANON_KEY');
-
-    if (supabaseUrl.isEmpty || supabaseAnonKey.isEmpty) {
+    if (!SupabaseConfig.isConfigured) {
       return;
     }
 
     await Supabase.initialize(
-      url: supabaseUrl,
-      anonKey: supabaseAnonKey,
+      url: SupabaseConfig.url,
+      anonKey: SupabaseConfig.anonKey,
     );
 
     _isInitialized = true;

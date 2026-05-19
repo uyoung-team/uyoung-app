@@ -3,9 +3,11 @@ import 'package:provider/provider.dart';
 import 'package:uyoung_app/core/theme/app_colors.dart';
 import 'package:uyoung_app/core/theme/app_font.dart';
 import 'package:uyoung_app/core/theme/app_spacing.dart';
+import 'package:uyoung_app/features/my_page/data/my_page_models.dart';
 import 'package:uyoung_app/features/my_page/data/my_page_repository.dart';
 import 'package:uyoung_app/features/my_page/data/my_page_service.dart';
 import 'package:uyoung_app/features/my_page/presentation/pages/add_friend_page.dart';
+import 'package:uyoung_app/features/my_page/presentation/pages/friend_profile_page.dart';
 import 'package:uyoung_app/features/my_page/presentation/viewmodels/friends_view_model.dart';
 import 'package:uyoung_app/shared/widgets/app_headline_text.dart';
 import 'package:uyoung_app/shared/widgets/app_scaffold.dart';
@@ -51,12 +53,16 @@ class _FriendsView extends StatelessWidget {
                 ),
                 const SizedBox(height: AppSpacing.md),
                 FilledButton.icon(
-                  onPressed: () {
-                    Navigator.of(context).push(
+                  onPressed: () async {
+                    await Navigator.of(context).push(
                       MaterialPageRoute<void>(
                         builder: (_) => const AddFriendPage(),
                       ),
                     );
+                    if (!context.mounted) {
+                      return;
+                    }
+                    await context.read<FriendsViewModel>().load();
                   },
                   icon: const Icon(Icons.person_add_alt_1_rounded),
                   label: const Text('코드로 친구 추가'),
@@ -74,8 +80,7 @@ class _FriendsView extends StatelessWidget {
               (friend) => Padding(
                 padding: const EdgeInsets.only(bottom: AppSpacing.sm),
                 child: _FriendListTile(
-                  nickname: friend.nickname,
-                  userCode: friend.userCode,
+                  friend: friend,
                 ),
               ),
             ),
@@ -95,45 +100,59 @@ class _FriendsView extends StatelessWidget {
 }
 
 class _FriendListTile extends StatelessWidget {
-  const _FriendListTile({
-    required this.nickname,
-    required this.userCode,
-  });
+  const _FriendListTile({required this.friend});
 
-  final String nickname;
-  final String userCode;
+  final FriendItem friend;
 
   @override
   Widget build(BuildContext context) {
-    return AppSurfaceCard(
-      padding: const EdgeInsets.all(AppSpacing.md),
-      child: Row(
-        children: [
-          Container(
-            width: 52,
-            height: 52,
-            decoration: BoxDecoration(
-              color: const Color(0xFFE9EEFF),
-              borderRadius: BorderRadius.circular(26),
-            ),
-            child: const Icon(
-              Icons.person_rounded,
-              color: AppColors.primary,
-            ),
+    return GestureDetector(
+      onTap: () async {
+        final didDelete = await Navigator.of(context).push<bool>(
+          MaterialPageRoute<bool>(
+            builder: (_) => FriendProfilePage(friend: friend),
           ),
-          const SizedBox(width: AppSpacing.md),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                AppHeadlineText(nickname, style: AppFont.h8_14),
-                const SizedBox(height: AppSpacing.xxs),
-                Text('user_code $userCode',
-                    style: Theme.of(context).textTheme.bodyMedium),
-              ],
+        );
+        if (didDelete == true && context.mounted) {
+          await context.read<FriendsViewModel>().load();
+        }
+      },
+      child: AppSurfaceCard(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        child: Row(
+          children: [
+            Container(
+              width: 52,
+              height: 52,
+              decoration: BoxDecoration(
+                color: const Color(0xFFE9EEFF),
+                borderRadius: BorderRadius.circular(26),
+              ),
+              child: const Icon(
+                Icons.person_rounded,
+                color: AppColors.primary,
+              ),
             ),
-          ),
-        ],
+            const SizedBox(width: AppSpacing.md),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  AppHeadlineText(friend.nickname, style: AppFont.h8_14),
+                  const SizedBox(height: AppSpacing.xxs),
+                  Text(
+                    'user_code ${friend.userCode}',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                ],
+              ),
+            ),
+            const Icon(
+              Icons.chevron_right_rounded,
+              color: AppColors.g02,
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -98,6 +98,17 @@ class _AddFriendViewState extends State<_AddFriendView> {
             _SearchResultCard(
               nickname: viewModel.searchResult!.nickname,
               userCode: viewModel.searchResult!.userCode,
+              isSubmitting: viewModel.isSearching,
+              onAdd: () async {
+                final message = await context.read<FriendsViewModel>().addFoundUser();
+                if (!context.mounted || message == null) {
+                  return;
+                }
+                ScaffoldMessenger.of(context)
+                  ..hideCurrentSnackBar()
+                  ..showSnackBar(SnackBar(content: Text(message)));
+                Navigator.pop(context, true);
+              },
             )
           else
             const _SearchPlaceholderCard(),
@@ -120,10 +131,14 @@ class _SearchResultCard extends StatelessWidget {
   const _SearchResultCard({
     required this.nickname,
     required this.userCode,
+    required this.isSubmitting,
+    required this.onAdd,
   });
 
   final String nickname;
   final String userCode;
+  final bool isSubmitting;
+  final VoidCallback onAdd;
 
   @override
   Widget build(BuildContext context) {
@@ -167,9 +182,22 @@ class _SearchResultCard extends StatelessWidget {
               color: const Color(0xFFF8FAFC),
               borderRadius: BorderRadius.circular(AppRadius.md),
             ),
-            child: Text(
-              '친구 추가 저장 로직은 다음 단계에서 연결됩니다.',
-              style: Theme.of(context).textTheme.bodyMedium,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '프로필을 확인했어요. 바로 친구로 추가할 수 있습니다.',
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+                const SizedBox(height: AppSpacing.md),
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton(
+                    onPressed: isSubmitting ? null : onAdd,
+                    child: Text(isSubmitting ? '추가 중...' : '친구 추가'),
+                  ),
+                ),
+              ],
             ),
           ),
         ],

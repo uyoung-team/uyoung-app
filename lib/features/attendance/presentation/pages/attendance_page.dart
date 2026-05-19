@@ -3,246 +3,168 @@ import 'package:provider/provider.dart';
 import 'package:uyoung_app/core/theme/app_colors.dart';
 import 'package:uyoung_app/core/theme/app_font.dart';
 import 'package:uyoung_app/core/theme/app_spacing.dart';
-import 'package:uyoung_app/features/attendance/data/attendance_repository.dart';
-import 'package:uyoung_app/features/attendance/data/attendance_service.dart';
+import 'package:uyoung_app/features/attendance/data/attendance_models.dart';
+import 'package:uyoung_app/features/attendance/presentation/pages/attendance_board_page.dart';
+import 'package:uyoung_app/features/attendance/presentation/pages/attendance_result_page.dart';
 import 'package:uyoung_app/features/attendance/presentation/viewmodels/attendance_view_model.dart';
-import 'package:uyoung_app/shared/widgets/app_headline_text.dart';
-import 'package:uyoung_app/shared/widgets/app_scaffold.dart';
-import 'package:uyoung_app/shared/widgets/app_surface_card.dart';
+import 'package:uyoung_app/features/attendance/presentation/widgets/attendance_entry_step.dart';
+import 'package:uyoung_app/features/attendance/presentation/widgets/attendance_reveal_step.dart';
+import 'package:uyoung_app/shared/services/asset_paths.dart';
 
-class AttendancePage extends StatelessWidget {
+class AttendancePage extends StatefulWidget {
   const AttendancePage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => AttendanceViewModel(
-        const AttendanceRepository(
-          AttendanceService(),
-        ),
-      )..load(),
-      child: const _AttendanceView(),
-    );
-  }
+  State<AttendancePage> createState() => _AttendancePageState();
 }
 
-class _AttendanceView extends StatelessWidget {
-  const _AttendanceView();
+class _AttendancePageState extends State<AttendancePage> {
+  late final AttendanceViewModel _viewModel;
+
+  @override
+  void initState() {
+    super.initState();
+    _viewModel = AttendanceViewModel();
+    _viewModel.loadBoardData();
+  }
+
+  @override
+  void dispose() {
+    _viewModel.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final viewModel = context.watch<AttendanceViewModel>();
-    final theme = Theme.of(context);
-    return AppScaffold(
-      title: '출석체크',
-      body: ListView(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        children: [
-          AppSurfaceCard(
-            backgroundColor: const Color(0xFFF4F7FF),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                AppHeadlineText('출석 구조 초안', style: AppFont.h6_18),
-                const SizedBox(height: AppSpacing.xs),
-                Text(
-                  'RPC 호출과 attendance_logs 조회만 먼저 연결한 최소 구조입니다.',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: AppColors.textPrimary,
-                  ),
+    return ChangeNotifierProvider.value(
+      value: _viewModel,
+      builder: (context, child) {
+        final viewModel = context.watch<AttendanceViewModel>();
+        final mediaQuery = MediaQuery.of(context);
+        final size = mediaQuery.size;
+        final safeTop = mediaQuery.padding.top;
+        final safeBottom = mediaQuery.padding.bottom;
+        const horizontalPadding = 16.0;
+        const boxSpacing = 2.0;
+        final boxWidth =
+            ((size.width - (horizontalPadding * 2) - (boxSpacing * 6)) / 7)
+                .clamp(39.0, 44.0);
+        final boxHeight = (boxWidth * 1.52).clamp(58.0, 66.0);
+        final iconSize = (boxWidth * 0.46).clamp(18.0, 22.0);
+        final boardTop = safeTop + 50;
+
+        return Scaffold(
+          body: Stack(
+            children: [
+              Positioned.fill(
+                child: Image.asset(
+                  AssetPaths.images.attendance.background01,
+                  fit: BoxFit.cover,
                 ),
-              ],
-            ),
-          ),
-          const SizedBox(height: AppSpacing.md),
-          AppSurfaceCard(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                AppHeadlineText('오늘의 액션', style: AppFont.h6_18),
-                const SizedBox(height: AppSpacing.xs),
-                Text(
-                  '지금은 daily_check_in_and_draw RPC 호출 결과를 확인하는 단계입니다.',
-                  style: theme.textTheme.bodyMedium,
+              ),
+              Positioned(
+                top: safeTop + 8,
+                left: 18,
+                child: IconButton(
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(Icons.chevron_left_rounded, size: 32),
+                  color: AppColors.black,
                 ),
-                const SizedBox(height: AppSpacing.md),
-                FilledButton(
-                  onPressed: viewModel.isSubmitting
-                      ? null
-                      : () => viewModel.runCheckIn(),
+              ),
+              Positioned(
+                top: safeTop + 14,
+                left: 0,
+                right: 0,
+                child: Center(
                   child: Text(
-                    viewModel.isSubmitting ? '처리 중...' : '출석체크 실행',
+                    '출석체크',
+                    style: AppFont.h4_22.copyWith(color: AppColors.black),
                   ),
                 ),
-                if (viewModel.lastResult != null) ...[
-                  const SizedBox(height: AppSpacing.md),
-                  _InlineNotice(
-                    label: '최근 결과',
-                    message: viewModel.lastResult!.summary,
-                  ),
-                ],
-                if (viewModel.errorMessage != null) ...[
-                  const SizedBox(height: AppSpacing.md),
-                  _InlineNotice(
-                    label: '오류',
-                    message: viewModel.errorMessage!,
-                    tone: _NoticeTone.error,
-                  ),
-                ],
-              ],
-            ),
-          ),
-          const SizedBox(height: AppSpacing.md),
-          AppSurfaceCard(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                AppHeadlineText('출석 로그', style: AppFont.h6_18),
-                const SizedBox(height: AppSpacing.xs),
-                Text(
-                  'attendance_logs 조회 결과를 이후 보드 UI의 기반 데이터로 사용합니다.',
-                  style: theme.textTheme.bodyMedium,
-                ),
-                const SizedBox(height: AppSpacing.md),
-                if (viewModel.isLoading)
-                  const _LogSkeleton()
-                else if (viewModel.logs.isEmpty)
-                  const _EmptyLogs()
-                else
-                  ...viewModel.logs.map(
-                    (log) => Padding(
-                      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-                      child: _LogTile(
-                        title: log.status,
-                        subtitle: log.createdAt?.toLocal().toString() ??
-                            'created_at 없음',
+              ),
+              if (viewModel.isRevealStep)
+                AttendanceRevealStep(
+                  onClamTap: () {
+                    viewModel.showResult();
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => AttendanceResultPage(viewModel: _viewModel),
                       ),
+                    );
+                  },
+                  top: boardTop,
+                  safeBottom: safeBottom,
+                )
+              else
+                AttendanceEntryStep(
+                  onCheckTap: () => _handleCheckIn(context),
+                  top: boardTop,
+                  safeBottom: safeBottom,
+                  horizontalPadding: horizontalPadding,
+                  boxSpacing: boxSpacing,
+                  boxWidth: boxWidth,
+                  boxHeight: boxHeight,
+                  iconSize: iconSize,
+                  viewModel: viewModel,
+                ),
+              if (viewModel.errorMessage != null)
+                Positioned(
+                  left: AppSpacing.md,
+                  right: AppSpacing.md,
+                  bottom: safeBottom + 84,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.md,
+                      vertical: AppSpacing.sm,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.white.withValues(alpha: 0.92),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Text(
+                      viewModel.errorMessage!,
+                      textAlign: TextAlign.center,
+                      style: AppFont.b8_14.copyWith(color: AppColors.subRed03),
                     ),
                   ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _InlineNotice extends StatelessWidget {
-  const _InlineNotice({
-    required this.label,
-    required this.message,
-    this.tone = _NoticeTone.normal,
-  });
-
-  final String label;
-  final String message;
-  final _NoticeTone tone;
-
-  @override
-  Widget build(BuildContext context) {
-    final backgroundColor = switch (tone) {
-      _NoticeTone.normal => const Color(0xFFF5F7FB),
-      _NoticeTone.error => const Color(0xFFFFF1F2),
-    };
-
-    final foregroundColor = switch (tone) {
-      _NoticeTone.normal => AppColors.textPrimary,
-      _NoticeTone.error => const Color(0xFFBE123C),
-    };
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(AppSpacing.md),
-      decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                  color: foregroundColor,
                 ),
-          ),
-          const SizedBox(height: AppSpacing.xs),
-          Text(
-            message,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: foregroundColor,
+              if (viewModel.isLoading)
+                Positioned.fill(
+                  child: Container(
+                    color: Colors.black.withValues(alpha: 0.08),
+                    child: const Center(child: CircularProgressIndicator()),
+                  ),
                 ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
-}
 
-class _LogTile extends StatelessWidget {
-  const _LogTile({
-    required this.title,
-    required this.subtitle,
-  });
+  Future<void> _handleCheckIn(BuildContext context) async {
+    final viewModel = context.read<AttendanceViewModel>();
+    final nextStep = await viewModel.checkIn();
 
-  final String title;
-  final String subtitle;
+    if (!context.mounted) {
+      return;
+    }
 
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.md),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(title, style: Theme.of(context).textTheme.labelLarge),
-          const SizedBox(height: AppSpacing.xxs),
-          Text(subtitle, style: Theme.of(context).textTheme.bodyMedium),
-        ],
-      ),
-    );
-  }
-}
+    if (viewModel.errorMessage != null) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(content: Text(viewModel.errorMessage!)));
+      return;
+    }
 
-class _LogSkeleton extends StatelessWidget {
-  const _LogSkeleton();
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: const [
-        _LogTile(
-          title: 'loading...',
-          subtitle: '출석 로그를 불러오는 중입니다.',
+    if (nextStep == AttendanceFlowStep.board && viewModel.isAlreadyChecked) {
+      await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => AttendanceBoardPage(viewModel: _viewModel),
         ),
-        SizedBox(height: AppSpacing.sm),
-        _LogTile(
-          title: 'loading...',
-          subtitle: '보드 데이터 기반 구조를 준비하고 있습니다.',
-        ),
-      ],
-    );
+      );
+    }
   }
-}
-
-class _EmptyLogs extends StatelessWidget {
-  const _EmptyLogs();
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      '아직 표시할 출석 로그가 없습니다.',
-      style: Theme.of(context).textTheme.bodyMedium,
-    );
-  }
-}
-
-enum _NoticeTone {
-  normal,
-  error,
 }
