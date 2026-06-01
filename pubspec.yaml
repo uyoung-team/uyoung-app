@@ -74,6 +74,7 @@ flutter:
     - assets/icons/small_mypage/
     - assets/images/common/
     - assets/images/
+    - assets/images/login/
     - assets/images/home/
     - assets/images/attendance/
     - assets/images/character/

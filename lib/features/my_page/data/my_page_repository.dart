@@ -1,3 +1,4 @@
+import 'package:image_picker/image_picker.dart';
 import 'package:uyoung_app/features/my_page/data/my_page_models.dart';
 import 'package:uyoung_app/features/my_page/data/my_page_service.dart';
 
@@ -17,7 +18,9 @@ class MyPageRepository {
     return MyPageProfile(
       nickname: (profileRow['nickname'] ?? '사용자').toString(),
       userCode: (profileRow['user_code'] ?? '-').toString(),
-      profileImageUrl: profileRow['profile_image_url']?.toString(),
+      profileImageUrl:
+          profileRow['profile_image_url']?.toString() ??
+          profileRow['avatar_url']?.toString(),
       pearlCount: _extractPearlCount(assetRows),
     );
   }
@@ -34,6 +37,8 @@ class MyPageRepository {
 
   Future<void> updateProfile({
     required String nickname,
+    String? profileImageUrl,
+    XFile? selectedImage,
   }) async {
     final trimmed = nickname.trim();
     if (trimmed.isEmpty) {
@@ -41,7 +46,14 @@ class MyPageRepository {
     }
 
     try {
-      await service.updateProfile(nickname: trimmed);
+      final resolvedImageUrl = selectedImage == null
+          ? profileImageUrl
+          : await service.uploadProfileImage(selectedImage);
+
+      await service.updateProfile(
+        nickname: trimmed,
+        profileImageUrl: resolvedImageUrl,
+      );
     } catch (error) {
       throw StateError('프로필을 저장하지 못했어요. $error');
     }
@@ -92,7 +104,9 @@ class MyPageRepository {
         id: friendId,
         nickname: (profile['nickname'] ?? '친구').toString(),
         userCode: (profile['user_code'] ?? '-').toString(),
-        profileImageUrl: profile['profile_image_url']?.toString(),
+        profileImageUrl:
+            profile['profile_image_url']?.toString() ??
+            profile['avatar_url']?.toString(),
         createdAt: DateTime.tryParse((row['created_at'] ?? '').toString()),
       );
     }).toList();
@@ -108,7 +122,9 @@ class MyPageRepository {
       id: (profile['id'] ?? '').toString(),
       nickname: (profile['nickname'] ?? '친구').toString(),
       userCode: (profile['user_code'] ?? '-').toString(),
-      profileImageUrl: profile['profile_image_url']?.toString(),
+      profileImageUrl:
+          profile['profile_image_url']?.toString() ??
+          profile['avatar_url']?.toString(),
       createdAt: null,
     );
   }
