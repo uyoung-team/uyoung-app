@@ -9,7 +9,13 @@ class MyPageRepository {
 
   Future<MyPageProfile> fetchMyPageProfile() async {
     final profileRow = await service.fetchProfile();
-    final assetRows = await service.fetchUserAssets();
+    List<Map<String, dynamic>> assetRows = const [];
+
+    try {
+      assetRows = await service.fetchUserAssets();
+    } catch (_) {
+      assetRows = const [];
+    }
 
     if (profileRow == null) {
       return MyPageProfile.empty();
@@ -167,15 +173,11 @@ class MyPageRepository {
 
   int _extractPearlCount(List<Map<String, dynamic>> assetRows) {
     for (final row in assetRows) {
-      final type = (row['asset_type'] ?? row['name'] ?? '')
-          .toString()
-          .toLowerCase();
-      if (type.contains('pearl') || type.contains('진주')) {
-        final dynamic value =
-            row['amount'] ?? row['quantity'] ?? row['count'] ?? 0;
-        if (value is num) {
-          return value.toInt();
-        }
+      final dynamic value = row['pearl_count'];
+      if (value is num) {
+        return value.toInt();
+      }
+      if (value != null) {
         return int.tryParse(value.toString()) ?? 0;
       }
     }

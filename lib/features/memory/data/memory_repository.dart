@@ -262,6 +262,72 @@ class MemoryRepository {
     }
   }
 
+  Future<List<MemoryPhotoSeed>> fetchIslandPhotos(String islandId) async {
+    try {
+      final rows = await service.fetchFriendPhotos(islandId);
+      if (rows.isEmpty) {
+        return const [];
+      }
+
+      final uploaderIds = rows
+          .map((row) => row['uploader_id']?.toString() ?? '')
+          .where((id) => id.isNotEmpty)
+          .toSet()
+          .toList();
+      final profileRows = await service.fetchProfilesByIds(uploaderIds);
+      final profileMap = {
+        for (final row in profileRows) row['id']?.toString() ?? '': row,
+      };
+
+      return rows.map((row) {
+        final uploaderId = row['uploader_id']?.toString() ?? '';
+        final profile = profileMap[uploaderId] ?? const <String, dynamic>{};
+        return MemoryPhotoSeed(
+          path: (row['image_url'] ?? '').toString(),
+          createdAt:
+              DateTime.tryParse((row['created_at'] ?? '').toString()) ??
+              DateTime.now(),
+          uploaderName: (profile['nickname'] ?? '버블 메이트').toString(),
+          profileImagePath: profile['avatar_url']?.toString(),
+        );
+      }).toList();
+    } catch (error) {
+      throw StateError('기억 사진을 불러오지 못했어요. $error');
+    }
+  }
+
+  Future<MemoryPhotoSeed> uploadIslandPhoto({
+    required String islandId,
+    required XFile imageFile,
+    String? description,
+  }) async {
+    try {
+      final row = await service.uploadFriendPhoto(
+        islandId: islandId,
+        imageFile: imageFile,
+        description: description,
+      );
+      final uploaderId = row['uploader_id']?.toString() ?? '';
+      final profileRows = uploaderId.isEmpty
+          ? const <Map<String, dynamic>>[]
+          : await service.fetchProfilesByIds([uploaderId]);
+      final profile = profileRows.isEmpty
+          ? const <String, dynamic>{}
+          : profileRows.first;
+
+      return MemoryPhotoSeed(
+        path: (row['image_url'] ?? '').toString(),
+        createdAt:
+            DateTime.tryParse((row['created_at'] ?? '').toString()) ??
+            DateTime.now(),
+        uploaderName: (profile['nickname'] ?? '나').toString(),
+        profileImagePath: profile['avatar_url']?.toString(),
+      );
+    } catch (error) {
+      throw StateError('사진 업로드에 실패했어요. $error');
+    }
+  }
+
   Future<Map<String, List<MemoryMemberPreview>>> _groupMembersByIsland(
     List<Map<String, dynamic>> rows,
   ) async {

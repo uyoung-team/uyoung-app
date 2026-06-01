@@ -49,11 +49,15 @@ class CalendarRepository {
       }
 
       final events = rows.map((row) {
+        final eventDate = row['event_date']?.toString();
         return CalendarEvent(
           id: row['id']?.toString() ?? '',
           islandId: row['island_id']?.toString() ?? '',
           title: row['title']?.toString() ?? '',
-          date: DateTime.parse(row['event_date'] as String),
+          date:
+              eventDate == null || eventDate.isEmpty
+              ? month
+              : DateTime.tryParse(eventDate) ?? month,
           imageUrl: row['image_url']?.toString(),
           type: row['type']?.toString() ?? 'memory',
         );

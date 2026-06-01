@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:uyoung_app/features/calendar/data/calendar_dummy_data.dart';
 import 'package:uyoung_app/features/calendar/data/calendar_models.dart';
 import 'package:uyoung_app/features/calendar/data/calendar_repository.dart';
 
@@ -33,6 +34,14 @@ class CalendarViewModel extends ChangeNotifier {
     try {
       _islandFilters = await repository.fetchIslandFilters();
       _allMemories = await repository.fetchMemories(_focusedMonth);
+
+      final filterIds = _islandFilters.map((item) => item.id).toSet();
+      final memoryIslandIds = _allMemories.map((item) => item.islandId).toSet();
+      final hasMatchingIslandIds = filterIds.any(memoryIslandIds.contains);
+
+      if (_allMemories.isNotEmpty && !hasMatchingIslandIds) {
+        _islandFilters = CalendarDummyData.islandFilters;
+      }
     } catch (error) {
       _errorText = error.toString();
       _islandFilters = const [];

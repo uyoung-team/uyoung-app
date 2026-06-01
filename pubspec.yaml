@@ -79,6 +79,12 @@ flutter:
     - assets/images/attendance/
     - assets/images/character/
     - assets/images/memory/
+    - assets/images/memory/alcohol/
+    - assets/images/memory/couple/
+    - assets/images/memory/dolphin/
+    - assets/images/memory/europe/
+    - assets/images/memory/japan/
+    - assets/images/memory/shangkong/
     - assets/images/calendar/
     - assets/images/shop/
     - assets/images/my_page/

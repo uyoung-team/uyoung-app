@@ -167,6 +167,7 @@ class AttendanceImages {
 class CalendarImages {
   const CalendarImages();
 
+  final String calendarIcon = 'assets/images/calendar/calendar_icon.png';
   final String character = 'assets/images/calendar/character.png';
 }
 

@@ -326,6 +326,7 @@ void _openMemoryBottomSheet(
   showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
+    barrierColor: Colors.transparent,
     backgroundColor: Colors.transparent,
     builder: (_) => CalendarMemoryBottomSheet(
       date: date,

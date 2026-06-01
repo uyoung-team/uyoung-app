@@ -93,7 +93,7 @@ class MyPageService {
 
     final response = await client
         .from('user_assets')
-        .select('asset_type, amount, quantity, count, name')
+        .select('user_id, pearl_count, updated_at')
         .eq('user_id', userId);
 
     return List<Map<String, dynamic>>.from(response);

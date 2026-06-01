@@ -5,6 +5,8 @@ import 'package:uyoung_app/core/theme/app_colors.dart';
 import 'package:uyoung_app/core/theme/app_font.dart';
 import 'package:uyoung_app/features/memory/data/memory_dummy_adapter.dart';
 import 'package:uyoung_app/features/memory/data/memory_models.dart';
+import 'package:uyoung_app/features/memory/data/memory_repository.dart';
+import 'package:uyoung_app/features/memory/data/memory_service.dart';
 import 'package:uyoung_app/features/memory/presentation/pages/album_memory_page.dart';
 import 'package:uyoung_app/features/memory/presentation/pages/all_memory_page.dart';
 import 'package:uyoung_app/features/memory/presentation/pages/date_memory_page.dart';
@@ -30,6 +32,9 @@ class _MemoryDetailPageState extends State<MemoryDetailPage> {
   final PageController _pageController = PageController();
   final ImagePicker _picker = ImagePicker();
   final List<MemoryLocalPhoto> _localPhotos = [];
+  final MemoryRepository _repository = const MemoryRepository(MemoryService());
+  bool _isLoadingPhotos = false;
+  bool _isUploadingPhoto = false;
 
   static const double _tabBarHeight = 52;
 
@@ -47,6 +52,7 @@ class _MemoryDetailPageState extends State<MemoryDetailPage> {
         ),
       ),
     );
+    _loadPersistedPhotos();
   }
 
   @override
@@ -55,25 +61,88 @@ class _MemoryDetailPageState extends State<MemoryDetailPage> {
     super.dispose();
   }
 
+  Future<void> _loadPersistedPhotos() async {
+    setState(() => _isLoadingPhotos = true);
+    try {
+      final photos = await _repository.fetchIslandPhotos(widget.item.id);
+      if (!mounted) {
+        return;
+      }
+
+      final existingPaths = _localPhotos.map((photo) => photo.path).toSet();
+      final persisted = photos
+          .where((photo) => photo.path.isNotEmpty && !existingPaths.contains(photo.path))
+          .map(
+            (photo) => MemoryLocalPhoto(
+              path: photo.path,
+              createdAt: photo.createdAt,
+              uploaderName: photo.uploaderName,
+              uploaderProfile: photo.profileImagePath,
+              isLocalFile: false,
+            ),
+          )
+          .toList();
+
+      persisted.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+
+      setState(() {
+        _localPhotos.insertAll(0, persisted);
+      });
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoadingPhotos = false);
+      }
+    }
+  }
+
   Future<void> _pickImage() async {
     final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
     if (pickedFile == null) {
       return;
     }
 
-    setState(() {
-      _localPhotos.insert(
-        0,
-        MemoryLocalPhoto(
-          path: pickedFile.path,
-          createdAt: DateTime.now(),
-          uploaderName: '나',
-          uploaderProfile: null,
-          isLocalFile: true,
-        ),
+    setState(() => _isUploadingPhoto = true);
+    try {
+      final uploaded = await _repository.uploadIslandPhoto(
+        islandId: widget.item.id,
+        imageFile: pickedFile,
       );
-      selectedIndex = 0;
-    });
+
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _localPhotos.insert(
+          0,
+          MemoryLocalPhoto(
+            path: uploaded.path,
+            createdAt: uploaded.createdAt,
+            uploaderName: uploaded.uploaderName,
+            uploaderProfile: uploaded.profileImagePath,
+            isLocalFile: false,
+          ),
+        );
+        selectedIndex = 0;
+      });
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(content: Text(error.toString().replaceFirst('Bad state: ', ''))),
+        );
+    } finally {
+      if (mounted) {
+        setState(() => _isUploadingPhoto = false);
+      }
+    }
   }
 
   @override
@@ -189,6 +258,13 @@ class _MemoryDetailPageState extends State<MemoryDetailPage> {
               ),
             ),
           ),
+          if (_isLoadingPhotos || _isUploadingPhoto)
+            Positioned.fill(
+              child: ColoredBox(
+                color: Colors.black.withValues(alpha: 0.08),
+                child: const Center(child: CircularProgressIndicator()),
+              ),
+            ),
         ],
       ),
     );

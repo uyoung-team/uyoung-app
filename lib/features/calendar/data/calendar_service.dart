@@ -33,20 +33,53 @@ class CalendarService {
     DateTime month,
   ) async {
     final client = _clientProvider.client;
-    if (client == null) return const [];
+    final userId = client?.auth.currentUser?.id;
+
+    if (client == null || userId == null) {
+      return const [];
+    }
+
+    final islandRows = await fetchIslandRows();
+    final islandIds = islandRows
+        .map((row) => row['island_id']?.toString() ?? '')
+        .where((id) => id.isNotEmpty)
+        .toList();
+
+    if (islandIds.isEmpty) {
+      return const [];
+    }
 
     final firstDay = DateTime(month.year, month.month, 1);
-    final lastDay = DateTime(month.year, month.month + 1, 0, 23, 59, 59);
+    final nextMonth = DateTime(month.year, month.month + 1, 1);
 
-    // island_memories와 islands 정보를 조인하여 조회
     final response = await client
-        .from('island_memories')
-        .select('*, islands(id, name, theme_color)')
-        .gte('event_date', firstDay.toIso8601String())
-        .lte('event_date', lastDay.toIso8601String())
-        .order('event_date', ascending: true);
+        .from('friend_photos')
+        .select('id, island_id, uploader_id, image_url, description, created_at')
+        .inFilter('island_id', islandIds)
+        .gte('created_at', firstDay.toIso8601String())
+        .lt('created_at', nextMonth.toIso8601String())
+        .order('created_at', ascending: true);
 
-    return List<Map<String, dynamic>>.from(response as List);
+    final islandMetaById = <String, Map<String, dynamic>>{
+      for (final row in islandRows)
+        row['island_id']?.toString() ?? '': Map<String, dynamic>.from(
+          (row['islands'] as Map?) ?? const <String, dynamic>{},
+        ),
+    };
+
+    return List<Map<String, dynamic>>.from(
+      (response as List<dynamic>).map((raw) {
+        final row = Map<String, dynamic>.from(raw as Map);
+        final islandId = row['island_id']?.toString() ?? '';
+        final island = islandMetaById[islandId] ?? const <String, dynamic>{};
+        return {
+          ...row,
+          'title': (island['name'] ?? '기억섬').toString(),
+          'event_date': row['created_at'],
+          'type': 'memory',
+        };
+      }),
+    );
   }
 
   static Color colorFromHex(String? value) {

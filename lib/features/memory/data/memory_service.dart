@@ -9,6 +9,7 @@ class MemoryService {
     : _clientProvider = clientProvider ?? SupabaseClientProvider.instance;
 
   final SupabaseClientProvider _clientProvider;
+  static const String _friendPhotosBucket = 'friend_photos';
 
   Future<List<Map<String, dynamic>>> fetchIslandRows() async {
     final client = _clientProvider.client;
@@ -66,6 +67,25 @@ class MemoryService {
         .from('profiles')
         .select('id, nickname, avatar_url, user_code')
         .inFilter('id', userIds);
+
+    return List<Map<String, dynamic>>.from(
+      (response as List<dynamic>).map(
+        (row) => Map<String, dynamic>.from(row as Map),
+      ),
+    );
+  }
+
+  Future<List<Map<String, dynamic>>> fetchFriendPhotos(String islandId) async {
+    final client = _clientProvider.client;
+    if (client == null || islandId.isEmpty) {
+      return const [];
+    }
+
+    final response = await client
+        .from('friend_photos')
+        .select('id, uploader_id, island_id, image_url, description, created_at')
+        .eq('island_id', islandId)
+        .order('created_at', ascending: false);
 
     return List<Map<String, dynamic>>.from(
       (response as List<dynamic>).map(
@@ -142,6 +162,51 @@ class MemoryService {
     );
 
     return client.storage.from('island_backgrounds').getPublicUrl(path);
+  }
+
+  Future<Map<String, dynamic>> uploadFriendPhoto({
+    required String islandId,
+    required XFile imageFile,
+    String? description,
+  }) async {
+    final client = _clientProvider.client;
+    final userId = client?.auth.currentUser?.id;
+    if (client == null || userId == null) {
+      throw StateError('로그인이 필요합니다.');
+    }
+
+    final Uint8List bytes = await imageFile.readAsBytes();
+    final originalName =
+        imageFile.name.isEmpty ? 'memory.jpg' : imageFile.name;
+    final sanitizedName = originalName.replaceAll(
+      RegExp(r'[^a-zA-Z0-9._-]'),
+      '_',
+    );
+    final path =
+        'islands/$islandId/${DateTime.now().microsecondsSinceEpoch}_$sanitizedName';
+
+    await client.storage.from(_friendPhotosBucket).uploadBinary(
+      path,
+      bytes,
+      fileOptions: FileOptions(
+        upsert: true,
+        contentType: _contentTypeFor(sanitizedName),
+      ),
+    );
+
+    final imageUrl = client.storage.from(_friendPhotosBucket).getPublicUrl(path);
+    final response = await client
+        .from('friend_photos')
+        .insert({
+          'uploader_id': userId,
+          'island_id': islandId,
+          'image_url': imageUrl,
+          'description': description,
+        })
+        .select('id, uploader_id, island_id, image_url, description, created_at')
+        .single();
+
+    return Map<String, dynamic>.from(response);
   }
 
   Future<String?> fetchInviteCode(String islandId) async {
