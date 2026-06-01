@@ -49,6 +49,10 @@ class _MemoryDetailPageState extends State<MemoryDetailPage> {
           uploaderName: photo.uploaderName,
           uploaderProfile: photo.profileImagePath,
           isLocalFile: false,
+          takenAt: photo.takenAt,
+          latitude: photo.latitude,
+          longitude: photo.longitude,
+          locationName: photo.locationName,
         ),
       ),
     );
@@ -79,6 +83,10 @@ class _MemoryDetailPageState extends State<MemoryDetailPage> {
               uploaderName: photo.uploaderName,
               uploaderProfile: photo.profileImagePath,
               isLocalFile: false,
+              takenAt: photo.takenAt,
+              latitude: photo.latitude,
+              longitude: photo.longitude,
+              locationName: photo.locationName,
             ),
           )
           .toList();
@@ -125,6 +133,10 @@ class _MemoryDetailPageState extends State<MemoryDetailPage> {
             uploaderName: uploaded.uploaderName,
             uploaderProfile: uploaded.profileImagePath,
             isLocalFile: false,
+            takenAt: uploaded.takenAt,
+            latitude: uploaded.latitude,
+            longitude: uploaded.longitude,
+            locationName: uploaded.locationName,
           ),
         );
         selectedIndex = 0;

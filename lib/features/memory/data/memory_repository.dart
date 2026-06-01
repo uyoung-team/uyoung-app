@@ -289,6 +289,10 @@ class MemoryRepository {
               DateTime.now(),
           uploaderName: (profile['nickname'] ?? '버블 메이트').toString(),
           profileImagePath: profile['avatar_url']?.toString(),
+          takenAt: DateTime.tryParse((row['taken_at'] ?? '').toString()),
+          latitude: _toDouble(row['latitude']),
+          longitude: _toDouble(row['longitude']),
+          locationName: row['location_name']?.toString(),
         );
       }).toList();
     } catch (error) {
@@ -322,10 +326,24 @@ class MemoryRepository {
             DateTime.now(),
         uploaderName: (profile['nickname'] ?? '나').toString(),
         profileImagePath: profile['avatar_url']?.toString(),
+        takenAt: DateTime.tryParse((row['taken_at'] ?? '').toString()),
+        latitude: _toDouble(row['latitude']),
+        longitude: _toDouble(row['longitude']),
+        locationName: row['location_name']?.toString(),
       );
     } catch (error) {
       throw StateError('사진 업로드에 실패했어요. $error');
     }
+  }
+
+  double? _toDouble(Object? value) {
+    if (value is num) {
+      return value.toDouble();
+    }
+    if (value is String) {
+      return double.tryParse(value);
+    }
+    return null;
   }
 
   Future<Map<String, List<MemoryMemberPreview>>> _groupMembersByIsland(

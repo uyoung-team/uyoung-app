@@ -75,7 +75,7 @@ class CalendarService {
         return {
           ...row,
           'title': (island['name'] ?? '기억섬').toString(),
-          'event_date': row['created_at'],
+          'event_date': row['taken_at'] ?? row['created_at'],
           'type': 'memory',
         };
       }),

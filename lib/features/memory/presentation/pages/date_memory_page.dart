@@ -17,10 +17,11 @@ class DateMemoryPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final grouped = <DateTime, List<MemoryLocalPhoto>>{};
     for (final photo in photos) {
+      final takenAt = photo.takenAt ?? photo.createdAt;
       final key = DateTime(
-        photo.createdAt.year,
-        photo.createdAt.month,
-        photo.createdAt.day,
+        takenAt.year,
+        takenAt.month,
+        takenAt.day,
       );
       grouped.putIfAbsent(key, () => []).add(photo);
     }
@@ -40,7 +41,11 @@ class DateMemoryPage extends StatelessWidget {
       itemCount: dates.length,
       itemBuilder: (context, index) {
         final date = dates[index];
-        final dayPhotos = grouped[date] ?? const [];
+        final dayPhotos = [...(grouped[date] ?? const [])]
+          ..sort(
+            (a, b) =>
+                (b.takenAt ?? b.createdAt).compareTo(a.takenAt ?? a.createdAt),
+          );
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -67,6 +72,10 @@ class DateMemoryPage extends StatelessWidget {
                           imagePath: photo.path,
                           uploaderName: photo.uploaderName,
                           uploaderProfile: photo.uploaderProfile,
+                          takenAt: photo.takenAt ?? photo.createdAt,
+                          latitude: photo.latitude,
+                          longitude: photo.longitude,
+                          locationName: photo.locationName,
                         ),
                       ),
                     );

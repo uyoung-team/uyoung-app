@@ -149,10 +149,18 @@ class MemoryPhotoSeed {
     required this.createdAt,
     required this.uploaderName,
     this.profileImagePath,
+    this.takenAt,
+    this.latitude,
+    this.longitude,
+    this.locationName,
   });
 
   final String path;
   final DateTime createdAt;
   final String uploaderName;
   final String? profileImagePath;
+  final DateTime? takenAt;
+  final double? latitude;
+  final double? longitude;
+  final String? locationName;
 }

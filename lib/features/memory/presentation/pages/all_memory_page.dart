@@ -40,7 +40,8 @@ class AllMemoryPage extends StatelessWidget {
       itemCount: dates.length,
       itemBuilder: (context, index) {
         final date = dates[index];
-        final dayPhotos = grouped[date] ?? const [];
+        final dayPhotos = [...(grouped[date] ?? const [])]
+          ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
         return Column(
           children: [
@@ -57,6 +58,10 @@ class AllMemoryPage extends StatelessWidget {
                           imagePath: photo.path,
                           uploaderName: photo.uploaderName,
                           uploaderProfile: photo.uploaderProfile,
+                          takenAt: photo.takenAt ?? photo.createdAt,
+                          latitude: photo.latitude,
+                          longitude: photo.longitude,
+                          locationName: photo.locationName,
                         ),
                       ),
                     );

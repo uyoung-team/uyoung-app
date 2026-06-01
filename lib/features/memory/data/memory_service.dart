@@ -1,6 +1,8 @@
 import 'dart:typed_data';
 
+import 'package:geocoding/geocoding.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:native_exif/native_exif.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uyoung_app/core/network/supabase_client_provider.dart';
 
@@ -81,11 +83,7 @@ class MemoryService {
       return const [];
     }
 
-    final response = await client
-        .from('friend_photos')
-        .select('id, uploader_id, island_id, image_url, description, created_at')
-        .eq('island_id', islandId)
-        .order('created_at', ascending: false);
+    final response = await _selectFriendPhotos(client, islandId);
 
     return List<Map<String, dynamic>>.from(
       (response as List<dynamic>).map(
@@ -195,18 +193,116 @@ class MemoryService {
     );
 
     final imageUrl = client.storage.from(_friendPhotosBucket).getPublicUrl(path);
-    final response = await client
-        .from('friend_photos')
-        .insert({
-          'uploader_id': userId,
-          'island_id': islandId,
-          'image_url': imageUrl,
-          'description': description,
-        })
-        .select('id, uploader_id, island_id, image_url, description, created_at')
-        .single();
+    final metadata = await _extractPhotoMetadata(imageFile);
+    final basicPayload = {
+      'uploader_id': userId,
+      'island_id': islandId,
+      'image_url': imageUrl,
+      'description': description,
+    };
+    final metadataPayload = {
+      ...basicPayload,
+      if (metadata['taken_at'] != null) 'taken_at': metadata['taken_at'],
+      if (metadata['latitude'] != null) 'latitude': metadata['latitude'],
+      if (metadata['longitude'] != null) 'longitude': metadata['longitude'],
+      if (metadata['location_name'] != null)
+        'location_name': metadata['location_name'],
+    };
 
-    return Map<String, dynamic>.from(response);
+    Map<String, dynamic> response;
+    try {
+      final raw = await client
+          .from('friend_photos')
+          .insert(metadataPayload)
+          .select(
+            'id, uploader_id, island_id, image_url, description, created_at, taken_at, latitude, longitude, location_name',
+          )
+          .single();
+      response = Map<String, dynamic>.from(raw);
+    } catch (_) {
+      final raw = await client
+          .from('friend_photos')
+          .insert(basicPayload)
+          .select('id, uploader_id, island_id, image_url, description, created_at')
+          .single();
+      response = Map<String, dynamic>.from(raw)
+        ..addAll({
+          'taken_at': metadata['taken_at'],
+          'latitude': metadata['latitude'],
+          'longitude': metadata['longitude'],
+          'location_name': metadata['location_name'],
+        });
+    }
+
+    return response;
+  }
+
+  Future<dynamic> _selectFriendPhotos(
+    SupabaseClient client,
+    String islandId,
+  ) async {
+    try {
+      return await client
+          .from('friend_photos')
+          .select(
+            'id, uploader_id, island_id, image_url, description, created_at, taken_at, latitude, longitude, location_name',
+          )
+          .eq('island_id', islandId)
+          .order('taken_at', ascending: false, nullsFirst: false)
+          .order('created_at', ascending: false);
+    } catch (_) {
+      return await client
+          .from('friend_photos')
+          .select('id, uploader_id, island_id, image_url, description, created_at')
+          .eq('island_id', islandId)
+          .order('created_at', ascending: false);
+    }
+  }
+
+  Future<Map<String, Object?>> _extractPhotoMetadata(XFile imageFile) async {
+    final path = imageFile.path;
+    if (path.isEmpty) {
+      return const {};
+    }
+
+    final exif = await Exif.fromPath(path);
+    try {
+      final takenAt = await exif.getOriginalDate();
+      final latLong = await exif.getLatLong();
+      String? locationName;
+
+      if (latLong != null) {
+        try {
+          final placemarks = await placemarkFromCoordinates(
+            latLong.latitude,
+            latLong.longitude,
+          );
+          if (placemarks.isNotEmpty) {
+            final place = placemarks.first;
+            locationName = [
+              place.administrativeArea,
+              place.locality,
+              place.subLocality,
+              place.thoroughfare,
+            ].whereType<String>().where((part) => part.trim().isNotEmpty).join(' ');
+            if (locationName.trim().isEmpty) {
+              locationName = null;
+            }
+          }
+        } catch (_) {
+          locationName = null;
+        }
+      }
+
+      return {
+        'taken_at': takenAt?.toIso8601String(),
+        'latitude': latLong?.latitude,
+        'longitude': latLong?.longitude,
+        'location_name': locationName,
+      };
+    } finally {
+      await exif.close();
+    }
   }
 
   Future<String?> fetchInviteCode(String islandId) async {

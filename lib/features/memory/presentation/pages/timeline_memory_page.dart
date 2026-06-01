@@ -26,9 +26,9 @@ class _TimelineMemoryPageState extends State<TimelineMemoryPage> {
     final dates = widget.photos
         .map(
           (photo) => DateTime(
-            photo.createdAt.year,
-            photo.createdAt.month,
-            photo.createdAt.day,
+            (photo.takenAt ?? photo.createdAt).year,
+            (photo.takenAt ?? photo.createdAt).month,
+            (photo.takenAt ?? photo.createdAt).day,
           ),
         )
         .toSet()
@@ -40,7 +40,7 @@ class _TimelineMemoryPageState extends State<TimelineMemoryPage> {
     final filteredPhotos = _selectedDate == null
         ? const <MemoryLocalPhoto>[]
         : widget.photos.where((photo) {
-            final date = photo.createdAt;
+            final date = photo.takenAt ?? photo.createdAt;
             return date.year == _selectedDate!.year &&
                 date.month == _selectedDate!.month &&
                 date.day == _selectedDate!.day;
@@ -115,6 +115,10 @@ class _TimelineMemoryPageState extends State<TimelineMemoryPage> {
                                   imagePath: photo.path,
                                   uploaderName: photo.uploaderName,
                                   uploaderProfile: photo.uploaderProfile,
+                                  takenAt: photo.takenAt ?? photo.createdAt,
+                                  latitude: photo.latitude,
+                                  longitude: photo.longitude,
+                                  locationName: photo.locationName,
                                 ),
                               ),
                             );
@@ -188,8 +192,20 @@ class _TimelineMemoryPageState extends State<TimelineMemoryPage> {
 
     for (final photo in photos) {
       final info = MemoryLocationDummy.get(photo.path);
-      final label = info?.label ?? info?.groupKey ?? '위치 미지정';
+      final label =
+          photo.locationName ??
+          info?.label ??
+          info?.groupKey ??
+          (photo.latitude != null && photo.longitude != null
+              ? '${photo.latitude!.toStringAsFixed(4)}, ${photo.longitude!.toStringAsFixed(4)}'
+              : '위치 미지정');
       (grouped[label] ??= []).add(photo);
+    }
+
+    for (final entry in grouped.entries) {
+      entry.value.sort(
+        (a, b) => (b.takenAt ?? b.createdAt).compareTo(a.takenAt ?? a.createdAt),
+      );
     }
 
     return grouped;

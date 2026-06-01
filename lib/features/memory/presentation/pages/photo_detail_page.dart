@@ -30,11 +30,19 @@ class PhotoDetailPage extends StatefulWidget {
     required this.imagePath,
     this.uploaderName = '버블 메이트',
     this.uploaderProfile,
+    this.takenAt,
+    this.latitude,
+    this.longitude,
+    this.locationName,
   });
 
   final String imagePath;
   final String uploaderName;
   final String? uploaderProfile;
+  final DateTime? takenAt;
+  final double? latitude;
+  final double? longitude;
+  final String? locationName;
 
   @override
   State<PhotoDetailPage> createState() => _PhotoDetailPageState();
@@ -83,10 +91,10 @@ class _PhotoDetailPageState extends State<PhotoDetailPage> {
       centerTitle: true,
       title: Column(
         children: [
-          AppHeadlineText.h6('중국 상하이'),
+          AppHeadlineText.h6(_displayLocation),
           const SizedBox(height: 2),
           Text(
-            '2025년 12월 13일 오후 3:38',
+            _displayTakenAt,
             style: AppFont.b9_12.copyWith(color: AppColors.g03),
           ),
         ],
@@ -215,7 +223,10 @@ class _PhotoDetailPageState extends State<PhotoDetailPage> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => const LocationSheet(),
+      builder: (_) => LocationSheet(
+        originalLocation: _displayLocation,
+        adjustedLocation: _displayLocation,
+      ),
     );
   }
 
@@ -361,6 +372,28 @@ class _PhotoDetailPageState extends State<PhotoDetailPage> {
         ],
       ),
     );
+  }
+
+  String get _displayLocation {
+    if (widget.locationName != null && widget.locationName!.isNotEmpty) {
+      return widget.locationName!;
+    }
+    if (widget.latitude != null && widget.longitude != null) {
+      return '${widget.latitude!.toStringAsFixed(4)}, ${widget.longitude!.toStringAsFixed(4)}';
+    }
+    return '위치 정보 없음';
+  }
+
+  String get _displayTakenAt {
+    final takenAt = widget.takenAt;
+    if (takenAt == null) {
+      return '시간 정보 없음';
+    }
+
+    final period = takenAt.hour < 12 ? '오전' : '오후';
+    final hour = takenAt.hour % 12 == 0 ? 12 : takenAt.hour % 12;
+    final minute = takenAt.minute.toString().padLeft(2, '0');
+    return '${takenAt.year}년 ${takenAt.month}월 ${takenAt.day}일 $period $hour:$minute';
   }
 
   Widget _photoArea() {
