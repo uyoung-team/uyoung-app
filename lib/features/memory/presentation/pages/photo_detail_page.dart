@@ -4,8 +4,10 @@ import 'package:uyoung_app/core/theme/app_colors.dart';
 import 'package:uyoung_app/core/theme/app_font.dart';
 import 'package:uyoung_app/features/memory/data/memory_repository.dart';
 import 'package:uyoung_app/features/memory/data/memory_service.dart';
+import 'package:uyoung_app/features/memory/data/photo_comment_model.dart';
 import 'package:uyoung_app/features/memory/presentation/widgets/change_day_sheet.dart';
 import 'package:uyoung_app/features/memory/presentation/widgets/comment_input_bar.dart';
+import 'package:uyoung_app/features/memory/presentation/widgets/comment_sheet.dart';
 import 'package:uyoung_app/features/memory/presentation/widgets/location_sheet.dart';
 import 'package:uyoung_app/shared/services/asset_paths.dart';
 import 'package:uyoung_app/shared/widgets/app_headline_text.dart';
@@ -58,6 +60,7 @@ class _PhotoDetailPageState extends State<PhotoDetailPage> {
   final double _popupWidth = 220;
   final List<PlacedSticker> _stickers = [];
   final MemoryRepository _repository = const MemoryRepository(MemoryService());
+  final List<PhotoCommentItem> _comments = [];
 
   String? _pendingStickerAsset;
   double _pendingDxRatio = 0.5;
@@ -67,6 +70,41 @@ class _PhotoDetailPageState extends State<PhotoDetailPage> {
   double _photoHeight = 530;
   bool _isFavorite = false;
   bool _isTogglingFavorite = false;
+  bool _isLoadingComments = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadComments();
+  }
+
+  Future<void> _loadComments() async {
+    final photoId = widget.photoId;
+    if (photoId == null || photoId.isEmpty) {
+      return;
+    }
+
+    setState(() => _isLoadingComments = true);
+    try {
+      final comments = await _repository.fetchPhotoComments(photoId);
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _comments
+          ..clear()
+          ..addAll(comments);
+      });
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoadingComments = false);
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -78,6 +116,7 @@ class _PhotoDetailPageState extends State<PhotoDetailPage> {
         selectedSticker: _pendingStickerAsset,
         onStickerSelected: _onStickerSelected,
         onStickerRemoved: _onStickerRemoved,
+        onOpenComments: _openCommentsSheet,
         onSend: _onSend,
       ),
     );
@@ -505,6 +544,8 @@ class _PhotoDetailPageState extends State<PhotoDetailPage> {
             fit: StackFit.expand,
             children: [
               _buildImage(widget.imagePath),
+              for (final comment in _comments.where((item) => item.hasSticker))
+                _persistedStickerWidget(comment, _photoWidth, _photoHeight),
               for (final sticker in _stickers)
                 _placedStickerWidget(sticker, _photoWidth, _photoHeight),
               if (_pendingStickerAsset != null)
@@ -547,6 +588,28 @@ class _PhotoDetailPageState extends State<PhotoDetailPage> {
         sticker.assetPath,
         width: sticker.size,
         height: sticker.size,
+      ),
+    );
+  }
+
+  Widget _persistedStickerWidget(
+    PhotoCommentItem comment,
+    double photoWidth,
+    double photoHeight,
+  ) {
+    final size = comment.stickerSize ?? 72;
+    final dxRatio = comment.stickerDxRatio ?? 0.5;
+    final dyRatio = comment.stickerDyRatio ?? 0.6;
+    final left = (photoWidth - size) * dxRatio;
+    final top = (photoHeight - size) * dyRatio;
+
+    return Positioned(
+      left: left,
+      top: top,
+      child: Image.asset(
+        comment.stickerAsset!,
+        width: size,
+        height: size,
       ),
     );
   }
@@ -603,8 +666,29 @@ class _PhotoDetailPageState extends State<PhotoDetailPage> {
     });
   }
 
-  void _onSend() {
-    if (_pendingStickerAsset == null) {
+  void _openCommentsSheet() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) {
+        return Container(
+          height: 750,
+          width: double.infinity,
+          decoration: const BoxDecoration(
+            color: AppColors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          child: _isLoadingComments
+              ? const Center(child: CircularProgressIndicator())
+              : CommentSheet(comments: _comments),
+        );
+      },
+    );
+  }
+
+  Future<void> _onSend(String commentText) async {
+    if (_pendingStickerAsset == null && commentText.trim().isEmpty) {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
@@ -613,16 +697,52 @@ class _PhotoDetailPageState extends State<PhotoDetailPage> {
       return;
     }
 
-    setState(() {
-      _stickers.add(
-        PlacedSticker(
-          assetPath: _pendingStickerAsset!,
-          dxRatio: _pendingDxRatio,
-          dyRatio: _pendingDyRatio,
-          size: _pendingSize,
-        ),
+    final photoId = widget.photoId;
+    if (photoId == null || photoId.isEmpty) {
+      if (_pendingStickerAsset != null) {
+        setState(() {
+          _stickers.add(
+            PlacedSticker(
+              assetPath: _pendingStickerAsset!,
+              dxRatio: _pendingDxRatio,
+              dyRatio: _pendingDyRatio,
+              size: _pendingSize,
+            ),
+          );
+          _pendingStickerAsset = null;
+        });
+      }
+      return;
+    }
+
+    try {
+      final comment = await _repository.createPhotoComment(
+        photoId: photoId,
+        content: commentText.trim(),
+        stickerAsset: _pendingStickerAsset,
+        stickerDxRatio: _pendingStickerAsset == null ? null : _pendingDxRatio,
+        stickerDyRatio: _pendingStickerAsset == null ? null : _pendingDyRatio,
+        stickerSize: _pendingStickerAsset == null ? null : _pendingSize,
       );
-      _pendingStickerAsset = null;
-    });
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _comments.insert(0, comment);
+        _pendingStickerAsset = null;
+      });
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(const SnackBar(content: Text('댓글을 남겼어요.')));
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(content: Text(error.toString().replaceFirst('Bad state: ', ''))),
+        );
+    }
   }
 }

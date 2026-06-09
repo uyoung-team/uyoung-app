@@ -2,6 +2,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:uyoung_app/features/memory/data/memory_dummy_adapter.dart';
 import 'package:uyoung_app/features/memory/data/memory_models.dart';
 import 'package:uyoung_app/features/memory/data/memory_service.dart';
+import 'package:uyoung_app/features/memory/data/photo_comment_model.dart';
 
 class MemoryRepository {
   const MemoryRepository(this.service);
@@ -482,6 +483,89 @@ class MemoryRepository {
       await service.removePhotoFromAlbum(albumId: albumId, photoId: photoId);
     } catch (error) {
       throw StateError('앨범에서 사진을 제거하지 못했어요. $error');
+    }
+  }
+
+  Future<List<PhotoCommentItem>> fetchPhotoComments(String photoId) async {
+    try {
+      final rows = await service.fetchPhotoComments(photoId);
+      final userIds = rows
+          .map((row) => row['user_id']?.toString() ?? '')
+          .where((id) => id.isNotEmpty)
+          .toSet()
+          .toList();
+      final profileRows = await service.fetchProfilesByIds(userIds);
+      final profileMap = {
+        for (final row in profileRows) row['id']?.toString() ?? '': row,
+      };
+
+      return rows.map((row) {
+        final userId = row['user_id']?.toString() ?? '';
+        final profile = profileMap[userId] ?? const <String, dynamic>{};
+        return PhotoCommentItem(
+          id: (row['id'] ?? '').toString(),
+          photoId: (row['photo_id'] ?? photoId).toString(),
+          userId: userId,
+          nickname: (profile['nickname'] ?? '버블 메이트').toString(),
+          avatarUrl: profile['avatar_url']?.toString(),
+          content: (row['content'] ?? '').toString(),
+          createdAt:
+              DateTime.tryParse((row['created_at'] ?? '').toString()) ??
+              DateTime.now(),
+          stickerAsset: row['sticker_asset']?.toString(),
+          stickerDxRatio: _toDouble(row['sticker_dx_ratio']),
+          stickerDyRatio: _toDouble(row['sticker_dy_ratio']),
+          stickerSize: _toDouble(row['sticker_size']),
+        );
+      }).toList();
+    } catch (error) {
+      throw StateError('댓글을 불러오지 못했어요. $error');
+    }
+  }
+
+  Future<PhotoCommentItem> createPhotoComment({
+    required String photoId,
+    required String content,
+    String? stickerAsset,
+    double? stickerDxRatio,
+    double? stickerDyRatio,
+    double? stickerSize,
+  }) async {
+    try {
+      final row = await service.createPhotoComment(
+        photoId: photoId,
+        content: content,
+        stickerAsset: stickerAsset,
+        stickerDxRatio: stickerDxRatio,
+        stickerDyRatio: stickerDyRatio,
+        stickerSize: stickerSize,
+      );
+
+      final userId = row['user_id']?.toString() ?? '';
+      final profileRows = await service.fetchProfilesByIds(
+        userId.isEmpty ? const [] : [userId],
+      );
+      final profile = profileRows.isEmpty
+          ? const <String, dynamic>{}
+          : profileRows.first;
+
+      return PhotoCommentItem(
+        id: (row['id'] ?? '').toString(),
+        photoId: (row['photo_id'] ?? photoId).toString(),
+        userId: userId,
+        nickname: (profile['nickname'] ?? '버블 메이트').toString(),
+        avatarUrl: profile['avatar_url']?.toString(),
+        content: (row['content'] ?? '').toString(),
+        createdAt:
+            DateTime.tryParse((row['created_at'] ?? '').toString()) ??
+            DateTime.now(),
+        stickerAsset: row['sticker_asset']?.toString(),
+        stickerDxRatio: _toDouble(row['sticker_dx_ratio']),
+        stickerDyRatio: _toDouble(row['sticker_dy_ratio']),
+        stickerSize: _toDouble(row['sticker_size']),
+      );
+    } catch (error) {
+      throw StateError('댓글을 저장하지 못했어요. $error');
     }
   }
 

@@ -654,6 +654,58 @@ class MemoryService {
         .eq('photo_id', photoId);
   }
 
+  Future<List<Map<String, dynamic>>> fetchPhotoComments(String photoId) async {
+    final client = _clientProvider.client;
+    if (client == null || photoId.isEmpty) {
+      return const [];
+    }
+
+    final response = await client
+        .from('photo_comments')
+        .select(
+          'id, photo_id, user_id, content, sticker_asset, sticker_dx_ratio, sticker_dy_ratio, sticker_size, created_at',
+        )
+        .eq('photo_id', photoId)
+        .order('created_at', ascending: false);
+
+    return response
+        .map((row) => Map<String, dynamic>.from(row as Map))
+        .toList();
+  }
+
+  Future<Map<String, dynamic>> createPhotoComment({
+    required String photoId,
+    required String content,
+    String? stickerAsset,
+    double? stickerDxRatio,
+    double? stickerDyRatio,
+    double? stickerSize,
+  }) async {
+    final client = _clientProvider.client;
+    final userId = client?.auth.currentUser?.id;
+    if (client == null || userId == null || photoId.isEmpty) {
+      throw StateError('로그인이 필요합니다.');
+    }
+
+    final response = await client
+        .from('photo_comments')
+        .insert({
+          'photo_id': photoId,
+          'user_id': userId,
+          'content': content,
+          'sticker_asset': stickerAsset,
+          'sticker_dx_ratio': stickerDxRatio,
+          'sticker_dy_ratio': stickerDyRatio,
+          'sticker_size': stickerSize,
+        })
+        .select(
+          'id, photo_id, user_id, content, sticker_asset, sticker_dx_ratio, sticker_dy_ratio, sticker_size, created_at',
+        )
+        .single();
+
+    return Map<String, dynamic>.from(response);
+  }
+
   String _contentTypeFor(String fileName) {
     final extension = fileName.split('.').last.toLowerCase();
     switch (extension) {
