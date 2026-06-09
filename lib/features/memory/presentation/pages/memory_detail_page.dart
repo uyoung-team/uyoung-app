@@ -11,6 +11,7 @@ import 'package:uyoung_app/features/memory/presentation/pages/all_memory_page.da
 import 'package:uyoung_app/features/memory/presentation/pages/date_memory_page.dart';
 import 'package:uyoung_app/features/memory/presentation/pages/member_inquiry_page.dart';
 import 'package:uyoung_app/features/memory/presentation/pages/memory_local_photo.dart';
+import 'package:uyoung_app/features/memory/presentation/pages/memory_post_edit_page.dart';
 import 'package:uyoung_app/features/memory/presentation/pages/memory_upload_page.dart';
 import 'package:uyoung_app/features/memory/presentation/pages/timeline_memory_page.dart';
 import 'package:uyoung_app/shared/services/asset_paths.dart';
@@ -130,75 +131,37 @@ class _MemoryDetailPageState extends State<MemoryDetailPage> {
   }
 
   Future<void> _editPost(List<MemoryLocalPhoto> photos) async {
-    final editableIds = photos
+    if (photos.isEmpty) {
+      return;
+    }
+
+    final updatedPhotos = await Navigator.of(context).push<List<MemoryLocalPhoto>>(
+      MaterialPageRoute<List<MemoryLocalPhoto>>(
+        builder: (_) => MemoryPostEditPage(
+          islandId: widget.item.id,
+          repository: _repository,
+          initialPhotos: photos,
+        ),
+      ),
+    );
+
+    if (updatedPhotos == null || !mounted) {
+      return;
+    }
+
+    final originalIds = photos
         .map((photo) => photo.id)
         .whereType<String>()
         .where((id) => id.isNotEmpty)
-        .toList();
-    if (editableIds.isEmpty) {
-      return;
-    }
-
-    final controller = TextEditingController(
-      text: (photos.first.description ?? '').trim(),
-    );
-
-    final shouldSave = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) {
-        return AlertDialog(
-          title: Text('게시글 수정', style: AppFont.b5_20),
-          content: TextField(
-            controller: controller,
-            maxLines: 5,
-            maxLength: 300,
-            decoration: const InputDecoration(
-              hintText: '사진과 함께 남길 글을 적어보세요.',
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext, false),
-              child: Text('취소', style: AppFont.b8_14),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.pop(dialogContext, true),
-              child: Text('저장', style: AppFont.b8_14),
-            ),
-          ],
-        );
-      },
-    );
-
-    if (shouldSave != true || !mounted) {
-      return;
-    }
-
-    final nextDescription = controller.text.trim();
-    await _repository.updatePostDescription(
-      photoIds: editableIds,
-      description: nextDescription.isEmpty ? null : nextDescription,
-    );
+        .toSet();
+    final originalPaths = photos.map((photo) => photo.path).toSet();
 
     setState(() {
-      for (var i = 0; i < _localPhotos.length; i++) {
-        final photo = _localPhotos[i];
-        if (editableIds.contains(photo.id)) {
-          _localPhotos[i] = MemoryLocalPhoto(
-            id: photo.id,
-            path: photo.path,
-            createdAt: photo.createdAt,
-            uploaderName: photo.uploaderName,
-            isLocalFile: photo.isLocalFile,
-            description: nextDescription.isEmpty ? null : nextDescription,
-            uploaderProfile: photo.uploaderProfile,
-            takenAt: photo.takenAt,
-            latitude: photo.latitude,
-            longitude: photo.longitude,
-            locationName: photo.locationName,
-          );
-        }
-      }
+      _localPhotos.removeWhere(
+        (photo) =>
+            originalIds.contains(photo.id) || originalPaths.contains(photo.path),
+      );
+      _localPhotos.insertAll(0, updatedPhotos);
     });
   }
 

@@ -29,14 +29,6 @@ class _MemoryUploadPageState extends State<MemoryUploadPage> {
   bool _isUploading = false;
 
   @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _pickImages();
-    });
-  }
-
-  @override
   void dispose() {
     _descriptionController.dispose();
     super.dispose();
@@ -48,9 +40,6 @@ class _MemoryUploadPageState extends State<MemoryUploadPage> {
       return;
     }
     if (files.isEmpty) {
-      if (_selectedImages.isEmpty) {
-        Navigator.of(context).pop();
-      }
       return;
     }
 
@@ -84,10 +73,6 @@ class _MemoryUploadPageState extends State<MemoryUploadPage> {
       _selectedImages.removeAt(index);
       _previewBytes.removeAt(index);
     });
-
-    if (_selectedImages.isEmpty && mounted) {
-      Navigator.of(context).pop();
-    }
   }
 
   Future<void> _upload() async {
@@ -189,6 +174,49 @@ class _MemoryUploadPageState extends State<MemoryUploadPage> {
                       onRemove: () => _removeImage(index),
                     );
                   },
+                ),
+                ),
+            if (_selectedImages.isEmpty)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+                child: OutlinedButton.icon(
+                  onPressed: _pickImages,
+                  icon: const Icon(Icons.add_photo_alternate_outlined),
+                  label: Text('사진 추가', style: AppFont.b8_14),
+                  style: OutlinedButton.styleFrom(
+                    minimumSize: const Size.fromHeight(56),
+                    side: const BorderSide(color: AppColors.bg02),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(18),
+                    ),
+                  ),
+                ),
+              ),
+            if (_selectedImages.isEmpty)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
+                child: Container(
+                  height: 180,
+                  decoration: BoxDecoration(
+                    color: AppColors.bg01,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: AppColors.bg02),
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(
+                        Icons.image_outlined,
+                        size: 38,
+                        color: AppColors.g02,
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        '사진을 선택해서 게시물을 만들어보세요.',
+                        style: AppFont.b8_14.copyWith(color: AppColors.g02),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             Padding(
