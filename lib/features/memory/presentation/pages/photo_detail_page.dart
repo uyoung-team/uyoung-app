@@ -28,6 +28,8 @@ class PhotoDetailPage extends StatefulWidget {
   const PhotoDetailPage({
     super.key,
     required this.imagePath,
+    this.islandId,
+    this.photoId,
     this.uploaderName = '버블 메이트',
     this.description,
     this.uploaderProfile,
@@ -38,6 +40,8 @@ class PhotoDetailPage extends StatefulWidget {
   });
 
   final String imagePath;
+  final String? islandId;
+  final String? photoId;
   final String uploaderName;
   final String? description;
   final String? uploaderProfile;
@@ -192,6 +196,15 @@ class _PhotoDetailPageState extends State<PhotoDetailPage> {
                       ),
                       _divider(),
                       _popupItem(
+                        iconPath: AssetPaths.icons.common.folderPlus,
+                        label: '앨범에 담기',
+                        onTap: () {
+                          Navigator.pop(context);
+                          _showAlbumPicker(context);
+                        },
+                      ),
+                      _divider(),
+                      _popupItem(
                         iconPath: AssetPaths.icons.common.delete,
                         label: '삭제하기',
                         color: AppColors.subRed03,
@@ -296,6 +309,76 @@ class _PhotoDetailPageState extends State<PhotoDetailPage> {
         });
       }
     }
+  }
+
+  Future<void> _showAlbumPicker(BuildContext context) async {
+    final islandId = widget.islandId;
+    final photoId = widget.photoId;
+    if (islandId == null || islandId.isEmpty || photoId == null || photoId.isEmpty) {
+      return;
+    }
+
+    final albums = await _repository.fetchAlbums(islandId);
+    if (!context.mounted) {
+      return;
+    }
+
+    await showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) {
+        return SafeArea(
+          top: false,
+          child: Container(
+            margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            decoration: BoxDecoration(
+              color: AppColors.white,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: albums.isEmpty
+                ? Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Text(
+                      '먼저 앨범을 하나 만들어주세요.',
+                      style: AppFont.b8_14.copyWith(color: AppColors.g02),
+                    ),
+                  )
+                : Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      for (final album in albums) ...[
+                        ListTile(
+                          title: Text(album.name, style: AppFont.b7_16),
+                          subtitle: Text(
+                            '사진 ${album.photoCount}장',
+                            style: AppFont.b9_12.copyWith(color: AppColors.g02),
+                          ),
+                          trailing: const Icon(Icons.chevron_right),
+                          onTap: () async {
+                            Navigator.pop(sheetContext);
+                            await _repository.addPhotosToAlbum(
+                              albumId: album.id,
+                              photoIds: [photoId],
+                            );
+                            if (!context.mounted) {
+                              return;
+                            }
+                            ScaffoldMessenger.of(context)
+                              ..hideCurrentSnackBar()
+                              ..showSnackBar(
+                                SnackBar(content: Text('${album.name} 앨범에 담았어요.')),
+                              );
+                          },
+                        ),
+                        if (album != albums.last)
+                          const Divider(height: 1, color: AppColors.bg03),
+                      ],
+                    ],
+                  ),
+          ),
+        );
+      },
+    );
   }
 
   Widget _popupItem({

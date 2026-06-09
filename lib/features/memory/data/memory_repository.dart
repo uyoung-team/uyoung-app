@@ -378,6 +378,113 @@ class MemoryRepository {
     }
   }
 
+  Future<List<MemoryAlbum>> fetchAlbums(String islandId) async {
+    try {
+      final rows = await service.fetchAlbums(islandId);
+      return rows.map((row) {
+        final linkedPhotos =
+            (row['memory_album_photos'] as List<dynamic>? ?? const [])
+                .map((item) => Map<String, dynamic>.from(item as Map))
+                .toList();
+        final cover = linkedPhotos.isEmpty
+            ? null
+            : Map<String, dynamic>.from(
+                (linkedPhotos.first['friend_photos'] ?? const <String, dynamic>{}) as Map,
+              )['image_url']?.toString();
+
+        return MemoryAlbum(
+          id: (row['id'] ?? '').toString(),
+          islandId: (row['island_id'] ?? islandId).toString(),
+          name: (row['name'] ?? '').toString(),
+          createdAt:
+              DateTime.tryParse((row['created_at'] ?? '').toString()) ??
+              DateTime.now(),
+          createdBy: row['created_by']?.toString(),
+          coverImageUrl: cover,
+          photoCount: linkedPhotos.length,
+        );
+      }).toList();
+    } catch (_) {
+      return const [];
+    }
+  }
+
+  Future<MemoryAlbum> createAlbum({
+    required String islandId,
+    required String name,
+  }) async {
+    try {
+      final row = await service.createAlbum(islandId: islandId, name: name);
+      return MemoryAlbum.fromMap(row);
+    } catch (error) {
+      throw StateError('앨범을 만들지 못했어요. $error');
+    }
+  }
+
+  Future<void> addPhotosToAlbum({
+    required String albumId,
+    required List<String> photoIds,
+  }) async {
+    try {
+      await service.addPhotosToAlbum(albumId: albumId, photoIds: photoIds);
+    } catch (error) {
+      throw StateError('앨범에 사진을 담지 못했어요. $error');
+    }
+  }
+
+  Future<List<MemoryPhotoSeed>> fetchAlbumPhotos(String albumId) async {
+    try {
+      final rows = await service.fetchAlbumPhotos(albumId);
+      final photoRows = rows
+          .map((row) => row['friend_photos'])
+          .whereType<Map>()
+          .map((row) => Map<String, dynamic>.from(row))
+          .toList();
+
+      final uploaderIds = photoRows
+          .map((row) => row['uploader_id']?.toString() ?? '')
+          .where((id) => id.isNotEmpty)
+          .toSet()
+          .toList();
+      final profileRows = await service.fetchProfilesByIds(uploaderIds);
+      final profileMap = {
+        for (final row in profileRows) row['id']?.toString() ?? '': row,
+      };
+
+      return photoRows.map((row) {
+        final uploaderId = row['uploader_id']?.toString() ?? '';
+        final profile = profileMap[uploaderId] ?? const <String, dynamic>{};
+        return MemoryPhotoSeed(
+          id: row['id']?.toString(),
+          path: (row['image_url'] ?? '').toString(),
+          createdAt:
+              DateTime.tryParse((row['created_at'] ?? '').toString()) ??
+              DateTime.now(),
+          uploaderName: (profile['nickname'] ?? '버블 메이트').toString(),
+          description: row['description']?.toString(),
+          profileImagePath: profile['avatar_url']?.toString(),
+          takenAt: DateTime.tryParse((row['taken_at'] ?? '').toString()),
+          latitude: _toDouble(row['latitude']),
+          longitude: _toDouble(row['longitude']),
+          locationName: row['location_name']?.toString(),
+        );
+      }).toList();
+    } catch (error) {
+      throw StateError('앨범 사진을 불러오지 못했어요. $error');
+    }
+  }
+
+  Future<void> removePhotoFromAlbum({
+    required String albumId,
+    required String photoId,
+  }) async {
+    try {
+      await service.removePhotoFromAlbum(albumId: albumId, photoId: photoId);
+    } catch (error) {
+      throw StateError('앨범에서 사진을 제거하지 못했어요. $error');
+    }
+  }
+
   Future<Map<String, List<MemoryMemberPreview>>> _groupMembersByIsland(
     List<Map<String, dynamic>> rows,
   ) async {

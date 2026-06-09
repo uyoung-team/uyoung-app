@@ -8,9 +8,11 @@ import 'package:uyoung_app/features/memory/presentation/widgets/memory_photo_thu
 class DateMemoryPage extends StatelessWidget {
   const DateMemoryPage({
     super.key,
+    required this.islandId,
     required this.photos,
   });
 
+  final String islandId;
   final List<MemoryLocalPhoto> photos;
 
   @override
@@ -69,6 +71,8 @@ class DateMemoryPage extends StatelessWidget {
                     Navigator.of(context).push(
                       MaterialPageRoute<void>(
                         builder: (_) => PhotoDetailPage(
+                          islandId: islandId,
+                          photoId: photo.id,
                           imagePath: photo.path,
                           uploaderName: photo.uploaderName,
                           description: photo.description,

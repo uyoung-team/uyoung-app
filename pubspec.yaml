@@ -38,8 +38,10 @@ dependencies:
   cupertino_icons: ^1.0.8
   app_links: ^7.0.0
   geocoding: ^4.0.0
+  flutter_map: ^8.2.2
   flutter_svg: ^2.2.0
   image_picker: ^1.2.0
+  latlong2: ^0.9.1
   native_exif: ^0.6.1
   provider: ^6.1.5+1
   supabase_flutter: ^2.10.2

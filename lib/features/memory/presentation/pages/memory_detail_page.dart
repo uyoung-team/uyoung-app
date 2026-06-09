@@ -298,13 +298,21 @@ class _MemoryDetailPageState extends State<MemoryDetailPage> {
             onPageChanged: (index) => setState(() => selectedIndex = index),
             children: [
               AllMemoryPage(
+                islandId: widget.item.id,
                 photos: _localPhotos,
                 onEditPost: _editPost,
                 onDeletePost: _deletePost,
               ),
-              DateMemoryPage(photos: _localPhotos),
-              TimelineMemoryPage(photos: _localPhotos),
-              AlbumMemoryPage(photos: _localPhotos),
+              DateMemoryPage(islandId: widget.item.id, photos: _localPhotos),
+              TimelineMemoryPage(
+                islandId: widget.item.id,
+                photos: _localPhotos,
+              ),
+              AlbumMemoryPage(
+                islandId: widget.item.id,
+                repository: _repository,
+                photos: _localPhotos,
+              ),
             ],
           ),
           Align(

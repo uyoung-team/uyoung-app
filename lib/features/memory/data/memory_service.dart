@@ -553,6 +553,107 @@ class MemoryService {
     }
   }
 
+  Future<List<Map<String, dynamic>>> fetchAlbums(String islandId) async {
+    final client = _clientProvider.client;
+    if (client == null || islandId.isEmpty) {
+      return const [];
+    }
+
+    final response = await client
+        .from('memory_albums')
+        .select(
+          'id, island_id, name, created_by, created_at, memory_album_photos(photo_id, friend_photos(image_url))',
+        )
+        .eq('island_id', islandId)
+        .order('created_at', ascending: false);
+
+    return List<Map<String, dynamic>>.from(
+      (response as List<dynamic>).map(
+        (row) => Map<String, dynamic>.from(row as Map),
+      ),
+    );
+  }
+
+  Future<Map<String, dynamic>> createAlbum({
+    required String islandId,
+    required String name,
+  }) async {
+    final client = _clientProvider.client;
+    final userId = client?.auth.currentUser?.id;
+    if (client == null || userId == null) {
+      throw StateError('로그인이 필요합니다.');
+    }
+
+    final response = await client
+        .from('memory_albums')
+        .insert({
+          'island_id': islandId,
+          'name': name,
+          'created_by': userId,
+        })
+        .select('id, island_id, name, created_by, created_at')
+        .single();
+
+    return Map<String, dynamic>.from(response);
+  }
+
+  Future<void> addPhotosToAlbum({
+    required String albumId,
+    required List<String> photoIds,
+  }) async {
+    final client = _clientProvider.client;
+    if (client == null || albumId.isEmpty || photoIds.isEmpty) {
+      throw StateError('로그인이 필요합니다.');
+    }
+
+    await client.from('memory_album_photos').upsert(
+      [
+        for (final photoId in photoIds)
+          {
+            'album_id': albumId,
+            'photo_id': photoId,
+          },
+      ],
+      onConflict: 'album_id,photo_id',
+    );
+  }
+
+  Future<List<Map<String, dynamic>>> fetchAlbumPhotos(String albumId) async {
+    final client = _clientProvider.client;
+    if (client == null || albumId.isEmpty) {
+      return const [];
+    }
+
+    final response = await client
+        .from('memory_album_photos')
+        .select(
+          'photo_id, friend_photos(id, uploader_id, island_id, image_url, description, created_at, taken_at, latitude, longitude, location_name)',
+        )
+        .eq('album_id', albumId);
+
+    return List<Map<String, dynamic>>.from(
+      (response as List<dynamic>).map(
+        (row) => Map<String, dynamic>.from(row as Map),
+      ),
+    );
+  }
+
+  Future<void> removePhotoFromAlbum({
+    required String albumId,
+    required String photoId,
+  }) async {
+    final client = _clientProvider.client;
+    if (client == null || albumId.isEmpty || photoId.isEmpty) {
+      throw StateError('로그인이 필요합니다.');
+    }
+
+    await client
+        .from('memory_album_photos')
+        .delete()
+        .eq('album_id', albumId)
+        .eq('photo_id', photoId);
+  }
+
   String _contentTypeFor(String fileName) {
     final extension = fileName.split('.').last.toLowerCase();
     switch (extension) {

@@ -9,6 +9,7 @@ import 'package:uyoung_app/shared/services/asset_paths.dart';
 class MemoryPostItem extends StatefulWidget {
   const MemoryPostItem({
     super.key,
+    required this.islandId,
     required this.photos,
     required this.uploaderName,
     required this.createdAt,
@@ -18,6 +19,7 @@ class MemoryPostItem extends StatefulWidget {
     this.description,
   });
 
+  final String islandId;
   final List<MemoryLocalPhoto> photos;
   final String uploaderName;
   final DateTime createdAt;
@@ -187,6 +189,8 @@ class _MemoryPostItemState extends State<MemoryPostItem> {
       MaterialPageRoute<void>(
         builder: (_) => PhotoDetailPage(
           imagePath: photo.path,
+          islandId: widget.islandId,
+          photoId: photo.id,
           uploaderName: photo.uploaderName,
           description: photo.description,
           uploaderProfile: photo.uploaderProfile,

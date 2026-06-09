@@ -7,11 +7,13 @@ import 'package:uyoung_app/features/memory/presentation/widgets/memory_post_item
 class AllMemoryPage extends StatelessWidget {
   const AllMemoryPage({
     super.key,
+    required this.islandId,
     required this.photos,
     required this.onEditPost,
     required this.onDeletePost,
   });
 
+  final String islandId;
   final List<MemoryLocalPhoto> photos;
   final Future<void> Function(List<MemoryLocalPhoto> photos) onEditPost;
   final Future<void> Function(List<MemoryLocalPhoto> photos) onDeletePost;
@@ -55,6 +57,7 @@ class AllMemoryPage extends StatelessWidget {
               (post) => Padding(
                 padding: const EdgeInsets.only(bottom: 18),
                 child: MemoryPostItem(
+                  islandId: islandId,
                   photos: post.photos,
                   uploaderName: post.uploaderName,
                   uploaderProfile: post.uploaderProfile,

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:uyoung_app/core/theme/app_colors.dart';
 import 'package:uyoung_app/core/theme/app_font.dart';
 import 'package:uyoung_app/features/memory/data/memory_location_dummy.dart';
@@ -9,9 +11,11 @@ import 'package:uyoung_app/features/memory/presentation/widgets/memory_photo_thu
 class TimelineMemoryPage extends StatefulWidget {
   const TimelineMemoryPage({
     super.key,
+    required this.islandId,
     required this.photos,
   });
 
+  final String islandId;
   final List<MemoryLocalPhoto> photos;
 
   @override
@@ -54,10 +58,26 @@ class _TimelineMemoryPageState extends State<TimelineMemoryPage> {
         SizedBox(
           height: 300,
           width: double.infinity,
-          child: Image.asset(
-            'assets/images/map.png',
-            fit: BoxFit.cover,
-            errorBuilder: (_, _, _) => const ColoredBox(color: AppColors.bg03),
+          child: _TimelineMap(
+            photos: filteredPhotos,
+            onPhotoTap: (photo) {
+              Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => PhotoDetailPage(
+                    islandId: widget.islandId,
+                    photoId: photo.id,
+                    imagePath: photo.path,
+                    uploaderName: photo.uploaderName,
+                    description: photo.description,
+                    uploaderProfile: photo.uploaderProfile,
+                    takenAt: photo.takenAt ?? photo.createdAt,
+                    latitude: photo.latitude,
+                    longitude: photo.longitude,
+                    locationName: photo.locationName,
+                  ),
+                ),
+              );
+            },
           ),
         ),
         Expanded(
@@ -112,6 +132,8 @@ class _TimelineMemoryPageState extends State<TimelineMemoryPage> {
                             Navigator.of(context).push(
                               MaterialPageRoute<void>(
                                 builder: (_) => PhotoDetailPage(
+                                  islandId: widget.islandId,
+                                  photoId: photo.id,
                                   imagePath: photo.path,
                                   uploaderName: photo.uploaderName,
                                   description: photo.description,
@@ -210,5 +232,116 @@ class _TimelineMemoryPageState extends State<TimelineMemoryPage> {
     }
 
     return grouped;
+  }
+}
+
+class _TimelineMap extends StatelessWidget {
+  const _TimelineMap({
+    required this.photos,
+    required this.onPhotoTap,
+  });
+
+  final List<MemoryLocalPhoto> photos;
+  final ValueChanged<MemoryLocalPhoto> onPhotoTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final locatedPhotos = photos
+        .where((photo) => photo.latitude != null && photo.longitude != null)
+        .toList();
+
+    if (locatedPhotos.isEmpty) {
+      return Image.asset(
+        'assets/images/map.png',
+        fit: BoxFit.cover,
+        errorBuilder: (_, _, _) => const ColoredBox(color: AppColors.bg03),
+      );
+    }
+
+    final markers = _buildMarkers(locatedPhotos);
+    final center = _centerOf(locatedPhotos);
+
+    return FlutterMap(
+      options: MapOptions(
+        initialCenter: center,
+        initialZoom: 12.5,
+        interactionOptions: const InteractionOptions(
+          flags: InteractiveFlag.drag | InteractiveFlag.pinchZoom,
+        ),
+      ),
+      children: [
+        TileLayer(
+          urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+          userAgentPackageName: 'com.uyoung.app',
+        ),
+        MarkerLayer(markers: markers),
+      ],
+    );
+  }
+
+  LatLng _centerOf(List<MemoryLocalPhoto> photos) {
+    final lat = photos.fold<double>(
+          0,
+          (sum, photo) => sum + (photo.latitude ?? 0),
+        ) /
+        photos.length;
+    final lng = photos.fold<double>(
+          0,
+          (sum, photo) => sum + (photo.longitude ?? 0),
+        ) /
+        photos.length;
+    return LatLng(lat, lng);
+  }
+
+  List<Marker> _buildMarkers(List<MemoryLocalPhoto> photos) {
+    final grouped = <String, List<MemoryLocalPhoto>>{};
+    for (final photo in photos) {
+      final lat = photo.latitude!;
+      final lng = photo.longitude!;
+      final key = '${lat.toStringAsFixed(4)}:${lng.toStringAsFixed(4)}';
+      (grouped[key] ??= []).add(photo);
+    }
+
+    return grouped.entries.map((entry) {
+      final photosAtPoint = entry.value;
+      final first = photosAtPoint.first;
+      final latLng = LatLng(first.latitude!, first.longitude!);
+
+      return Marker(
+        point: latLng,
+        width: 64,
+        height: 64,
+        child: GestureDetector(
+          onTap: () => onPhotoTap(first),
+          child: Container(
+            decoration: BoxDecoration(
+              color: AppColors.white,
+              shape: BoxShape.circle,
+              border: Border.all(color: AppColors.b02, width: 3),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.black.withValues(alpha: 0.18),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            alignment: Alignment.center,
+            child: photosAtPoint.length == 1
+                ? ClipOval(
+                    child: SizedBox(
+                      width: 48,
+                      height: 48,
+                      child: MemoryPhotoThumbnail(photo: first),
+                    ),
+                  )
+                : Text(
+                    '${photosAtPoint.length}',
+                    style: AppFont.b7_16.copyWith(color: AppColors.b02),
+                  ),
+          ),
+        ),
+      );
+    }).toList();
   }
 }
