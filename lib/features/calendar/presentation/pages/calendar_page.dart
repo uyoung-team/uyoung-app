@@ -67,14 +67,14 @@ class _CalendarTopBar extends StatelessWidget {
           const SizedBox(width: 8),
           Text(
             '캘린더',
-            style: AppFont.b5_20.copyWith(color: AppColors.black),
+            style: AppFont.h3_24.copyWith(color: AppColors.black),
           ),
           const Spacer(),
           Builder(
             builder: (context) {
               return IconButton(
                 padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
+                constraints: const BoxConstraints.tightFor(width: 44, height: 44),
                 onPressed: () => Scaffold.of(context).openEndDrawer(),
                 icon: SvgPicture.asset(
                   AssetPaths.icons.common.filter,
@@ -86,7 +86,7 @@ class _CalendarTopBar extends StatelessWidget {
           ),
           IconButton(
             padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(),
+            constraints: const BoxConstraints.tightFor(width: 44, height: 44),
             onPressed: viewModel.jumpToToday,
             icon: SvgPicture.asset(
               AssetPaths.icons.common.today,
