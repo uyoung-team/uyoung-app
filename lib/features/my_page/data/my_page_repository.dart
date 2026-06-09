@@ -45,7 +45,6 @@ class MyPageRepository {
     required String nickname,
     String? profileImageUrl,
     XFile? selectedImage,
-    bool resetPearlsIfFirstSetup = false,
   }) async {
     final trimmed = nickname.trim();
     if (trimmed.isEmpty) {
@@ -60,7 +59,6 @@ class MyPageRepository {
       await service.updateProfile(
         nickname: trimmed,
         profileImageUrl: resolvedImageUrl,
-        resetPearlsIfFirstSetup: resetPearlsIfFirstSetup,
       );
     } catch (error) {
       throw StateError('프로필을 저장하지 못했어요. $error');

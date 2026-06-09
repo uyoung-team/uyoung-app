@@ -34,7 +34,6 @@ class MyPageService {
   Future<void> updateProfile({
     required String nickname,
     String? profileImageUrl,
-    bool resetPearlsIfFirstSetup = false,
   }) async {
     final client = _clientProvider.client;
     final userId = client?.auth.currentUser?.id;
@@ -53,15 +52,6 @@ class MyPageService {
           ? null
           : profileImageUrl?.trim(),
     }, onConflict: 'id');
-
-    if (resetPearlsIfFirstSetup) {
-      await client.from('user_assets').upsert({
-        'user_id': userId,
-        'pearl_count': 0,
-        'updated_at': DateTime.now().toIso8601String(),
-      }, onConflict: 'user_id');
-      return;
-    }
 
     await _ensureUserAssetsRow(client, userId);
   }
