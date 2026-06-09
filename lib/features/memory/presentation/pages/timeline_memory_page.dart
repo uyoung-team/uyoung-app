@@ -24,6 +24,15 @@ class TimelineMemoryPage extends StatefulWidget {
 
 class _TimelineMemoryPageState extends State<TimelineMemoryPage> {
   DateTime? _selectedDate;
+  final ScrollController _scrollController = ScrollController();
+  final Map<String, GlobalKey> _sectionKeys = <String, GlobalKey>{};
+  String? _activeLocation;
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -51,7 +60,17 @@ class _TimelineMemoryPageState extends State<TimelineMemoryPage> {
           }).toList();
 
     final groupedByLocation = _groupByLocation(filteredPhotos);
-    final locationKeys = groupedByLocation.keys.toList()..sort();
+    final locationKeys = groupedByLocation.keys.toList()
+      ..sort((a, b) => _firstTakenAt(groupedByLocation[b]!).compareTo(_firstTakenAt(groupedByLocation[a]!)));
+
+    if (_activeLocation != null && !locationKeys.contains(_activeLocation)) {
+      _activeLocation = null;
+    }
+    _activeLocation ??= locationKeys.isNotEmpty ? locationKeys.first : null;
+
+    for (final location in locationKeys) {
+      _sectionKeys.putIfAbsent(location, GlobalKey.new);
+    }
 
     return Column(
       children: [
@@ -60,28 +79,13 @@ class _TimelineMemoryPageState extends State<TimelineMemoryPage> {
           width: double.infinity,
           child: _TimelineMap(
             photos: filteredPhotos,
-            onPhotoTap: (photo) {
-              Navigator.of(context).push(
-                MaterialPageRoute<void>(
-                  builder: (_) => PhotoDetailPage(
-                    islandId: widget.islandId,
-                    photoId: photo.id,
-                    imagePath: photo.path,
-                    uploaderName: photo.uploaderName,
-                    description: photo.description,
-                    uploaderProfile: photo.uploaderProfile,
-                    takenAt: photo.takenAt ?? photo.createdAt,
-                    latitude: photo.latitude,
-                    longitude: photo.longitude,
-                    locationName: photo.locationName,
-                  ),
-                ),
-              );
-            },
+            activeLocation: _activeLocation,
+            onLocationTap: _focusLocation,
           ),
         ),
         Expanded(
           child: SingleChildScrollView(
+            controller: _scrollController,
             padding: const EdgeInsets.only(bottom: 120),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -111,7 +115,14 @@ class _TimelineMemoryPageState extends State<TimelineMemoryPage> {
                 else ...[
                   for (final location in locationKeys) ...[
                     const SizedBox(height: 10),
-                    _locationLabel(location),
+                    Container(
+                      key: _sectionKeys[location],
+                      child: _locationLabel(
+                        location,
+                        order: locationKeys.indexOf(location) + 1,
+                        isActive: _activeLocation == location,
+                      ),
+                    ),
                     const SizedBox(height: 10),
                     GridView.builder(
                       padding: const EdgeInsets.symmetric(horizontal: 18),
@@ -195,14 +206,37 @@ class _TimelineMemoryPageState extends State<TimelineMemoryPage> {
     );
   }
 
-  Widget _locationLabel(String title) {
+  Widget _locationLabel(
+    String title, {
+    required int order,
+    required bool isActive,
+  }) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 18),
       child: Row(
         children: [
-          const CircleAvatar(radius: 4, backgroundColor: Color(0xFFAFAFAF)),
+          Container(
+            width: 20,
+            height: 20,
+            decoration: BoxDecoration(
+              color: isActive ? AppColors.subYellow02 : AppColors.bg03,
+              shape: BoxShape.circle,
+            ),
+            alignment: Alignment.center,
+            child: Text(
+              '$order',
+              style: AppFont.b9_12.copyWith(
+                color: isActive ? AppColors.black : AppColors.g02,
+              ),
+            ),
+          ),
           const SizedBox(width: 6),
-          Text(title, style: AppFont.b8_14),
+          Text(
+            title,
+            style: AppFont.b8_14.copyWith(
+              color: isActive ? AppColors.black : AppColors.g02,
+            ),
+          ),
         ],
       ),
     );
@@ -233,16 +267,42 @@ class _TimelineMemoryPageState extends State<TimelineMemoryPage> {
 
     return grouped;
   }
+
+  DateTime _firstTakenAt(List<MemoryLocalPhoto> photos) {
+    final sorted = [...photos]
+      ..sort((a, b) => (a.takenAt ?? a.createdAt).compareTo(b.takenAt ?? b.createdAt));
+    return sorted.first.takenAt ?? sorted.first.createdAt;
+  }
+
+  Future<void> _focusLocation(String location) async {
+    final key = _sectionKeys[location];
+    if (key?.currentContext == null) {
+      return;
+    }
+
+    setState(() {
+      _activeLocation = location;
+    });
+
+    await Scrollable.ensureVisible(
+      key!.currentContext!,
+      duration: const Duration(milliseconds: 300),
+      alignment: 0.05,
+      curve: Curves.easeInOut,
+    );
+  }
 }
 
 class _TimelineMap extends StatelessWidget {
   const _TimelineMap({
     required this.photos,
-    required this.onPhotoTap,
+    required this.activeLocation,
+    required this.onLocationTap,
   });
 
   final List<MemoryLocalPhoto> photos;
-  final ValueChanged<MemoryLocalPhoto> onPhotoTap;
+  final String? activeLocation;
+  final ValueChanged<String> onLocationTap;
 
   @override
   Widget build(BuildContext context) {
@@ -258,7 +318,13 @@ class _TimelineMap extends StatelessWidget {
       );
     }
 
-    final markers = _buildMarkers(locatedPhotos);
+    final grouped = _groupLocations(locatedPhotos);
+    final orderedGroups = grouped.entries.toList()
+      ..sort(
+        (a, b) =>
+            _firstTakenAt(a.value).compareTo(_firstTakenAt(b.value)),
+      );
+    final markers = _buildMarkers(orderedGroups);
     final center = _centerOf(locatedPhotos);
 
     return FlutterMap(
@@ -273,6 +339,18 @@ class _TimelineMap extends StatelessWidget {
         TileLayer(
           urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
           userAgentPackageName: 'com.uyoung.app',
+        ),
+        PolylineLayer(
+          polylines: [
+            Polyline(
+              points: [
+                for (final group in orderedGroups)
+                  LatLng(group.value.first.latitude!, group.value.first.longitude!),
+              ],
+              color: AppColors.b02.withValues(alpha: 0.6),
+              strokeWidth: 4,
+            ),
+          ],
         ),
         MarkerLayer(markers: markers),
       ],
@@ -293,55 +371,97 @@ class _TimelineMap extends StatelessWidget {
     return LatLng(lat, lng);
   }
 
-  List<Marker> _buildMarkers(List<MemoryLocalPhoto> photos) {
+  Map<String, List<MemoryLocalPhoto>> _groupLocations(List<MemoryLocalPhoto> photos) {
     final grouped = <String, List<MemoryLocalPhoto>>{};
     for (final photo in photos) {
       final lat = photo.latitude!;
       final lng = photo.longitude!;
-      final key = '${lat.toStringAsFixed(4)}:${lng.toStringAsFixed(4)}';
+      final key = photo.locationName?.trim().isNotEmpty == true
+          ? photo.locationName!.trim()
+          : '${lat.toStringAsFixed(4)}, ${lng.toStringAsFixed(4)}';
       (grouped[key] ??= []).add(photo);
     }
+    return grouped;
+  }
 
-    return grouped.entries.map((entry) {
-      final photosAtPoint = entry.value;
+  List<Marker> _buildMarkers(List<MapEntry<String, List<MemoryLocalPhoto>>> orderedGroups) {
+    return orderedGroups.asMap().entries.map((indexedEntry) {
+      final order = indexedEntry.key + 1;
+      final location = indexedEntry.value.key;
+      final photosAtPoint = indexedEntry.value.value;
       final first = photosAtPoint.first;
       final latLng = LatLng(first.latitude!, first.longitude!);
+      final isActive = activeLocation == location;
 
       return Marker(
         point: latLng,
-        width: 64,
-        height: 64,
+        width: 72,
+        height: 78,
         child: GestureDetector(
-          onTap: () => onPhotoTap(first),
-          child: Container(
-            decoration: BoxDecoration(
-              color: AppColors.white,
-              shape: BoxShape.circle,
-              border: Border.all(color: AppColors.b02, width: 3),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.black.withValues(alpha: 0.18),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
+          onTap: () => onLocationTap(location),
+          child: Stack(
+            clipBehavior: Clip.none,
             alignment: Alignment.center,
-            child: photosAtPoint.length == 1
-                ? ClipOval(
-                    child: SizedBox(
-                      width: 48,
-                      height: 48,
-                      child: MemoryPhotoThumbnail(photo: first),
-                    ),
-                  )
-                : Text(
-                    '${photosAtPoint.length}',
-                    style: AppFont.b7_16.copyWith(color: AppColors.b02),
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  color: AppColors.white,
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: isActive ? AppColors.subYellow02 : AppColors.b02,
+                    width: isActive ? 4 : 3,
                   ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.black.withValues(alpha: 0.18),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                alignment: Alignment.center,
+                child: photosAtPoint.length == 1
+                    ? ClipOval(
+                        child: SizedBox(
+                          width: 50,
+                          height: 50,
+                          child: MemoryPhotoThumbnail(photo: first),
+                        ),
+                      )
+                    : Text(
+                        '${photosAtPoint.length}',
+                        style: AppFont.b7_16.copyWith(color: AppColors.b02),
+                      ),
+              ),
+              Positioned(
+                top: 0,
+                right: 4,
+                child: Container(
+                  width: 22,
+                  height: 22,
+                  decoration: const BoxDecoration(
+                    color: AppColors.subYellow02,
+                    shape: BoxShape.circle,
+                  ),
+                  alignment: Alignment.center,
+                  child: Text(
+                    '$order',
+                    style: AppFont.b9_12.copyWith(color: AppColors.black),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       );
     }).toList();
+  }
+
+  DateTime _firstTakenAt(List<MemoryLocalPhoto> photos) {
+    final sorted = [...photos]
+      ..sort(
+        (a, b) => (a.takenAt ?? a.createdAt).compareTo(b.takenAt ?? b.createdAt),
+      );
+    return sorted.first.takenAt ?? sorted.first.createdAt;
   }
 }
