@@ -11,12 +11,14 @@ class AllMemoryPage extends StatelessWidget {
     required this.photos,
     required this.onEditPost,
     required this.onDeletePost,
+    required this.onTapDate,
   });
 
   final String islandId;
   final List<MemoryLocalPhoto> photos;
   final Future<void> Function(List<MemoryLocalPhoto> photos) onEditPost;
   final Future<void> Function(List<MemoryLocalPhoto> photos) onDeletePost;
+  final ValueChanged<DateTime> onTapDate;
 
   @override
   Widget build(BuildContext context) {
@@ -51,7 +53,12 @@ class AllMemoryPage extends StatelessWidget {
 
         return Column(
           children: [
-            Center(child: _DateLabel(date: date)),
+            Center(
+              child: _DateLabel(
+                date: date,
+                onTap: () => onTapDate(date),
+              ),
+            ),
             const SizedBox(height: 14),
             ...dayPosts.map(
               (post) => Padding(
@@ -110,24 +117,31 @@ class AllMemoryPage extends StatelessWidget {
 }
 
 class _DateLabel extends StatelessWidget {
-  const _DateLabel({required this.date});
+  const _DateLabel({
+    required this.date,
+    required this.onTap,
+  });
 
   final DateTime date;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     const weekdays = ['월', '화', '수', '목', '금', '토', '일'];
     final weekday = weekdays[date.weekday - 1];
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 6),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.b02, width: 1),
-      ),
-      child: Text(
-        '${date.year}년 ${date.month}월 ${date.day}일 $weekday요일',
-        style: AppFont.b8_14.copyWith(color: AppColors.b02),
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 6),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: AppColors.b02, width: 1),
+        ),
+        child: Text(
+          '${date.year}년 ${date.month}월 ${date.day}일 $weekday요일',
+          style: AppFont.b8_14.copyWith(color: AppColors.b02),
+        ),
       ),
     );
   }

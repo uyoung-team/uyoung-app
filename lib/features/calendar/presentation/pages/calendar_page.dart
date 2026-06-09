@@ -14,24 +14,66 @@ import 'package:uyoung_app/features/calendar/presentation/widgets/calendar_memor
 import 'package:uyoung_app/shared/services/asset_paths.dart';
 
 class CalendarPage extends StatelessWidget {
-  const CalendarPage({super.key});
+  const CalendarPage({
+    super.key,
+    this.initialSelectedDay,
+    this.initiallySelectedIslandIds,
+    this.openBottomSheetInitially = false,
+    this.showBackButton = false,
+  });
+
+  final DateTime? initialSelectedDay;
+  final Set<String>? initiallySelectedIslandIds;
+  final bool openBottomSheetInitially;
+  final bool showBackButton;
 
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       create: (_) =>
-          CalendarViewModel(const CalendarRepository(CalendarService()))..load(),
-      child: const _CalendarView(),
+          CalendarViewModel(
+            const CalendarRepository(CalendarService()),
+            initialSelectedDay: initialSelectedDay,
+            initiallySelectedIslandIds: initiallySelectedIslandIds,
+            openBottomSheetInitially: openBottomSheetInitially,
+          )..load(),
+      child: _CalendarView(showBackButton: showBackButton),
     );
   }
 }
 
-class _CalendarView extends StatelessWidget {
-  const _CalendarView();
+class _CalendarView extends StatefulWidget {
+  const _CalendarView({required this.showBackButton});
+
+  final bool showBackButton;
+
+  @override
+  State<_CalendarView> createState() => _CalendarViewState();
+}
+
+class _CalendarViewState extends State<_CalendarView> {
+  bool _openedInitialSheet = false;
 
   @override
   Widget build(BuildContext context) {
     final viewModel = context.watch<CalendarViewModel>();
+
+    if (viewModel.pendingProgrammaticBottomSheetOpen &&
+        viewModel.selectedDay != null &&
+        !_openedInitialSheet) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted || _openedInitialSheet) {
+          return;
+        }
+        _openedInitialSheet = true;
+        viewModel.consumePendingProgrammaticBottomSheet();
+        _openMemoryBottomSheet(
+          context,
+          viewModel,
+          viewModel.selectedDay!,
+        );
+      });
+    }
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FB),
@@ -39,7 +81,10 @@ class _CalendarView extends StatelessWidget {
       body: SafeArea(
         child: Column(
           children: [
-            _CalendarTopBar(viewModel: viewModel),
+            _CalendarTopBar(
+              viewModel: viewModel,
+              showBackButton: widget.showBackButton,
+            ),
             const SizedBox(height: 9),
             _CalendarMonthHeader(viewModel: viewModel),
             const SizedBox(height: 23),
@@ -54,9 +99,13 @@ class _CalendarView extends StatelessWidget {
 }
 
 class _CalendarTopBar extends StatelessWidget {
-  const _CalendarTopBar({required this.viewModel});
+  const _CalendarTopBar({
+    required this.viewModel,
+    required this.showBackButton,
+  });
 
   final CalendarViewModel viewModel;
+  final bool showBackButton;
 
   @override
   Widget build(BuildContext context) {
@@ -64,7 +113,19 @@ class _CalendarTopBar extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 4),
       child: Row(
         children: [
-          const SizedBox(width: 8),
+          if (showBackButton)
+            IconButton(
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints.tightFor(width: 44, height: 44),
+              onPressed: () => Navigator.of(context).pop(),
+              icon: SvgPicture.asset(
+                AssetPaths.icons.common.previous,
+                width: 44,
+                height: 44,
+              ),
+            )
+          else
+            const SizedBox(width: 8),
           Text(
             '캘린더',
             style: AppFont.h3_24.copyWith(color: AppColors.black),

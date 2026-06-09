@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:uyoung_app/core/theme/app_colors.dart';
 import 'package:uyoung_app/core/theme/app_font.dart';
+import 'package:uyoung_app/features/calendar/presentation/pages/calendar_page.dart';
 import 'package:uyoung_app/features/memory/data/memory_dummy_adapter.dart';
 import 'package:uyoung_app/features/memory/data/memory_models.dart';
 import 'package:uyoung_app/features/memory/data/memory_repository.dart';
@@ -130,6 +131,19 @@ class _MemoryDetailPageState extends State<MemoryDetailPage> {
     });
   }
 
+  void _openCalendarForDate(DateTime date) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => CalendarPage(
+          showBackButton: true,
+          initialSelectedDay: date,
+          initiallySelectedIslandIds: {widget.item.id},
+          openBottomSheetInitially: true,
+        ),
+      ),
+    );
+  }
+
   Future<void> _editPost(List<MemoryLocalPhoto> photos) async {
     if (photos.isEmpty) {
       return;
@@ -218,6 +232,16 @@ class _MemoryDetailPageState extends State<MemoryDetailPage> {
     });
   }
 
+  void _removePhotosLocally(List<String> photoIds, List<String> paths) {
+    setState(() {
+      _localPhotos.removeWhere(
+        (photo) =>
+            (photo.id != null && photoIds.contains(photo.id)) ||
+            paths.contains(photo.path),
+      );
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -265,8 +289,14 @@ class _MemoryDetailPageState extends State<MemoryDetailPage> {
                 photos: _localPhotos,
                 onEditPost: _editPost,
                 onDeletePost: _deletePost,
+                onTapDate: _openCalendarForDate,
               ),
-              DateMemoryPage(islandId: widget.item.id, photos: _localPhotos),
+              DateMemoryPage(
+                islandId: widget.item.id,
+                photos: _localPhotos,
+                repository: _repository,
+                onDeletePhotos: _removePhotosLocally,
+              ),
               TimelineMemoryPage(
                 islandId: widget.item.id,
                 photos: _localPhotos,
