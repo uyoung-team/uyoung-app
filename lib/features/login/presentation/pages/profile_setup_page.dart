@@ -184,6 +184,7 @@ class _ProfileSetupViewState extends State<_ProfileSetupView> {
         nickname: _nicknameController.text,
         profileImageUrl: _currentProfileImageUrl,
         selectedImage: _selectedImage,
+        resetPearlsIfFirstSetup: true,
       );
       if (!mounted) {
         return;

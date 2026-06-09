@@ -34,6 +34,7 @@ class MyPageService {
   Future<void> updateProfile({
     required String nickname,
     String? profileImageUrl,
+    bool resetPearlsIfFirstSetup = false,
   }) async {
     final client = _clientProvider.client;
     final userId = client?.auth.currentUser?.id;
@@ -52,6 +53,17 @@ class MyPageService {
           ? null
           : profileImageUrl?.trim(),
     }, onConflict: 'id');
+
+    if (resetPearlsIfFirstSetup) {
+      await client.from('user_assets').upsert({
+        'user_id': userId,
+        'pearl_count': 0,
+        'updated_at': DateTime.now().toIso8601String(),
+      }, onConflict: 'user_id');
+      return;
+    }
+
+    await _ensureUserAssetsRow(client, userId);
   }
 
   Future<String> uploadProfileImage(XFile imageFile) async {
@@ -95,6 +107,11 @@ class MyPageService {
         .from('user_assets')
         .select('user_id, pearl_count, updated_at')
         .eq('user_id', userId);
+
+    if ((response as List).isEmpty) {
+      await _ensureUserAssetsRow(client, userId);
+      return const [];
+    }
 
     return List<Map<String, dynamic>>.from(response);
   }
@@ -291,5 +308,16 @@ class MyPageService {
       8,
       (_) => chars[random.nextInt(chars.length)],
     ).join();
+  }
+
+  Future<void> _ensureUserAssetsRow(
+    SupabaseClient client,
+    String userId,
+  ) async {
+    await client.from('user_assets').upsert({
+      'user_id': userId,
+      'pearl_count': 0,
+      'updated_at': DateTime.now().toIso8601String(),
+    }, onConflict: 'user_id');
   }
 }
