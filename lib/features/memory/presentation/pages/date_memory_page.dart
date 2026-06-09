@@ -71,6 +71,7 @@ class DateMemoryPage extends StatelessWidget {
                         builder: (_) => PhotoDetailPage(
                           imagePath: photo.path,
                           uploaderName: photo.uploaderName,
+                          description: photo.description,
                           uploaderProfile: photo.uploaderProfile,
                           takenAt: photo.takenAt ?? photo.createdAt,
                           latitude: photo.latitude,

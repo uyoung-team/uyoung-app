@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:uyoung_app/core/theme/app_colors.dart';
 import 'package:uyoung_app/core/theme/app_font.dart';
 import 'package:uyoung_app/features/memory/data/memory_dummy_adapter.dart';
@@ -12,6 +11,7 @@ import 'package:uyoung_app/features/memory/presentation/pages/all_memory_page.da
 import 'package:uyoung_app/features/memory/presentation/pages/date_memory_page.dart';
 import 'package:uyoung_app/features/memory/presentation/pages/member_inquiry_page.dart';
 import 'package:uyoung_app/features/memory/presentation/pages/memory_local_photo.dart';
+import 'package:uyoung_app/features/memory/presentation/pages/memory_upload_page.dart';
 import 'package:uyoung_app/features/memory/presentation/pages/timeline_memory_page.dart';
 import 'package:uyoung_app/shared/services/asset_paths.dart';
 
@@ -30,11 +30,9 @@ class MemoryDetailPage extends StatefulWidget {
 class _MemoryDetailPageState extends State<MemoryDetailPage> {
   int selectedIndex = 0;
   final PageController _pageController = PageController();
-  final ImagePicker _picker = ImagePicker();
   final List<MemoryLocalPhoto> _localPhotos = [];
   final MemoryRepository _repository = const MemoryRepository(MemoryService());
   bool _isLoadingPhotos = false;
-  bool _isUploadingPhoto = false;
 
   static const double _tabBarHeight = 52;
 
@@ -44,11 +42,13 @@ class _MemoryDetailPageState extends State<MemoryDetailPage> {
     _localPhotos.addAll(
       MemoryDummyAdapter.localPhotosForIsland(widget.item.id).map(
         (photo) => MemoryLocalPhoto(
+          id: photo.id,
           path: photo.path,
           createdAt: photo.createdAt,
           uploaderName: photo.uploaderName,
           uploaderProfile: photo.profileImagePath,
           isLocalFile: false,
+          description: photo.description,
           takenAt: photo.takenAt,
           latitude: photo.latitude,
           longitude: photo.longitude,
@@ -78,11 +78,13 @@ class _MemoryDetailPageState extends State<MemoryDetailPage> {
           .where((photo) => photo.path.isNotEmpty && !existingPaths.contains(photo.path))
           .map(
             (photo) => MemoryLocalPhoto(
+              id: photo.id,
               path: photo.path,
               createdAt: photo.createdAt,
               uploaderName: photo.uploaderName,
               uploaderProfile: photo.profileImagePath,
               isLocalFile: false,
+              description: photo.description,
               takenAt: photo.takenAt,
               latitude: photo.latitude,
               longitude: photo.longitude,
@@ -107,101 +109,199 @@ class _MemoryDetailPageState extends State<MemoryDetailPage> {
     }
   }
 
-  Future<void> _pickImage() async {
-    final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
-    if (pickedFile == null) {
+  Future<void> _openUploadPage() async {
+    final uploadedPhotos = await Navigator.of(context).push<List<MemoryLocalPhoto>>(
+      MaterialPageRoute<List<MemoryLocalPhoto>>(
+        builder: (_) => MemoryUploadPage(
+          islandId: widget.item.id,
+          repository: _repository,
+        ),
+      ),
+    );
+
+    if (uploadedPhotos == null || uploadedPhotos.isEmpty || !mounted) {
       return;
     }
 
-    setState(() => _isUploadingPhoto = true);
-    try {
-      final uploaded = await _repository.uploadIslandPhoto(
-        islandId: widget.item.id,
-        imageFile: pickedFile,
-      );
+    setState(() {
+      _localPhotos.insertAll(0, uploadedPhotos);
+      selectedIndex = 0;
+    });
+  }
 
-      if (!mounted) {
-        return;
-      }
-
-      setState(() {
-        _localPhotos.insert(
-          0,
-          MemoryLocalPhoto(
-            path: uploaded.path,
-            createdAt: uploaded.createdAt,
-            uploaderName: uploaded.uploaderName,
-            uploaderProfile: uploaded.profileImagePath,
-            isLocalFile: false,
-            takenAt: uploaded.takenAt,
-            latitude: uploaded.latitude,
-            longitude: uploaded.longitude,
-            locationName: uploaded.locationName,
-          ),
-        );
-        selectedIndex = 0;
-      });
-    } catch (error) {
-      if (!mounted) {
-        return;
-      }
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          SnackBar(content: Text(error.toString().replaceFirst('Bad state: ', ''))),
-        );
-    } finally {
-      if (mounted) {
-        setState(() => _isUploadingPhoto = false);
-      }
+  Future<void> _editPost(List<MemoryLocalPhoto> photos) async {
+    final editableIds = photos
+        .map((photo) => photo.id)
+        .whereType<String>()
+        .where((id) => id.isNotEmpty)
+        .toList();
+    if (editableIds.isEmpty) {
+      return;
     }
+
+    final controller = TextEditingController(
+      text: (photos.first.description ?? '').trim(),
+    );
+
+    final shouldSave = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: Text('게시글 수정', style: AppFont.b5_20),
+          content: TextField(
+            controller: controller,
+            maxLines: 5,
+            maxLength: 300,
+            decoration: const InputDecoration(
+              hintText: '사진과 함께 남길 글을 적어보세요.',
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: Text('취소', style: AppFont.b8_14),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(dialogContext, true),
+              child: Text('저장', style: AppFont.b8_14),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (shouldSave != true || !mounted) {
+      return;
+    }
+
+    final nextDescription = controller.text.trim();
+    await _repository.updatePostDescription(
+      photoIds: editableIds,
+      description: nextDescription.isEmpty ? null : nextDescription,
+    );
+
+    setState(() {
+      for (var i = 0; i < _localPhotos.length; i++) {
+        final photo = _localPhotos[i];
+        if (editableIds.contains(photo.id)) {
+          _localPhotos[i] = MemoryLocalPhoto(
+            id: photo.id,
+            path: photo.path,
+            createdAt: photo.createdAt,
+            uploaderName: photo.uploaderName,
+            isLocalFile: photo.isLocalFile,
+            description: nextDescription.isEmpty ? null : nextDescription,
+            uploaderProfile: photo.uploaderProfile,
+            takenAt: photo.takenAt,
+            latitude: photo.latitude,
+            longitude: photo.longitude,
+            locationName: photo.locationName,
+          );
+        }
+      }
+    });
+  }
+
+  Future<void> _deletePost(List<MemoryLocalPhoto> photos) async {
+    final deletableIds = photos
+        .map((photo) => photo.id)
+        .whereType<String>()
+        .where((id) => id.isNotEmpty)
+        .toList();
+    if (deletableIds.isEmpty) {
+      return;
+    }
+
+    final shouldDelete = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: Text('게시글 삭제', style: AppFont.b5_20),
+          content: Text(
+            '선택한 게시글을 삭제할까요?',
+            style: AppFont.b8_14.copyWith(color: AppColors.g02),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: Text('취소', style: AppFont.b8_14),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(dialogContext, true),
+              style: FilledButton.styleFrom(
+                backgroundColor: AppColors.subRed03,
+              ),
+              child: Text(
+                '삭제',
+                style: AppFont.b8_14.copyWith(color: AppColors.white),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (shouldDelete != true || !mounted) {
+      return;
+    }
+
+    await _repository.deletePost(
+      photoIds: deletableIds,
+      imageUrls: photos.map((photo) => photo.path).toList(),
+    );
+
+    setState(() {
+      _localPhotos.removeWhere((photo) => deletableIds.contains(photo.id));
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.white,
-      appBar: selectedIndex == 0
-          ? AppBar(
-              backgroundColor: AppColors.white,
-              surfaceTintColor: Colors.transparent,
-              elevation: 0,
-              centerTitle: true,
-              leading: IconButton(
-                icon: SvgPicture.asset(
-                  AssetPaths.icons.common.previous,
-                  width: 24,
-                  height: 24,
+      appBar: AppBar(
+        backgroundColor: AppColors.white,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        centerTitle: true,
+        leading: IconButton(
+          icon: SvgPicture.asset(
+            AssetPaths.icons.common.previous,
+            width: 24,
+            height: 24,
+          ),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: Text(widget.item.title, style: AppFont.b5_20),
+        actions: [
+          IconButton(
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => MemberInquiryPage(islandId: widget.item.id),
                 ),
-                onPressed: () => Navigator.pop(context),
-              ),
-              title: Text(widget.item.title, style: AppFont.b5_20),
-              actions: [
-                IconButton(
-                  onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute<void>(
-                        builder: (_) => MemberInquiryPage(islandId: widget.item.id),
-                      ),
-                    );
-                  },
-                  icon: SvgPicture.asset(
-                    AssetPaths.icons.common.hamburger,
-                    width: 22,
-                    height: 22,
-                  ),
-                ),
-                const SizedBox(width: 8),
-              ],
-            )
-          : null,
+              );
+            },
+            icon: SvgPicture.asset(
+              AssetPaths.icons.common.hamburger,
+              width: 22,
+              height: 22,
+            ),
+          ),
+          const SizedBox(width: 8),
+        ],
+      ),
       body: Stack(
         children: [
           PageView(
             controller: _pageController,
             onPageChanged: (index) => setState(() => selectedIndex = index),
             children: [
-              AllMemoryPage(photos: _localPhotos),
+              AllMemoryPage(
+                photos: _localPhotos,
+                onEditPost: _editPost,
+                onDeletePost: _deletePost,
+              ),
               DateMemoryPage(photos: _localPhotos),
               TimelineMemoryPage(photos: _localPhotos),
               AlbumMemoryPage(photos: _localPhotos),
@@ -234,7 +334,7 @@ class _MemoryDetailPageState extends State<MemoryDetailPage> {
                             const SizedBox(width: 6),
                             Expanded(child: _modeButton('타임라인', 2)),
                             const SizedBox(width: 6),
-                            Expanded(child: _modeButton('즐겨찾기', 3)),
+                            Expanded(child: _modeButton('앨범', 3)),
                           ],
                         ),
                       ),
@@ -242,7 +342,7 @@ class _MemoryDetailPageState extends State<MemoryDetailPage> {
                   ),
                   const SizedBox(width: 10),
                   GestureDetector(
-                    onTap: _pickImage,
+                    onTap: _openUploadPage,
                     child: Container(
                       width: 46,
                       height: 46,
@@ -270,7 +370,7 @@ class _MemoryDetailPageState extends State<MemoryDetailPage> {
               ),
             ),
           ),
-          if (_isLoadingPhotos || _isUploadingPhoto)
+          if (_isLoadingPhotos)
             Positioned.fill(
               child: ColoredBox(
                 color: Colors.black.withValues(alpha: 0.08),

@@ -29,6 +29,7 @@ class PhotoDetailPage extends StatefulWidget {
     super.key,
     required this.imagePath,
     this.uploaderName = '버블 메이트',
+    this.description,
     this.uploaderProfile,
     this.takenAt,
     this.latitude,
@@ -38,6 +39,7 @@ class PhotoDetailPage extends StatefulWidget {
 
   final String imagePath;
   final String uploaderName;
+  final String? description;
   final String? uploaderProfile;
   final DateTime? takenAt;
   final double? latitude;
@@ -331,6 +333,17 @@ class _PhotoDetailPageState extends State<PhotoDetailPage> {
           const SizedBox(height: 20),
           _photoArea(),
           const SizedBox(height: 18),
+          if ((widget.description ?? '').trim().isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(18, 0, 18, 14),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  widget.description!.trim(),
+                  style: AppFont.b8_14.copyWith(color: AppColors.black),
+                ),
+              ),
+            ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 18),
             child: Row(

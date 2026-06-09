@@ -17,15 +17,18 @@ class AlbumMemoryPage extends StatelessWidget {
     if (photos.isEmpty) {
       return Center(
         child: Text(
-          '즐겨찾는 사진이 아직 없어요.',
+          '아직 공유된 앨범 사진이 없어요.',
           style: AppFont.b7_16.copyWith(color: AppColors.g03),
         ),
       );
     }
 
+    final sortedPhotos = [...photos]
+      ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+
     return GridView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-      itemCount: photos.length,
+      itemCount: sortedPhotos.length,
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 3,
         mainAxisSpacing: 12,
@@ -33,7 +36,7 @@ class AlbumMemoryPage extends StatelessWidget {
         childAspectRatio: 1,
       ),
       itemBuilder: (context, index) {
-        final photo = photos[index];
+        final photo = sortedPhotos[index];
         return ClipRRect(
           borderRadius: BorderRadius.circular(18),
           child: MemoryPhotoThumbnail(photo: photo),

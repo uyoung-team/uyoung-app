@@ -283,11 +283,13 @@ class MemoryRepository {
         final uploaderId = row['uploader_id']?.toString() ?? '';
         final profile = profileMap[uploaderId] ?? const <String, dynamic>{};
         return MemoryPhotoSeed(
+          id: row['id']?.toString(),
           path: (row['image_url'] ?? '').toString(),
           createdAt:
               DateTime.tryParse((row['created_at'] ?? '').toString()) ??
               DateTime.now(),
           uploaderName: (profile['nickname'] ?? '버블 메이트').toString(),
+          description: row['description']?.toString(),
           profileImagePath: profile['avatar_url']?.toString(),
           takenAt: DateTime.tryParse((row['taken_at'] ?? '').toString()),
           latitude: _toDouble(row['latitude']),
@@ -320,11 +322,13 @@ class MemoryRepository {
           : profileRows.first;
 
       return MemoryPhotoSeed(
+        id: row['id']?.toString(),
         path: (row['image_url'] ?? '').toString(),
         createdAt:
             DateTime.tryParse((row['created_at'] ?? '').toString()) ??
             DateTime.now(),
         uploaderName: (profile['nickname'] ?? '나').toString(),
+        description: row['description']?.toString() ?? description,
         profileImagePath: profile['avatar_url']?.toString(),
         takenAt: DateTime.tryParse((row['taken_at'] ?? '').toString()),
         latitude: _toDouble(row['latitude']),
@@ -344,6 +348,34 @@ class MemoryRepository {
       return double.tryParse(value);
     }
     return null;
+  }
+
+  Future<void> updatePostDescription({
+    required List<String> photoIds,
+    required String? description,
+  }) async {
+    try {
+      await service.updateFriendPhotoDescriptions(
+        photoIds: photoIds,
+        description: description,
+      );
+    } catch (error) {
+      throw StateError('게시글을 수정하지 못했어요. $error');
+    }
+  }
+
+  Future<void> deletePost({
+    required List<String> photoIds,
+    required List<String> imageUrls,
+  }) async {
+    try {
+      await service.deleteFriendPhotos(
+        photoIds: photoIds,
+        imageUrls: imageUrls,
+      );
+    } catch (error) {
+      throw StateError('게시글을 삭제하지 못했어요. $error');
+    }
   }
 
   Future<Map<String, List<MemoryMemberPreview>>> _groupMembersByIsland(

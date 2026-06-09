@@ -145,9 +145,11 @@ class FavoritePhoto {
 
 class MemoryPhotoSeed {
   const MemoryPhotoSeed({
+    this.id,
     required this.path,
     required this.createdAt,
     required this.uploaderName,
+    this.description,
     this.profileImagePath,
     this.takenAt,
     this.latitude,
@@ -155,9 +157,11 @@ class MemoryPhotoSeed {
     this.locationName,
   });
 
+  final String? id;
   final String path;
   final DateTime createdAt;
   final String uploaderName;
+  final String? description;
   final String? profileImagePath;
   final DateTime? takenAt;
   final double? latitude;

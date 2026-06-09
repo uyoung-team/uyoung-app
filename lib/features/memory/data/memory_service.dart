@@ -511,6 +511,48 @@ class MemoryService {
     return response == true;
   }
 
+  Future<void> updateFriendPhotoDescriptions({
+    required List<String> photoIds,
+    required String? description,
+  }) async {
+    final client = _clientProvider.client;
+    if (client == null || photoIds.isEmpty) {
+      throw StateError('로그인이 필요합니다.');
+    }
+
+    await client
+        .from('friend_photos')
+        .update({
+          'description': description?.trim().isEmpty == true ? null : description?.trim(),
+        })
+        .inFilter('id', photoIds);
+  }
+
+  Future<void> deleteFriendPhotos({
+    required List<String> photoIds,
+    required List<String> imageUrls,
+  }) async {
+    final client = _clientProvider.client;
+    if (client == null || photoIds.isEmpty) {
+      throw StateError('로그인이 필요합니다.');
+    }
+
+    await client.from('friend_photos').delete().inFilter('id', photoIds);
+
+    final storagePaths = imageUrls
+        .map(_storagePathFromFriendPhotoUrl)
+        .whereType<String>()
+        .toList();
+
+    if (storagePaths.isNotEmpty) {
+      try {
+        await client.storage.from(_friendPhotosBucket).remove(storagePaths);
+      } catch (_) {
+        // Keep DB deletion even if storage cleanup partially fails.
+      }
+    }
+  }
+
   String _contentTypeFor(String fileName) {
     final extension = fileName.split('.').last.toLowerCase();
     switch (extension) {
@@ -526,5 +568,19 @@ class MemoryService {
       default:
         return 'application/octet-stream';
     }
+  }
+
+  String? _storagePathFromFriendPhotoUrl(String imageUrl) {
+    if (imageUrl.isEmpty) {
+      return null;
+    }
+
+    const marker = '/storage/v1/object/public/$_friendPhotosBucket/';
+    final index = imageUrl.indexOf(marker);
+    if (index == -1) {
+      return null;
+    }
+
+    return imageUrl.substring(index + marker.length);
   }
 }
