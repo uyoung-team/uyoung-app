@@ -278,7 +278,7 @@ class _AlbumMemoryPageState extends State<AlbumMemoryPage> {
                             crossAxisCount: 3,
                             crossAxisSpacing: 14,
                             mainAxisSpacing: 18,
-                            childAspectRatio: 0.62,
+                            mainAxisExtent: 154,
                           ),
                       itemBuilder: (context, index) {
                         final album = albums[index];
@@ -326,22 +326,21 @@ class _AlbumCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: AspectRatio(
-              aspectRatio: 1,
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(22),
-                child: Container(
-                  width: double.infinity,
-                  color: AppColors.bg01,
-                  child: cover != null && cover.isNotEmpty
-                      ? Image.network(
-                          cover,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, _, _) => const _AlbumPlaceholder(),
-                        )
-                      : const _AlbumPlaceholder(),
-                ),
+          SizedBox(
+            width: 112,
+            height: 112,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(22),
+              child: Container(
+                width: double.infinity,
+                color: AppColors.bg01,
+                child: cover != null && cover.isNotEmpty
+                    ? Image.network(
+                        cover,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, _, _) => const _AlbumPlaceholder(),
+                      )
+                    : const _AlbumPlaceholder(),
               ),
             ),
           ),
