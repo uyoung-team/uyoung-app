@@ -13,6 +13,8 @@ class CommentInputBar extends StatefulWidget {
     required this.onStickerRemoved,
     required this.onSend,
     required this.onOpenComments,
+    required this.isFavorite,
+    required this.onToggleFavorite,
   });
 
   final String? selectedSticker;
@@ -20,6 +22,8 @@ class CommentInputBar extends StatefulWidget {
   final VoidCallback onStickerRemoved;
   final ValueChanged<String> onSend;
   final VoidCallback onOpenComments;
+  final bool isFavorite;
+  final VoidCallback onToggleFavorite;
 
   @override
   State<CommentInputBar> createState() => _CommentInputBarState();
@@ -62,7 +66,11 @@ class _CommentInputBarState extends State<CommentInputBar> {
           onTap: widget.onOpenComments,
         ),
         const SizedBox(width: 6),
-        _circleButton(assetPath: AssetPaths.icons.photoDetail.favorite),
+        _circleButton(
+          assetPath: AssetPaths.icons.photoDetail.favorite,
+          onTap: widget.onToggleFavorite,
+          color: widget.isFavorite ? AppColors.b01 : AppColors.black,
+        ),
       ],
     );
   }
@@ -138,6 +146,7 @@ class _CommentInputBarState extends State<CommentInputBar> {
   Widget _circleButton({
     required String assetPath,
     VoidCallback? onTap,
+    Color color = AppColors.black,
   }) {
     return GestureDetector(
       onTap: onTap,
@@ -153,6 +162,7 @@ class _CommentInputBarState extends State<CommentInputBar> {
             assetPath,
             width: 24,
             height: 24,
+            colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
           ),
         ),
       ),

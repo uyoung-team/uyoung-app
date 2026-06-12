@@ -76,6 +76,7 @@ class _PhotoDetailPageState extends State<PhotoDetailPage> {
   void initState() {
     super.initState();
     _loadComments();
+    _loadFavoriteState();
   }
 
   Future<void> _loadComments() async {
@@ -106,6 +107,29 @@ class _PhotoDetailPageState extends State<PhotoDetailPage> {
     }
   }
 
+  Future<void> _loadFavoriteState() async {
+    final islandId = widget.islandId;
+    if (islandId == null || islandId.isEmpty) {
+      return;
+    }
+
+    try {
+      final favorites = await _repository.fetchFavoritePhotos(islandId);
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _isFavorite = favorites.any((photo) => photo.photoKey == widget.imagePath);
+      });
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+      setState(() => _isFavorite = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -118,6 +142,8 @@ class _PhotoDetailPageState extends State<PhotoDetailPage> {
         onStickerRemoved: _onStickerRemoved,
         onOpenComments: _openCommentsSheet,
         onSend: _onSend,
+        isFavorite: _isFavorite,
+        onToggleFavorite: _isTogglingFavorite ? () {} : _toggleFavorite,
       ),
     );
   }
@@ -324,28 +350,34 @@ class _PhotoDetailPageState extends State<PhotoDetailPage> {
   }
 
   Future<void> _toggleFavorite() async {
+    final islandId = widget.islandId;
+    if (islandId == null || islandId.isEmpty) {
+      return;
+    }
+
+    final previous = _isFavorite;
     setState(() {
       _isTogglingFavorite = true;
-      _isFavorite = !_isFavorite;
+      _isFavorite = !previous;
     });
 
     try {
-      await _repository.toggleFavoritePhoto(
-        islandId: 'preview-island',
+      final isFavorite = await _repository.toggleFavoritePhoto(
+        islandId: islandId,
         photoKey: widget.imagePath,
       );
+      if (!mounted) {
+        return;
+      }
+      setState(() => _isFavorite = isFavorite);
     } catch (_) {
       if (!mounted) {
         return;
       }
-      setState(() {
-        _isFavorite = !_isFavorite;
-      });
+      setState(() => _isFavorite = previous);
     } finally {
       if (mounted) {
-        setState(() {
-          _isTogglingFavorite = false;
-        });
+        setState(() => _isTogglingFavorite = false);
       }
     }
   }
@@ -473,10 +505,7 @@ class _PhotoDetailPageState extends State<PhotoDetailPage> {
                 CircleAvatar(
                   radius: 18,
                   backgroundColor: AppColors.bg02,
-                  backgroundImage: widget.uploaderProfile != null &&
-                          widget.uploaderProfile!.isNotEmpty
-                      ? AssetImage(widget.uploaderProfile!)
-                      : null,
+                  backgroundImage: _uploaderProfileImage(),
                   child: widget.uploaderProfile == null ||
                           widget.uploaderProfile!.isEmpty
                       ? const Icon(Icons.person_outline, color: AppColors.g02)
@@ -529,6 +558,17 @@ class _PhotoDetailPageState extends State<PhotoDetailPage> {
     final hour = takenAt.hour % 12 == 0 ? 12 : takenAt.hour % 12;
     final minute = takenAt.minute.toString().padLeft(2, '0');
     return '${takenAt.year}년 ${takenAt.month}월 ${takenAt.day}일 $period $hour:$minute';
+  }
+
+  ImageProvider<Object>? _uploaderProfileImage() {
+    final path = widget.uploaderProfile;
+    if (path == null || path.isEmpty) {
+      return null;
+    }
+    if (path.startsWith('http://') || path.startsWith('https://')) {
+      return NetworkImage(path);
+    }
+    return AssetImage(path);
   }
 
   Widget _photoArea() {

@@ -12,12 +12,14 @@ class FavoritePhotoViewModel extends ChangeNotifier {
   final MemoryRepository _repository;
 
   List<FavoritePhoto> _photos = const [];
+  Map<String, MemoryPhotoSeed> _photoDetails = const {};
   bool _isLoading = false;
   String? _errorText;
 
   List<FavoritePhoto> get photos => List.unmodifiable(_photos);
   bool get isLoading => _isLoading;
   String? get errorText => _errorText;
+  MemoryPhotoSeed? detailFor(String photoKey) => _photoDetails[photoKey];
 
   Future<void> load() async {
     _isLoading = true;
@@ -26,8 +28,13 @@ class FavoritePhotoViewModel extends ChangeNotifier {
 
     try {
       _photos = await _repository.fetchFavoritePhotos(islandId);
+      final islandPhotos = await _repository.fetchIslandPhotos(islandId);
+      _photoDetails = {
+        for (final photo in islandPhotos) photo.path: photo,
+      };
     } catch (error) {
       _photos = const [];
+      _photoDetails = const {};
       _errorText = error.toString();
     } finally {
       _isLoading = false;
