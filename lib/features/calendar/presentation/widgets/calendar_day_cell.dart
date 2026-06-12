@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:uyoung_app/core/theme/app_colors.dart';
 import 'package:uyoung_app/core/theme/app_font.dart';
 import 'package:uyoung_app/shared/services/asset_paths.dart';
@@ -25,6 +24,13 @@ class CalendarDayCell extends StatelessWidget {
   final String? thumbnailPath;
   final bool isCompactMode;
   final int compactWeeks;
+
+  ImageProvider<Object> _imageProviderFor(String path) {
+    if (path.startsWith('http://') || path.startsWith('https://')) {
+      return NetworkImage(path);
+    }
+    return AssetImage(path);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -167,21 +173,13 @@ class CalendarDayCell extends StatelessWidget {
                             width: 0.8,
                           )
                         : null,
-                    color: thumbnailPath == null ? AppColors.white : null,
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(10),
-                    child: Image.asset(
-                      thumbnailPath ?? AssetPaths.images.calendar.character,
+                    image: DecorationImage(
+                      image: _imageProviderFor(
+                        thumbnailPath ?? AssetPaths.images.calendar.calendarIcon,
+                      ),
                       fit: thumbnailPath != null
                           ? BoxFit.cover
                           : BoxFit.contain,
-                      errorBuilder: (_, _, _) => Padding(
-                        padding: const EdgeInsets.all(6),
-                        child: SvgPicture.asset(
-                          AssetPaths.icons.common.calendar,
-                        ),
-                      ),
                     ),
                   ),
                 ),

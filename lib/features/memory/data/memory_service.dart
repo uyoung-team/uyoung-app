@@ -1,6 +1,8 @@
 import 'dart:typed_data';
 
+import 'package:geocoding/geocoding.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:native_exif/native_exif.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uyoung_app/core/network/supabase_client_provider.dart';
 
@@ -9,6 +11,7 @@ class MemoryService {
     : _clientProvider = clientProvider ?? SupabaseClientProvider.instance;
 
   final SupabaseClientProvider _clientProvider;
+  static const String _friendPhotosBucket = 'friend_photos';
 
   Future<List<Map<String, dynamic>>> fetchIslandRows() async {
     final client = _clientProvider.client;
@@ -66,6 +69,21 @@ class MemoryService {
         .from('profiles')
         .select('id, nickname, avatar_url, user_code')
         .inFilter('id', userIds);
+
+    return List<Map<String, dynamic>>.from(
+      (response as List<dynamic>).map(
+        (row) => Map<String, dynamic>.from(row as Map),
+      ),
+    );
+  }
+
+  Future<List<Map<String, dynamic>>> fetchFriendPhotos(String islandId) async {
+    final client = _clientProvider.client;
+    if (client == null || islandId.isEmpty) {
+      return const [];
+    }
+
+    final response = await _selectFriendPhotos(client, islandId);
 
     return List<Map<String, dynamic>>.from(
       (response as List<dynamic>).map(
@@ -142,6 +160,149 @@ class MemoryService {
     );
 
     return client.storage.from('island_backgrounds').getPublicUrl(path);
+  }
+
+  Future<Map<String, dynamic>> uploadFriendPhoto({
+    required String islandId,
+    required XFile imageFile,
+    String? description,
+  }) async {
+    final client = _clientProvider.client;
+    final userId = client?.auth.currentUser?.id;
+    if (client == null || userId == null) {
+      throw StateError('로그인이 필요합니다.');
+    }
+
+    final Uint8List bytes = await imageFile.readAsBytes();
+    final originalName =
+        imageFile.name.isEmpty ? 'memory.jpg' : imageFile.name;
+    final sanitizedName = originalName.replaceAll(
+      RegExp(r'[^a-zA-Z0-9._-]'),
+      '_',
+    );
+    final path =
+        'islands/$islandId/${DateTime.now().microsecondsSinceEpoch}_$sanitizedName';
+
+    await client.storage.from(_friendPhotosBucket).uploadBinary(
+      path,
+      bytes,
+      fileOptions: FileOptions(
+        upsert: true,
+        contentType: _contentTypeFor(sanitizedName),
+      ),
+    );
+
+    final imageUrl = client.storage.from(_friendPhotosBucket).getPublicUrl(path);
+    final metadata = await _extractPhotoMetadata(imageFile);
+    final basicPayload = {
+      'uploader_id': userId,
+      'island_id': islandId,
+      'image_url': imageUrl,
+      'description': description,
+    };
+    final metadataPayload = {
+      ...basicPayload,
+      if (metadata['taken_at'] != null) 'taken_at': metadata['taken_at'],
+      if (metadata['latitude'] != null) 'latitude': metadata['latitude'],
+      if (metadata['longitude'] != null) 'longitude': metadata['longitude'],
+      if (metadata['location_name'] != null)
+        'location_name': metadata['location_name'],
+    };
+
+    Map<String, dynamic> response;
+    try {
+      final raw = await client
+          .from('friend_photos')
+          .insert(metadataPayload)
+          .select(
+            'id, uploader_id, island_id, image_url, description, created_at, taken_at, latitude, longitude, location_name',
+          )
+          .single();
+      response = Map<String, dynamic>.from(raw);
+    } catch (_) {
+      final raw = await client
+          .from('friend_photos')
+          .insert(basicPayload)
+          .select('id, uploader_id, island_id, image_url, description, created_at')
+          .single();
+      response = Map<String, dynamic>.from(raw)
+        ..addAll({
+          'taken_at': metadata['taken_at'],
+          'latitude': metadata['latitude'],
+          'longitude': metadata['longitude'],
+          'location_name': metadata['location_name'],
+        });
+    }
+
+    return response;
+  }
+
+  Future<dynamic> _selectFriendPhotos(
+    SupabaseClient client,
+    String islandId,
+  ) async {
+    try {
+      return await client
+          .from('friend_photos')
+          .select(
+            'id, uploader_id, island_id, image_url, description, created_at, taken_at, latitude, longitude, location_name',
+          )
+          .eq('island_id', islandId)
+          .order('taken_at', ascending: false, nullsFirst: false)
+          .order('created_at', ascending: false);
+    } catch (_) {
+      return await client
+          .from('friend_photos')
+          .select('id, uploader_id, island_id, image_url, description, created_at')
+          .eq('island_id', islandId)
+          .order('created_at', ascending: false);
+    }
+  }
+
+  Future<Map<String, Object?>> _extractPhotoMetadata(XFile imageFile) async {
+    final path = imageFile.path;
+    if (path.isEmpty) {
+      return const {};
+    }
+
+    final exif = await Exif.fromPath(path);
+    try {
+      final takenAt = await exif.getOriginalDate();
+      final latLong = await exif.getLatLong();
+      String? locationName;
+
+      if (latLong != null) {
+        try {
+          final placemarks = await placemarkFromCoordinates(
+            latLong.latitude,
+            latLong.longitude,
+          );
+          if (placemarks.isNotEmpty) {
+            final place = placemarks.first;
+            locationName = [
+              place.administrativeArea,
+              place.locality,
+              place.subLocality,
+              place.thoroughfare,
+            ].whereType<String>().where((part) => part.trim().isNotEmpty).join(' ');
+            if (locationName.trim().isEmpty) {
+              locationName = null;
+            }
+          }
+        } catch (_) {
+          locationName = null;
+        }
+      }
+
+      return {
+        'taken_at': takenAt?.toIso8601String(),
+        'latitude': latLong?.latitude,
+        'longitude': latLong?.longitude,
+        'location_name': locationName,
+      };
+    } finally {
+      await exif.close();
+    }
   }
 
   Future<String?> fetchInviteCode(String islandId) async {
@@ -350,6 +511,201 @@ class MemoryService {
     return response == true;
   }
 
+  Future<void> updateFriendPhotoDescriptions({
+    required List<String> photoIds,
+    required String? description,
+  }) async {
+    final client = _clientProvider.client;
+    if (client == null || photoIds.isEmpty) {
+      throw StateError('로그인이 필요합니다.');
+    }
+
+    await client
+        .from('friend_photos')
+        .update({
+          'description': description?.trim().isEmpty == true ? null : description?.trim(),
+        })
+        .inFilter('id', photoIds);
+  }
+
+  Future<void> deleteFriendPhotos({
+    required List<String> photoIds,
+    required List<String> imageUrls,
+  }) async {
+    final client = _clientProvider.client;
+    if (client == null || photoIds.isEmpty) {
+      throw StateError('로그인이 필요합니다.');
+    }
+
+    await client.from('friend_photos').delete().inFilter('id', photoIds);
+
+    final storagePaths = imageUrls
+        .map(_storagePathFromFriendPhotoUrl)
+        .whereType<String>()
+        .toList();
+
+    if (storagePaths.isNotEmpty) {
+      try {
+        await client.storage.from(_friendPhotosBucket).remove(storagePaths);
+      } catch (_) {
+        // Keep DB deletion even if storage cleanup partially fails.
+      }
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> fetchAlbums(String islandId) async {
+    final client = _clientProvider.client;
+    if (client == null || islandId.isEmpty) {
+      return const [];
+    }
+
+    final response = await client
+        .from('memory_albums')
+        .select(
+          'id, island_id, name, created_by, created_at, memory_album_photos(photo_id, friend_photos(image_url))',
+        )
+        .eq('island_id', islandId)
+        .order('created_at', ascending: false);
+
+    return List<Map<String, dynamic>>.from(
+      (response as List<dynamic>).map(
+        (row) => Map<String, dynamic>.from(row as Map),
+      ),
+    );
+  }
+
+  Future<Map<String, dynamic>> createAlbum({
+    required String islandId,
+    required String name,
+  }) async {
+    final client = _clientProvider.client;
+    final userId = client?.auth.currentUser?.id;
+    if (client == null || userId == null) {
+      throw StateError('로그인이 필요합니다.');
+    }
+
+    final response = await client
+        .from('memory_albums')
+        .insert({
+          'island_id': islandId,
+          'name': name,
+          'created_by': userId,
+        })
+        .select('id, island_id, name, created_by, created_at')
+        .single();
+
+    return Map<String, dynamic>.from(response);
+  }
+
+  Future<void> addPhotosToAlbum({
+    required String albumId,
+    required List<String> photoIds,
+  }) async {
+    final client = _clientProvider.client;
+    if (client == null || albumId.isEmpty || photoIds.isEmpty) {
+      throw StateError('로그인이 필요합니다.');
+    }
+
+    await client.from('memory_album_photos').upsert(
+      [
+        for (final photoId in photoIds)
+          {
+            'album_id': albumId,
+            'photo_id': photoId,
+          },
+      ],
+      onConflict: 'album_id,photo_id',
+    );
+  }
+
+  Future<List<Map<String, dynamic>>> fetchAlbumPhotos(String albumId) async {
+    final client = _clientProvider.client;
+    if (client == null || albumId.isEmpty) {
+      return const [];
+    }
+
+    final response = await client
+        .from('memory_album_photos')
+        .select(
+          'photo_id, friend_photos(id, uploader_id, island_id, image_url, description, created_at, taken_at, latitude, longitude, location_name)',
+        )
+        .eq('album_id', albumId);
+
+    return List<Map<String, dynamic>>.from(
+      (response as List<dynamic>).map(
+        (row) => Map<String, dynamic>.from(row as Map),
+      ),
+    );
+  }
+
+  Future<void> removePhotoFromAlbum({
+    required String albumId,
+    required String photoId,
+  }) async {
+    final client = _clientProvider.client;
+    if (client == null || albumId.isEmpty || photoId.isEmpty) {
+      throw StateError('로그인이 필요합니다.');
+    }
+
+    await client
+        .from('memory_album_photos')
+        .delete()
+        .eq('album_id', albumId)
+        .eq('photo_id', photoId);
+  }
+
+  Future<List<Map<String, dynamic>>> fetchPhotoComments(String photoId) async {
+    final client = _clientProvider.client;
+    if (client == null || photoId.isEmpty) {
+      return const [];
+    }
+
+    final response = await client
+        .from('photo_comments')
+        .select(
+          'id, photo_id, user_id, content, sticker_asset, sticker_dx_ratio, sticker_dy_ratio, sticker_size, created_at',
+        )
+        .eq('photo_id', photoId)
+        .order('created_at', ascending: false);
+
+    return response
+        .map((row) => Map<String, dynamic>.from(row as Map))
+        .toList();
+  }
+
+  Future<Map<String, dynamic>> createPhotoComment({
+    required String photoId,
+    required String content,
+    String? stickerAsset,
+    double? stickerDxRatio,
+    double? stickerDyRatio,
+    double? stickerSize,
+  }) async {
+    final client = _clientProvider.client;
+    final userId = client?.auth.currentUser?.id;
+    if (client == null || userId == null || photoId.isEmpty) {
+      throw StateError('로그인이 필요합니다.');
+    }
+
+    final response = await client
+        .from('photo_comments')
+        .insert({
+          'photo_id': photoId,
+          'user_id': userId,
+          'content': content,
+          'sticker_asset': stickerAsset,
+          'sticker_dx_ratio': stickerDxRatio,
+          'sticker_dy_ratio': stickerDyRatio,
+          'sticker_size': stickerSize,
+        })
+        .select(
+          'id, photo_id, user_id, content, sticker_asset, sticker_dx_ratio, sticker_dy_ratio, sticker_size, created_at',
+        )
+        .single();
+
+    return Map<String, dynamic>.from(response);
+  }
+
   String _contentTypeFor(String fileName) {
     final extension = fileName.split('.').last.toLowerCase();
     switch (extension) {
@@ -365,5 +721,19 @@ class MemoryService {
       default:
         return 'application/octet-stream';
     }
+  }
+
+  String? _storagePathFromFriendPhotoUrl(String imageUrl) {
+    if (imageUrl.isEmpty) {
+      return null;
+    }
+
+    const marker = '/storage/v1/object/public/$_friendPhotosBucket/';
+    final index = imageUrl.indexOf(marker);
+    if (index == -1) {
+      return null;
+    }
+
+    return imageUrl.substring(index + marker.length);
   }
 }

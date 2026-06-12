@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:uyoung_app/core/theme/app_colors.dart';
 import 'package:uyoung_app/core/theme/app_font.dart';
-import 'package:uyoung_app/shared/widgets/main_tab_shell.dart';
+import 'package:uyoung_app/features/calendar/presentation/pages/calendar_page.dart';
 import 'package:uyoung_app/features/memory/data/memory_models.dart';
 import 'package:uyoung_app/features/memory/data/memory_repository.dart';
 import 'package:uyoung_app/features/memory/data/memory_service.dart';
@@ -133,7 +133,10 @@ class _MemberInquiryView extends StatelessWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute<void>(
-                            builder: (_) => const MainTabShell(initialIndex: 2),
+                            builder: (_) => CalendarPage(
+                              showBackButton: true,
+                              initiallySelectedIslandIds: {island.id},
+                            ),
                           ),
                         );
                       },

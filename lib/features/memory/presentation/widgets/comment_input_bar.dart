@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:uyoung_app/core/theme/app_colors.dart';
 import 'package:uyoung_app/core/theme/app_font.dart';
-import 'package:uyoung_app/features/memory/presentation/widgets/comment_sheet.dart';
 import 'package:uyoung_app/features/memory/presentation/widgets/sticker_selector.dart';
 import 'package:uyoung_app/shared/services/asset_paths.dart';
 
@@ -13,12 +12,18 @@ class CommentInputBar extends StatefulWidget {
     required this.onStickerSelected,
     required this.onStickerRemoved,
     required this.onSend,
+    required this.onOpenComments,
+    required this.isFavorite,
+    required this.onToggleFavorite,
   });
 
   final String? selectedSticker;
   final ValueChanged<String> onStickerSelected;
   final VoidCallback onStickerRemoved;
-  final VoidCallback onSend;
+  final ValueChanged<String> onSend;
+  final VoidCallback onOpenComments;
+  final bool isFavorite;
+  final VoidCallback onToggleFavorite;
 
   @override
   State<CommentInputBar> createState() => _CommentInputBarState();
@@ -26,6 +31,13 @@ class CommentInputBar extends StatefulWidget {
 
 class _CommentInputBarState extends State<CommentInputBar> {
   bool _isInputMode = false;
+  final TextEditingController _controller = TextEditingController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -51,29 +63,14 @@ class _CommentInputBarState extends State<CommentInputBar> {
         const SizedBox(width: 6),
         _circleButton(
           assetPath: AssetPaths.icons.photoDetail.comment,
-          onTap: () {
-            showModalBottomSheet(
-              context: context,
-              isScrollControlled: true,
-              backgroundColor: Colors.transparent,
-              builder: (_) {
-                return Container(
-                  height: 750,
-                  width: double.infinity,
-                  decoration: const BoxDecoration(
-                    color: AppColors.white,
-                    borderRadius: BorderRadius.vertical(
-                      top: Radius.circular(20),
-                    ),
-                  ),
-                  child: const CommentSheet(),
-                );
-              },
-            );
-          },
+          onTap: widget.onOpenComments,
         ),
         const SizedBox(width: 6),
-        _circleButton(assetPath: AssetPaths.icons.photoDetail.favorite),
+        _circleButton(
+          assetPath: AssetPaths.icons.photoDetail.favorite,
+          onTap: widget.onToggleFavorite,
+          color: widget.isFavorite ? AppColors.b01 : AppColors.black,
+        ),
       ],
     );
   }
@@ -105,6 +102,8 @@ class _CommentInputBarState extends State<CommentInputBar> {
                   border: Border.all(color: AppColors.bg02, width: 1.5),
                 ),
                 child: TextField(
+                  controller: _controller,
+                  onChanged: (_) => setState(() {}),
                   decoration: InputDecoration(
                     hintText: '느끼는 감정을 적어 주세요!',
                     hintStyle: AppFont.b8_14.copyWith(color: AppColors.g03),
@@ -116,10 +115,14 @@ class _CommentInputBarState extends State<CommentInputBar> {
             ),
             const SizedBox(width: 8),
             GestureDetector(
-              onTap: () {
-                widget.onSend();
-                setState(() => _isInputMode = false);
-              },
+              onTap: _controller.text.trim().isEmpty
+                  ? null
+                  : () {
+                      final text = _controller.text.trim();
+                      widget.onSend(text);
+                      _controller.clear();
+                      setState(() => _isInputMode = false);
+                    },
               child: Container(
                 width: 40,
                 height: 40,
@@ -143,6 +146,7 @@ class _CommentInputBarState extends State<CommentInputBar> {
   Widget _circleButton({
     required String assetPath,
     VoidCallback? onTap,
+    Color color = AppColors.black,
   }) {
     return GestureDetector(
       onTap: onTap,
@@ -158,6 +162,7 @@ class _CommentInputBarState extends State<CommentInputBar> {
             assetPath,
             width: 24,
             height: 24,
+            colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
           ),
         ),
       ),

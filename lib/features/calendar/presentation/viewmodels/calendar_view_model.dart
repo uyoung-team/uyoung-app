@@ -1,19 +1,43 @@
 import 'package:flutter/material.dart';
+import 'package:uyoung_app/features/calendar/data/calendar_dummy_data.dart';
 import 'package:uyoung_app/features/calendar/data/calendar_models.dart';
 import 'package:uyoung_app/features/calendar/data/calendar_repository.dart';
 
 class CalendarViewModel extends ChangeNotifier {
-  CalendarViewModel(this.repository);
+  CalendarViewModel(
+    this.repository, {
+    DateTime? initialSelectedDay,
+    Set<String>? initiallySelectedIslandIds,
+    bool openBottomSheetInitially = false,
+  }) : _focusedMonth = DateTime(
+         (initialSelectedDay ?? DateTime.now()).year,
+         (initialSelectedDay ?? DateTime.now()).month,
+       ),
+       _initialSelectedDay = initialSelectedDay == null
+           ? null
+           : DateTime(
+               initialSelectedDay.year,
+               initialSelectedDay.month,
+               initialSelectedDay.day,
+             ),
+       _initialSelectedIslandIds = Set<String>.from(
+         initiallySelectedIslandIds ?? const <String>{},
+       ),
+       _pendingInitialBottomSheet = openBottomSheetInitially;
 
   final CalendarRepository repository;
 
-  DateTime _focusedMonth = DateTime(DateTime.now().year, DateTime.now().month);
+  DateTime _focusedMonth;
   DateTime? _selectedDay;
   List<CalendarIslandFilter> _islandFilters = const [];
   List<CalendarEvent> _allMemories = const [];
   bool _isLoading = false;
   bool _isBottomSheetOpen = false;
   String? _errorText;
+  final DateTime? _initialSelectedDay;
+  final Set<String> _initialSelectedIslandIds;
+  bool _pendingInitialBottomSheet = false;
+  bool _pendingProgrammaticBottomSheetOpen = false;
 
   DateTime get focusedMonth => _focusedMonth;
   DateTime? get selectedDay => _selectedDay;
@@ -22,6 +46,8 @@ class CalendarViewModel extends ChangeNotifier {
   bool get isLoading => _isLoading;
   bool get isBottomSheetOpen => _isBottomSheetOpen;
   String? get errorText => _errorText;
+  bool get pendingProgrammaticBottomSheetOpen =>
+      _pendingProgrammaticBottomSheetOpen;
   int get selectedIslandCount =>
       _islandFilters.where((item) => item.isSelected).length;
 
@@ -31,8 +57,45 @@ class CalendarViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      _islandFilters = await repository.fetchIslandFilters();
+      final previousSelection = {
+        for (final item in _islandFilters) item.id: item.isSelected,
+      };
+      final fetchedFilters = await repository.fetchIslandFilters();
       _allMemories = await repository.fetchMemories(_focusedMonth);
+
+      _islandFilters = fetchedFilters.map((item) {
+        if (previousSelection.containsKey(item.id)) {
+          return item.copyWith(
+            isSelected: previousSelection[item.id] ?? item.isSelected,
+          );
+        }
+        if (_initialSelectedIslandIds.isNotEmpty) {
+          return item.copyWith(
+            isSelected: _initialSelectedIslandIds.contains(item.id),
+          );
+        }
+        return item;
+      }).toList();
+
+      final filterIds = _islandFilters.map((item) => item.id).toSet();
+      final memoryIslandIds = _allMemories.map((item) => item.islandId).toSet();
+      final hasMatchingIslandIds = filterIds.any(memoryIslandIds.contains);
+
+      if (_allMemories.isNotEmpty && !hasMatchingIslandIds) {
+        _islandFilters = CalendarDummyData.islandFilters;
+      }
+
+      if (_selectedDay == null && _initialSelectedDay != null) {
+        _selectedDay = _initialSelectedDay;
+      }
+
+      final initialDate = _initialSelectedDay;
+      if (_pendingInitialBottomSheet && initialDate != null) {
+        if (hasMemory(initialDate)) {
+          openBottomSheet(initialDate, programmatic: true);
+        }
+        _pendingInitialBottomSheet = false;
+      }
     } catch (error) {
       _errorText = error.toString();
       _islandFilters = const [];
@@ -75,9 +138,10 @@ class CalendarViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  void openBottomSheet(DateTime day) {
+  void openBottomSheet(DateTime day, {bool programmatic = false}) {
     selectDay(day);
     _isBottomSheetOpen = true;
+    _pendingProgrammaticBottomSheetOpen = programmatic;
     notifyListeners();
   }
 
@@ -86,7 +150,12 @@ class CalendarViewModel extends ChangeNotifier {
       return;
     }
     _isBottomSheetOpen = false;
+    _pendingProgrammaticBottomSheetOpen = false;
     notifyListeners();
+  }
+
+  void consumePendingProgrammaticBottomSheet() {
+    _pendingProgrammaticBottomSheetOpen = false;
   }
 
   void toggleIslandSelection(String islandId) {

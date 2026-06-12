@@ -27,6 +27,7 @@ class HomeService {
         .maybeSingle();
 
     if (response == null) {
+      await _ensureUserAssetsRow(client, userId);
       return 0;
     }
 
@@ -36,6 +37,17 @@ class HomeService {
     }
 
     return int.tryParse(value?.toString() ?? '') ?? 0;
+  }
+
+  Future<void> _ensureUserAssetsRow(
+    SupabaseClient client,
+    String userId,
+  ) async {
+    await client.from('user_assets').upsert({
+      'user_id': userId,
+      'pearl_count': 0,
+      'updated_at': DateTime.now().toIso8601String(),
+    }, onConflict: 'user_id');
   }
 
   Future<List<HomeNotification>> fetchNotifications() async {

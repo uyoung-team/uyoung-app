@@ -238,9 +238,11 @@ class _MemoryViewState extends State<_MemoryView> {
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         centerTitle: false,
-        title: AppHeadlineText('기억섬', style: AppFont.h5_20),
+        title: AppHeadlineText('기억섬', style: AppFont.h3_24),
         actions: [
           IconButton(
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints.tightFor(width: 44, height: 44),
             onPressed: () {
               Navigator.of(context).push(
                 MaterialPageRoute<void>(
@@ -250,8 +252,8 @@ class _MemoryViewState extends State<_MemoryView> {
             },
             icon: SvgPicture.asset(
               AssetPaths.icons.common.search,
-              width: 24,
-              height: 24,
+              width: 44,
+              height: 44,
               colorFilter: const ColorFilter.mode(
                 AppColors.black,
                 BlendMode.srcIn,
@@ -259,11 +261,13 @@ class _MemoryViewState extends State<_MemoryView> {
             ),
           ),
           IconButton(
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints.tightFor(width: 44, height: 44),
             onPressed: () => _openCreatePage(context),
             icon: SvgPicture.asset(
               AssetPaths.icons.common.chatPlus,
-              width: 28,
-              height: 28,
+              width: 44,
+              height: 44,
             ),
           ),
           const SizedBox(width: 12),

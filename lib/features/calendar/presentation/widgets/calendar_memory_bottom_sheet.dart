@@ -138,6 +138,13 @@ class _MemoryPhotoRow extends StatelessWidget {
   final CalendarDayMemoryGroup group;
   final DateTime date;
 
+  ImageProvider<Object> _imageProviderFor(String path) {
+    if (path.startsWith('http://') || path.startsWith('https://')) {
+      return NetworkImage(path);
+    }
+    return AssetImage(path);
+  }
+
   void _openDetailPage(BuildContext context) {
     Navigator.of(context).push(
       MaterialPageRoute<void>(
@@ -170,6 +177,7 @@ class _MemoryPhotoRow extends StatelessWidget {
             child: _PhotoCard(
               imagePath: firstThumb,
               angleDegrees: -3.98,
+              imageProvider: _imageProviderFor(firstThumb),
             ),
           ),
           const SizedBox(width: 15),
@@ -179,6 +187,7 @@ class _MemoryPhotoRow extends StatelessWidget {
               child: _PhotoCard(
                 imagePath: secondThumb,
                 angleDegrees: 2.98,
+                imageProvider: _imageProviderFor(secondThumb),
               ),
             ),
             const SizedBox(width: 15),
@@ -190,10 +199,12 @@ class _MemoryPhotoRow extends StatelessWidget {
                   ? _OverlayPhotoCard(
                       imagePath: thirdThumb,
                       label: '+$remainingCount',
+                      imageProvider: _imageProviderFor(thirdThumb),
                     )
                   : _PhotoCard(
                       imagePath: thirdThumb,
                       angleDegrees: 2.99,
+                      imageProvider: _imageProviderFor(thirdThumb),
                     ),
             ),
         ],
@@ -206,10 +217,12 @@ class _PhotoCard extends StatelessWidget {
   const _PhotoCard({
     required this.imagePath,
     required this.angleDegrees,
+    required this.imageProvider,
   });
 
   final String imagePath;
   final double angleDegrees;
+  final ImageProvider<Object> imageProvider;
 
   @override
   Widget build(BuildContext context) {
@@ -228,7 +241,7 @@ class _PhotoCard extends StatelessWidget {
             ),
           ],
           image: DecorationImage(
-            image: AssetImage(imagePath),
+            image: imageProvider,
             fit: BoxFit.cover,
           ),
         ),
@@ -241,10 +254,12 @@ class _OverlayPhotoCard extends StatelessWidget {
   const _OverlayPhotoCard({
     required this.imagePath,
     required this.label,
+    required this.imageProvider,
   });
 
   final String imagePath;
   final String label;
+  final ImageProvider<Object> imageProvider;
 
   @override
   Widget build(BuildContext context) {
@@ -269,7 +284,7 @@ class _OverlayPhotoCard extends StatelessWidget {
           child: Stack(
             fit: StackFit.expand,
             children: [
-              Image.asset(imagePath, fit: BoxFit.cover),
+              Image(image: imageProvider, fit: BoxFit.cover),
               Container(color: const Color(0x66000000)),
               Center(
                 child: Text(

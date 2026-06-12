@@ -167,15 +167,25 @@ class _SocialLoginButton extends StatelessWidget {
           child: Row(
             children: [
               const SizedBox(width: 18),
-              Image.asset(assetPath, width: 26, height: 26),
+              Image.asset(
+                assetPath,
+                width: 26,
+                height: 26,
+                errorBuilder: (context, error, stackTrace) => const SizedBox(
+                  width: 26,
+                  height: 26,
+                ),
+              ),
               const SizedBox(width: 14),
               Expanded(
                 child: Text(
                   label,
                   style: AppFont.b6_18.copyWith(color: foregroundColor),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
-              const SizedBox(width: 18),
+              const SizedBox(width: 12),
             ],
           ),
         ),

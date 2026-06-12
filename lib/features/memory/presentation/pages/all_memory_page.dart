@@ -2,27 +2,35 @@ import 'package:flutter/material.dart';
 import 'package:uyoung_app/core/theme/app_colors.dart';
 import 'package:uyoung_app/core/theme/app_font.dart';
 import 'package:uyoung_app/features/memory/presentation/pages/memory_local_photo.dart';
-import 'package:uyoung_app/features/memory/presentation/pages/photo_detail_page.dart';
-import 'package:uyoung_app/features/memory/presentation/widgets/memory_photo_thumbnail.dart';
+import 'package:uyoung_app/features/memory/presentation/widgets/memory_post_item.dart';
 
 class AllMemoryPage extends StatelessWidget {
   const AllMemoryPage({
     super.key,
+    required this.islandId,
     required this.photos,
+    required this.onEditPost,
+    required this.onDeletePost,
+    required this.onTapDate,
   });
 
+  final String islandId;
   final List<MemoryLocalPhoto> photos;
+  final Future<void> Function(List<MemoryLocalPhoto> photos) onEditPost;
+  final Future<void> Function(List<MemoryLocalPhoto> photos) onDeletePost;
+  final ValueChanged<DateTime> onTapDate;
 
   @override
   Widget build(BuildContext context) {
-    final grouped = <DateTime, List<MemoryLocalPhoto>>{};
-    for (final photo in photos) {
+    final posts = _groupPosts(photos);
+    final grouped = <DateTime, List<_MemoryPostGroup>>{};
+    for (final post in posts) {
       final key = DateTime(
-        photo.createdAt.year,
-        photo.createdAt.month,
-        photo.createdAt.day,
+        post.createdAt.year,
+        post.createdAt.month,
+        post.createdAt.day,
       );
-      grouped.putIfAbsent(key, () => []).add(photo);
+      grouped.putIfAbsent(key, () => []).add(post);
     }
     final dates = grouped.keys.toList()..sort((a, b) => b.compareTo(a));
 
@@ -40,35 +48,30 @@ class AllMemoryPage extends StatelessWidget {
       itemCount: dates.length,
       itemBuilder: (context, index) {
         final date = dates[index];
-        final dayPhotos = grouped[date] ?? const [];
+        final dayPosts = [...(grouped[date] ?? const [])]
+          ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
         return Column(
           children: [
-            Center(child: _DateLabel(date: date)),
+            Center(
+              child: _DateLabel(
+                date: date,
+                onTap: () => onTapDate(date),
+              ),
+            ),
             const SizedBox(height: 14),
-            ...dayPhotos.map(
-              (photo) => Padding(
+            ...dayPosts.map(
+              (post) => Padding(
                 padding: const EdgeInsets.only(bottom: 18),
-                child: GestureDetector(
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute<void>(
-                        builder: (_) => PhotoDetailPage(
-                          imagePath: photo.path,
-                          uploaderName: photo.uploaderName,
-                          uploaderProfile: photo.uploaderProfile,
-                        ),
-                      ),
-                    );
-                  },
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(18),
-                    child: SizedBox(
-                      height: 220,
-                      width: double.infinity,
-                      child: MemoryPhotoThumbnail(photo: photo),
-                    ),
-                  ),
+                child: MemoryPostItem(
+                  islandId: islandId,
+                  photos: post.photos,
+                  uploaderName: post.uploaderName,
+                  uploaderProfile: post.uploaderProfile,
+                  createdAt: post.createdAt,
+                  description: post.description,
+                  onEdit: () => onEditPost(post.photos),
+                  onDelete: () => onDeletePost(post.photos),
                 ),
               ),
             ),
@@ -78,28 +81,84 @@ class AllMemoryPage extends StatelessWidget {
       },
     );
   }
+
+  List<_MemoryPostGroup> _groupPosts(List<MemoryLocalPhoto> photos) {
+    final sorted = [...photos]..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    final groups = <_MemoryPostGroup>[];
+
+    for (final photo in sorted) {
+      final normalizedDescription = (photo.description ?? '').trim();
+      final matchedIndex = groups.indexWhere((group) {
+        final sameUploader =
+            group.uploaderName == photo.uploaderName &&
+            group.uploaderProfile == photo.uploaderProfile;
+        final sameDescription = (group.description ?? '').trim() == normalizedDescription;
+        final diff = group.createdAt.difference(photo.createdAt).abs();
+        return sameUploader && sameDescription && diff.inMinutes < 1;
+      });
+
+      if (matchedIndex == -1) {
+        groups.add(
+          _MemoryPostGroup(
+            photos: [photo],
+            uploaderName: photo.uploaderName,
+            uploaderProfile: photo.uploaderProfile,
+            createdAt: photo.createdAt,
+            description: photo.description,
+          ),
+        );
+      } else {
+        groups[matchedIndex].photos.add(photo);
+      }
+    }
+
+    return groups;
+  }
 }
 
 class _DateLabel extends StatelessWidget {
-  const _DateLabel({required this.date});
+  const _DateLabel({
+    required this.date,
+    required this.onTap,
+  });
 
   final DateTime date;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     const weekdays = ['월', '화', '수', '목', '금', '토', '일'];
     final weekday = weekdays[date.weekday - 1];
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 6),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.b02, width: 1),
-      ),
-      child: Text(
-        '${date.year}년 ${date.month}월 ${date.day}일 $weekday요일',
-        style: AppFont.b8_14.copyWith(color: AppColors.b02),
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 6),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: AppColors.b02, width: 1),
+        ),
+        child: Text(
+          '${date.year}년 ${date.month}월 ${date.day}일 $weekday요일',
+          style: AppFont.b8_14.copyWith(color: AppColors.b02),
+        ),
       ),
     );
   }
+}
+
+class _MemoryPostGroup {
+  _MemoryPostGroup({
+    required this.photos,
+    required this.uploaderName,
+    required this.createdAt,
+    this.uploaderProfile,
+    this.description,
+  });
+
+  final List<MemoryLocalPhoto> photos;
+  final String uploaderName;
+  final String? uploaderProfile;
+  final DateTime createdAt;
+  final String? description;
 }

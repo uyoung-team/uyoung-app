@@ -37,8 +37,12 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
   app_links: ^7.0.0
+  geocoding: ^4.0.0
+  flutter_map: ^8.2.2
   flutter_svg: ^2.2.0
   image_picker: ^1.2.0
+  latlong2: ^0.9.1
+  native_exif: ^0.6.1
   provider: ^6.1.5+1
   supabase_flutter: ^2.10.2
   table_calendar: ^3.0.9
@@ -74,10 +78,17 @@ flutter:
     - assets/icons/small_mypage/
     - assets/images/common/
     - assets/images/
+    - assets/images/login/
     - assets/images/home/
     - assets/images/attendance/
     - assets/images/character/
     - assets/images/memory/
+    - assets/images/memory/alcohol/
+    - assets/images/memory/couple/
+    - assets/images/memory/dolphin/
+    - assets/images/memory/europe/
+    - assets/images/memory/japan/
+    - assets/images/memory/shangkong/
     - assets/images/calendar/
     - assets/images/shop/
     - assets/images/my_page/

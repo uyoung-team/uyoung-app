@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:uyoung_app/core/theme/app_colors.dart';
 import 'package:uyoung_app/core/theme/app_font.dart';
+import 'package:uyoung_app/features/memory/data/memory_models.dart';
 import 'package:uyoung_app/features/memory/data/memory_repository.dart';
 import 'package:uyoung_app/features/memory/presentation/pages/photo_detail_page.dart';
 import 'package:uyoung_app/features/memory/data/memory_service.dart';
@@ -82,7 +83,9 @@ class _FavoritePhotosView extends StatelessWidget {
             ),
             itemCount: viewModel.photos.length,
             itemBuilder: (_, index) => _FavoritePhotoTile(
-              photoKey: viewModel.photos[index].photoKey,
+              islandId: viewModel.islandId,
+              photo: viewModel.photos[index],
+              detail: viewModel.detailFor(viewModel.photos[index].photoKey),
             ),
           );
         },
@@ -92,9 +95,15 @@ class _FavoritePhotosView extends StatelessWidget {
 }
 
 class _FavoritePhotoTile extends StatelessWidget {
-  const _FavoritePhotoTile({required this.photoKey});
+  const _FavoritePhotoTile({
+    required this.islandId,
+    required this.photo,
+    required this.detail,
+  });
 
-  final String photoKey;
+  final String islandId;
+  final FavoritePhoto photo;
+  final MemoryPhotoSeed? detail;
 
   @override
   Widget build(BuildContext context) {
@@ -103,7 +112,18 @@ class _FavoritePhotoTile extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute<void>(
-            builder: (_) => PhotoDetailPage(imagePath: photoKey),
+            builder: (_) => PhotoDetailPage(
+              islandId: islandId,
+              photoId: detail?.id,
+              imagePath: photo.photoKey,
+              uploaderName: detail?.uploaderName ?? '버블 메이트',
+              description: detail?.description,
+              uploaderProfile: detail?.profileImagePath,
+              takenAt: detail?.takenAt ?? detail?.createdAt,
+              latitude: detail?.latitude,
+              longitude: detail?.longitude,
+              locationName: detail?.locationName,
+            ),
           ),
         );
       },
@@ -118,16 +138,16 @@ class _FavoritePhotoTile extends StatelessWidget {
   }
 
   Widget _buildImage() {
-    if (photoKey.startsWith('http://') || photoKey.startsWith('https://')) {
+    if (photo.photoKey.startsWith('http://') || photo.photoKey.startsWith('https://')) {
       return Image.network(
-        photoKey,
+        photo.photoKey,
         fit: BoxFit.cover,
         errorBuilder: (_, _, _) => const _FavoritePhotoPlaceholder(),
       );
     }
 
     return Image.asset(
-      photoKey,
+      photo.photoKey,
       fit: BoxFit.cover,
       errorBuilder: (_, _, _) => const _FavoritePhotoPlaceholder(),
     );

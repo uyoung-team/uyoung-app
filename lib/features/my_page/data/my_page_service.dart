@@ -1,3 +1,7 @@
+import 'dart:math';
+
+import 'package:image_picker/image_picker.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uyoung_app/core/network/supabase_client_provider.dart';
 
 class MyPageService {
@@ -16,7 +20,7 @@ class MyPageService {
 
     final response = await client
         .from('profiles')
-        .select('nickname, user_code, profile_image_url')
+        .select('nickname, user_code, avatar_url')
         .eq('id', userId)
         .maybeSingle();
 
@@ -29,6 +33,7 @@ class MyPageService {
 
   Future<void> updateProfile({
     required String nickname,
+    String? profileImageUrl,
   }) async {
     final client = _clientProvider.client;
     final userId = client?.auth.currentUser?.id;
@@ -37,10 +42,47 @@ class MyPageService {
       throw StateError('로그인이 필요합니다.');
     }
 
+    final userCode = await _resolveUserCode(client, userId);
+
     await client.from('profiles').upsert({
       'id': userId,
+      'user_code': userCode,
       'nickname': nickname.trim(),
+      'avatar_url': profileImageUrl?.trim().isEmpty == true
+          ? null
+          : profileImageUrl?.trim(),
     }, onConflict: 'id');
+
+    await _ensureUserAssetsRow(client, userId);
+  }
+
+  Future<String> uploadProfileImage(XFile imageFile) async {
+    final client = _clientProvider.client;
+    final userId = client?.auth.currentUser?.id;
+
+    if (client == null || userId == null) {
+      throw StateError('로그인이 필요합니다.');
+    }
+
+    final bytes = await imageFile.readAsBytes();
+    final originalName = imageFile.name.isEmpty ? 'profile.jpg' : imageFile.name;
+    final sanitizedName = originalName.replaceAll(
+      RegExp(r'[^a-zA-Z0-9._-]'),
+      '_',
+    );
+    final path =
+        'profiles/$userId/${DateTime.now().microsecondsSinceEpoch}_$sanitizedName';
+
+    await client.storage.from('profile_images').uploadBinary(
+      path,
+      bytes,
+      fileOptions: FileOptions(
+        upsert: true,
+        contentType: _contentTypeFor(sanitizedName),
+      ),
+    );
+
+    return client.storage.from('profile_images').getPublicUrl(path);
   }
 
   Future<List<Map<String, dynamic>>> fetchUserAssets() async {
@@ -53,8 +95,13 @@ class MyPageService {
 
     final response = await client
         .from('user_assets')
-        .select('asset_type, amount, quantity, count, name')
+        .select('user_id, pearl_count, updated_at')
         .eq('user_id', userId);
+
+    if ((response as List).isEmpty) {
+      await _ensureUserAssetsRow(client, userId);
+      return const [];
+    }
 
     return List<Map<String, dynamic>>.from(response);
   }
@@ -124,7 +171,7 @@ class MyPageService {
 
     final response = await client
         .from('profiles')
-        .select('id, nickname, user_code, profile_image_url')
+        .select('id, nickname, user_code, avatar_url')
         .inFilter('id', ids);
 
     return List<Map<String, dynamic>>.from(response);
@@ -140,7 +187,7 @@ class MyPageService {
 
     final response = await client
         .from('profiles')
-        .select('id, nickname, user_code, profile_image_url')
+        .select('id, nickname, user_code, avatar_url')
         .eq('user_code', userCode)
         .maybeSingle();
 
@@ -198,5 +245,69 @@ class MyPageService {
         .order('created_at', ascending: false);
 
     return List<Map<String, dynamic>>.from(response);
+  }
+
+  String _contentTypeFor(String fileName) {
+    final extension = fileName.split('.').last.toLowerCase();
+    switch (extension) {
+      case 'png':
+        return 'image/png';
+      case 'gif':
+        return 'image/gif';
+      case 'webp':
+        return 'image/webp';
+      case 'jpg':
+      case 'jpeg':
+      default:
+        return 'image/jpeg';
+    }
+  }
+
+  Future<String> _resolveUserCode(SupabaseClient client, String userId) async {
+    final existing = await client
+        .from('profiles')
+        .select('user_code')
+        .eq('id', userId)
+        .maybeSingle();
+
+    final existingCode = existing?['user_code']?.toString().trim() ?? '';
+    if (existingCode.isNotEmpty) {
+      return existingCode;
+    }
+
+    for (var attempt = 0; attempt < 8; attempt++) {
+      final candidate = _generateUserCode();
+      final duplicated = await client
+          .from('profiles')
+          .select('id')
+          .eq('user_code', candidate)
+          .maybeSingle();
+
+      if (duplicated == null) {
+        return candidate;
+      }
+    }
+
+    return _generateUserCode();
+  }
+
+  String _generateUserCode() {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    final random = Random();
+    return List.generate(
+      8,
+      (_) => chars[random.nextInt(chars.length)],
+    ).join();
+  }
+
+  Future<void> _ensureUserAssetsRow(
+    SupabaseClient client,
+    String userId,
+  ) async {
+    await client.from('user_assets').upsert({
+      'user_id': userId,
+      'pearl_count': 0,
+      'updated_at': DateTime.now().toIso8601String(),
+    }, onConflict: 'user_id');
   }
 }

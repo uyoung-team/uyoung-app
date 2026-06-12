@@ -3,7 +3,14 @@ import 'package:uyoung_app/core/theme/app_colors.dart';
 import 'package:uyoung_app/core/theme/app_font.dart';
 
 class LocationSheet extends StatefulWidget {
-  const LocationSheet({super.key});
+  const LocationSheet({
+    super.key,
+    this.originalLocation = '위치 정보 없음',
+    this.adjustedLocation = '위치 정보 없음',
+  });
+
+  final String originalLocation;
+  final String adjustedLocation;
 
   @override
   State<LocationSheet> createState() => _LocationSheetState();
@@ -46,9 +53,9 @@ class _LocationSheetState extends State<LocationSheet> {
             ),
             child: Column(
               children: [
-                _infoRow('원본', '서울특별시 월계2동', isDisabled: true),
+                _infoRow('원본', widget.originalLocation, isDisabled: true),
                 const Divider(height: 1),
-                _infoRow('조정', '서울특별시 월계2동', isDisabled: false),
+                _infoRow('조정', widget.adjustedLocation, isDisabled: false),
               ],
             ),
           ),

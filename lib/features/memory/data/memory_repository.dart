@@ -2,6 +2,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:uyoung_app/features/memory/data/memory_dummy_adapter.dart';
 import 'package:uyoung_app/features/memory/data/memory_models.dart';
 import 'package:uyoung_app/features/memory/data/memory_service.dart';
+import 'package:uyoung_app/features/memory/data/photo_comment_model.dart';
 
 class MemoryRepository {
   const MemoryRepository(this.service);
@@ -259,6 +260,312 @@ class MemoryRepository {
       );
     } catch (error) {
       throw StateError('즐겨찾기 상태를 변경하지 못했어요. $error');
+    }
+  }
+
+  Future<List<MemoryPhotoSeed>> fetchIslandPhotos(String islandId) async {
+    try {
+      final rows = await service.fetchFriendPhotos(islandId);
+      if (rows.isEmpty) {
+        return const [];
+      }
+
+      final uploaderIds = rows
+          .map((row) => row['uploader_id']?.toString() ?? '')
+          .where((id) => id.isNotEmpty)
+          .toSet()
+          .toList();
+      final profileRows = await service.fetchProfilesByIds(uploaderIds);
+      final profileMap = {
+        for (final row in profileRows) row['id']?.toString() ?? '': row,
+      };
+
+      return rows.map((row) {
+        final uploaderId = row['uploader_id']?.toString() ?? '';
+        final profile = profileMap[uploaderId] ?? const <String, dynamic>{};
+        return MemoryPhotoSeed(
+          id: row['id']?.toString(),
+          path: (row['image_url'] ?? '').toString(),
+          createdAt:
+              DateTime.tryParse((row['created_at'] ?? '').toString()) ??
+              DateTime.now(),
+          uploaderName: (profile['nickname'] ?? '버블 메이트').toString(),
+          description: row['description']?.toString(),
+          profileImagePath: profile['avatar_url']?.toString(),
+          takenAt: DateTime.tryParse((row['taken_at'] ?? '').toString()),
+          latitude: _toDouble(row['latitude']),
+          longitude: _toDouble(row['longitude']),
+          locationName: row['location_name']?.toString(),
+        );
+      }).toList();
+    } catch (error) {
+      throw StateError('기억 사진을 불러오지 못했어요. $error');
+    }
+  }
+
+  Future<MemoryPhotoSeed> uploadIslandPhoto({
+    required String islandId,
+    required XFile imageFile,
+    String? description,
+  }) async {
+    try {
+      final row = await service.uploadFriendPhoto(
+        islandId: islandId,
+        imageFile: imageFile,
+        description: description,
+      );
+      final uploaderId = row['uploader_id']?.toString() ?? '';
+      final profileRows = uploaderId.isEmpty
+          ? const <Map<String, dynamic>>[]
+          : await service.fetchProfilesByIds([uploaderId]);
+      final profile = profileRows.isEmpty
+          ? const <String, dynamic>{}
+          : profileRows.first;
+
+      return MemoryPhotoSeed(
+        id: row['id']?.toString(),
+        path: (row['image_url'] ?? '').toString(),
+        createdAt:
+            DateTime.tryParse((row['created_at'] ?? '').toString()) ??
+            DateTime.now(),
+        uploaderName: (profile['nickname'] ?? '나').toString(),
+        description: row['description']?.toString() ?? description,
+        profileImagePath: profile['avatar_url']?.toString(),
+        takenAt: DateTime.tryParse((row['taken_at'] ?? '').toString()),
+        latitude: _toDouble(row['latitude']),
+        longitude: _toDouble(row['longitude']),
+        locationName: row['location_name']?.toString(),
+      );
+    } catch (error) {
+      throw StateError('사진 업로드에 실패했어요. $error');
+    }
+  }
+
+  double? _toDouble(Object? value) {
+    if (value is num) {
+      return value.toDouble();
+    }
+    if (value is String) {
+      return double.tryParse(value);
+    }
+    return null;
+  }
+
+  Future<void> updatePostDescription({
+    required List<String> photoIds,
+    required String? description,
+  }) async {
+    try {
+      await service.updateFriendPhotoDescriptions(
+        photoIds: photoIds,
+        description: description,
+      );
+    } catch (error) {
+      throw StateError('게시글을 수정하지 못했어요. $error');
+    }
+  }
+
+  Future<void> deletePost({
+    required List<String> photoIds,
+    required List<String> imageUrls,
+  }) async {
+    try {
+      await service.deleteFriendPhotos(
+        photoIds: photoIds,
+        imageUrls: imageUrls,
+      );
+    } catch (error) {
+      throw StateError('게시글을 삭제하지 못했어요. $error');
+    }
+  }
+
+  Future<List<MemoryAlbum>> fetchAlbums(String islandId) async {
+    try {
+      final rows = await service.fetchAlbums(islandId);
+      return rows.map((row) {
+        final linkedPhotos =
+            (row['memory_album_photos'] as List<dynamic>? ?? const [])
+                .map((item) => Map<String, dynamic>.from(item as Map))
+                .toList();
+        final cover = linkedPhotos.isEmpty
+            ? null
+            : Map<String, dynamic>.from(
+                (linkedPhotos.first['friend_photos'] ?? const <String, dynamic>{}) as Map,
+              )['image_url']?.toString();
+
+        return MemoryAlbum(
+          id: (row['id'] ?? '').toString(),
+          islandId: (row['island_id'] ?? islandId).toString(),
+          name: (row['name'] ?? '').toString(),
+          createdAt:
+              DateTime.tryParse((row['created_at'] ?? '').toString()) ??
+              DateTime.now(),
+          createdBy: row['created_by']?.toString(),
+          coverImageUrl: cover,
+          photoCount: linkedPhotos.length,
+        );
+      }).toList();
+    } catch (_) {
+      return const [];
+    }
+  }
+
+  Future<MemoryAlbum> createAlbum({
+    required String islandId,
+    required String name,
+  }) async {
+    try {
+      final row = await service.createAlbum(islandId: islandId, name: name);
+      return MemoryAlbum.fromMap(row);
+    } catch (error) {
+      throw StateError('앨범을 만들지 못했어요. $error');
+    }
+  }
+
+  Future<void> addPhotosToAlbum({
+    required String albumId,
+    required List<String> photoIds,
+  }) async {
+    try {
+      await service.addPhotosToAlbum(albumId: albumId, photoIds: photoIds);
+    } catch (error) {
+      throw StateError('앨범에 사진을 담지 못했어요. $error');
+    }
+  }
+
+  Future<List<MemoryPhotoSeed>> fetchAlbumPhotos(String albumId) async {
+    try {
+      final rows = await service.fetchAlbumPhotos(albumId);
+      final photoRows = rows
+          .map((row) => row['friend_photos'])
+          .whereType<Map>()
+          .map((row) => Map<String, dynamic>.from(row))
+          .toList();
+
+      final uploaderIds = photoRows
+          .map((row) => row['uploader_id']?.toString() ?? '')
+          .where((id) => id.isNotEmpty)
+          .toSet()
+          .toList();
+      final profileRows = await service.fetchProfilesByIds(uploaderIds);
+      final profileMap = {
+        for (final row in profileRows) row['id']?.toString() ?? '': row,
+      };
+
+      return photoRows.map((row) {
+        final uploaderId = row['uploader_id']?.toString() ?? '';
+        final profile = profileMap[uploaderId] ?? const <String, dynamic>{};
+        return MemoryPhotoSeed(
+          id: row['id']?.toString(),
+          path: (row['image_url'] ?? '').toString(),
+          createdAt:
+              DateTime.tryParse((row['created_at'] ?? '').toString()) ??
+              DateTime.now(),
+          uploaderName: (profile['nickname'] ?? '버블 메이트').toString(),
+          description: row['description']?.toString(),
+          profileImagePath: profile['avatar_url']?.toString(),
+          takenAt: DateTime.tryParse((row['taken_at'] ?? '').toString()),
+          latitude: _toDouble(row['latitude']),
+          longitude: _toDouble(row['longitude']),
+          locationName: row['location_name']?.toString(),
+        );
+      }).toList();
+    } catch (error) {
+      throw StateError('앨범 사진을 불러오지 못했어요. $error');
+    }
+  }
+
+  Future<void> removePhotoFromAlbum({
+    required String albumId,
+    required String photoId,
+  }) async {
+    try {
+      await service.removePhotoFromAlbum(albumId: albumId, photoId: photoId);
+    } catch (error) {
+      throw StateError('앨범에서 사진을 제거하지 못했어요. $error');
+    }
+  }
+
+  Future<List<PhotoCommentItem>> fetchPhotoComments(String photoId) async {
+    try {
+      final rows = await service.fetchPhotoComments(photoId);
+      final userIds = rows
+          .map((row) => row['user_id']?.toString() ?? '')
+          .where((id) => id.isNotEmpty)
+          .toSet()
+          .toList();
+      final profileRows = await service.fetchProfilesByIds(userIds);
+      final profileMap = {
+        for (final row in profileRows) row['id']?.toString() ?? '': row,
+      };
+
+      return rows.map((row) {
+        final userId = row['user_id']?.toString() ?? '';
+        final profile = profileMap[userId] ?? const <String, dynamic>{};
+        return PhotoCommentItem(
+          id: (row['id'] ?? '').toString(),
+          photoId: (row['photo_id'] ?? photoId).toString(),
+          userId: userId,
+          nickname: (profile['nickname'] ?? '버블 메이트').toString(),
+          avatarUrl: profile['avatar_url']?.toString(),
+          content: (row['content'] ?? '').toString(),
+          createdAt:
+              DateTime.tryParse((row['created_at'] ?? '').toString()) ??
+              DateTime.now(),
+          stickerAsset: row['sticker_asset']?.toString(),
+          stickerDxRatio: _toDouble(row['sticker_dx_ratio']),
+          stickerDyRatio: _toDouble(row['sticker_dy_ratio']),
+          stickerSize: _toDouble(row['sticker_size']),
+        );
+      }).toList();
+    } catch (error) {
+      throw StateError('댓글을 불러오지 못했어요. $error');
+    }
+  }
+
+  Future<PhotoCommentItem> createPhotoComment({
+    required String photoId,
+    required String content,
+    String? stickerAsset,
+    double? stickerDxRatio,
+    double? stickerDyRatio,
+    double? stickerSize,
+  }) async {
+    try {
+      final row = await service.createPhotoComment(
+        photoId: photoId,
+        content: content,
+        stickerAsset: stickerAsset,
+        stickerDxRatio: stickerDxRatio,
+        stickerDyRatio: stickerDyRatio,
+        stickerSize: stickerSize,
+      );
+
+      final userId = row['user_id']?.toString() ?? '';
+      final profileRows = await service.fetchProfilesByIds(
+        userId.isEmpty ? const [] : [userId],
+      );
+      final profile = profileRows.isEmpty
+          ? const <String, dynamic>{}
+          : profileRows.first;
+
+      return PhotoCommentItem(
+        id: (row['id'] ?? '').toString(),
+        photoId: (row['photo_id'] ?? photoId).toString(),
+        userId: userId,
+        nickname: (profile['nickname'] ?? '버블 메이트').toString(),
+        avatarUrl: profile['avatar_url']?.toString(),
+        content: (row['content'] ?? '').toString(),
+        createdAt:
+            DateTime.tryParse((row['created_at'] ?? '').toString()) ??
+            DateTime.now(),
+        stickerAsset: row['sticker_asset']?.toString(),
+        stickerDxRatio: _toDouble(row['sticker_dx_ratio']),
+        stickerDyRatio: _toDouble(row['sticker_dy_ratio']),
+        stickerSize: _toDouble(row['sticker_size']),
+      );
+    } catch (error) {
+      throw StateError('댓글을 저장하지 못했어요. $error');
     }
   }
 

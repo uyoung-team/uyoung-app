@@ -145,14 +145,64 @@ class FavoritePhoto {
 
 class MemoryPhotoSeed {
   const MemoryPhotoSeed({
+    this.id,
     required this.path,
     required this.createdAt,
     required this.uploaderName,
+    this.description,
     this.profileImagePath,
+    this.takenAt,
+    this.latitude,
+    this.longitude,
+    this.locationName,
   });
 
+  final String? id;
   final String path;
   final DateTime createdAt;
   final String uploaderName;
+  final String? description;
   final String? profileImagePath;
+  final DateTime? takenAt;
+  final double? latitude;
+  final double? longitude;
+  final String? locationName;
+}
+
+class MemoryAlbum {
+  const MemoryAlbum({
+    required this.id,
+    required this.islandId,
+    required this.name,
+    required this.createdAt,
+    this.createdBy,
+    this.coverImageUrl,
+    this.photoCount = 0,
+  });
+
+  final String id;
+  final String islandId;
+  final String name;
+  final DateTime createdAt;
+  final String? createdBy;
+  final String? coverImageUrl;
+  final int photoCount;
+
+  factory MemoryAlbum.fromMap(Map<String, dynamic> map) {
+    return MemoryAlbum(
+      id: (map['id'] ?? '').toString(),
+      islandId: (map['island_id'] ?? '').toString(),
+      name: (map['name'] ?? '').toString(),
+      createdAt:
+          DateTime.tryParse((map['created_at'] ?? '').toString()) ??
+          DateTime.now(),
+      createdBy: map['created_by']?.toString(),
+      coverImageUrl: map['cover_image_url']?.toString(),
+      photoCount: switch (map['photo_count']) {
+        int value => value,
+        String value => int.tryParse(value) ?? 0,
+        _ => 0,
+      },
+    );
+  }
 }
