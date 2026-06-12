@@ -25,8 +25,10 @@ class TimelineMemoryPage extends StatefulWidget {
 class _TimelineMemoryPageState extends State<TimelineMemoryPage> {
   DateTime? _selectedDate;
   final ScrollController _scrollController = ScrollController();
+  final MapController _mapController = MapController();
   final Map<String, GlobalKey> _sectionKeys = <String, GlobalKey>{};
   String? _activeLocation;
+  String? _lastFittedDateKey;
 
   @override
   void dispose() {
@@ -67,6 +69,18 @@ class _TimelineMemoryPageState extends State<TimelineMemoryPage> {
       _activeLocation = null;
     }
     _activeLocation ??= locationKeys.isNotEmpty ? locationKeys.first : null;
+    final currentDateKey = _selectedDate == null
+        ? null
+        : '${_selectedDate!.year}-${_selectedDate!.month}-${_selectedDate!.day}';
+    if (currentDateKey != _lastFittedDateKey) {
+      _lastFittedDateKey = currentDateKey;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) {
+          return;
+        }
+        _fitMapToPhotos(filteredPhotos);
+      });
+    }
 
     for (final location in locationKeys) {
       _sectionKeys.putIfAbsent(location, GlobalKey.new);
@@ -78,6 +92,7 @@ class _TimelineMemoryPageState extends State<TimelineMemoryPage> {
           height: 300,
           width: double.infinity,
           child: _TimelineMap(
+            mapController: _mapController,
             photos: filteredPhotos,
             activeLocation: _activeLocation,
             onLocationTap: _focusLocation,
@@ -199,7 +214,10 @@ class _TimelineMemoryPageState extends State<TimelineMemoryPage> {
               )
               .toList(),
           onChanged: (value) {
-            setState(() => _selectedDate = value);
+            setState(() {
+              _selectedDate = value;
+              _activeLocation = null;
+            });
           },
         ),
       ),
@@ -291,15 +309,46 @@ class _TimelineMemoryPageState extends State<TimelineMemoryPage> {
       curve: Curves.easeInOut,
     );
   }
+
+  void _fitMapToPhotos(List<MemoryLocalPhoto> photos) {
+    final locatedPhotos = photos
+        .where((photo) => photo.latitude != null && photo.longitude != null)
+        .toList();
+    if (locatedPhotos.isEmpty) {
+      return;
+    }
+
+    if (locatedPhotos.length == 1) {
+      final photo = locatedPhotos.first;
+      _mapController.move(
+        LatLng(photo.latitude!, photo.longitude!),
+        14.5,
+      );
+      return;
+    }
+
+    final bounds = LatLngBounds.fromPoints([
+      for (final photo in locatedPhotos)
+        LatLng(photo.latitude!, photo.longitude!),
+    ]);
+    _mapController.fitCamera(
+      CameraFit.bounds(
+        bounds: bounds,
+        padding: const EdgeInsets.all(36),
+      ),
+    );
+  }
 }
 
 class _TimelineMap extends StatelessWidget {
   const _TimelineMap({
+    required this.mapController,
     required this.photos,
     required this.activeLocation,
     required this.onLocationTap,
   });
 
+  final MapController mapController;
   final List<MemoryLocalPhoto> photos;
   final String? activeLocation;
   final ValueChanged<String> onLocationTap;
@@ -328,6 +377,7 @@ class _TimelineMap extends StatelessWidget {
     final center = _centerOf(locatedPhotos);
 
     return FlutterMap(
+      mapController: mapController,
       options: MapOptions(
         initialCenter: center,
         initialZoom: 12.5,
