@@ -141,7 +141,7 @@ class _TimelineMemoryPageState extends State<TimelineMemoryPage> {
                         isActive: _activeLocation == location,
                       ),
                     ),
-                    const SizedBox(height: 9),
+                    const SizedBox(height: 4),
                     GridView.builder(
                       padding: const EdgeInsets.symmetric(horizontal: 18),
                       shrinkWrap: true,
@@ -262,7 +262,7 @@ class _TimelineMemoryPageState extends State<TimelineMemoryPage> {
                     ),
               Container(
                 width: 1,
-                height: 22,
+                height: 10,
                 margin: const EdgeInsets.only(top: 4),
                 color: AppColors.bg03,
               ),
@@ -472,8 +472,8 @@ class _TimelineMap extends StatelessWidget {
 
       return Marker(
         point: latLng,
-        width: isActive ? 102 : 78,
-        height: isActive ? 116 : 96,
+        width: isActive ? 90 : 72,
+        height: isActive ? 102 : 84,
         child: GestureDetector(
           onTap: () => onLocationTap(location),
           child: Stack(
@@ -481,7 +481,7 @@ class _TimelineMap extends StatelessWidget {
             alignment: Alignment.topCenter,
             children: [
               Positioned(
-                top: isActive ? 8 : 16,
+                top: isActive ? 8 : 14,
                 child: _MarkerPhotoStack(
                   primary: first,
                   secondary: second,
@@ -489,8 +489,8 @@ class _TimelineMap extends StatelessWidget {
                 ),
               ),
               Positioned(
-                top: isActive ? 0 : 10,
-                right: isActive ? 6 : 2,
+                top: isActive ? 0 : 8,
+                right: isActive ? 4 : 0,
                 child: isActive
                     ? Image.asset(
                         AssetPaths.icons.photoDetail.imageLocationSpot,
@@ -513,7 +513,7 @@ class _TimelineMap extends StatelessWidget {
                       ),
               ),
               Positioned(
-                bottom: isActive ? 10 : 14,
+                bottom: isActive ? 8 : 12,
                 child: Container(
                   width: 0,
                   height: 0,
@@ -555,14 +555,14 @@ class _MarkerPhotoStack extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final size = isActive ? 86.0 : 64.0;
-    final borderRadius = BorderRadius.circular(isActive ? 18 : 16);
-    final innerRadius = BorderRadius.circular(isActive ? 14 : 12);
+    final size = isActive ? 72.0 : 54.0;
+    final borderRadius = BorderRadius.circular(isActive ? 16 : 14);
+    final innerRadius = BorderRadius.circular(isActive ? 12 : 10);
     final borderColor = isActive ? AppColors.subYellow02 : AppColors.white;
 
     return SizedBox(
-      width: isActive ? 92 : 72,
-      height: isActive ? 92 : 72,
+      width: isActive ? 80 : 62,
+      height: isActive ? 80 : 62,
       child: Stack(
         clipBehavior: Clip.none,
         alignment: Alignment.center,
@@ -570,14 +570,14 @@ class _MarkerPhotoStack extends StatelessWidget {
           if (secondary != null)
             Positioned(
               left: 0,
-              top: isActive ? 8 : 10,
+              top: isActive ? 7 : 8,
               child: Transform.rotate(
                 angle: -0.18,
                 child: _MarkerPhotoCard(
                   photo: secondary!,
-                  size: size * 0.9,
-                  borderRadius: BorderRadius.circular(isActive ? 16 : 14),
-                  innerRadius: BorderRadius.circular(isActive ? 12 : 10),
+                  size: size * 0.88,
+                  borderRadius: BorderRadius.circular(isActive ? 14 : 12),
+                  innerRadius: BorderRadius.circular(isActive ? 10 : 9),
                   borderColor: borderColor,
                 ),
               ),

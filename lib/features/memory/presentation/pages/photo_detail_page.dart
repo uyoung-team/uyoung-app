@@ -6,9 +6,9 @@ import 'package:uyoung_app/features/memory/data/memory_repository.dart';
 import 'package:uyoung_app/features/memory/data/memory_service.dart';
 import 'package:uyoung_app/features/memory/data/photo_comment_model.dart';
 import 'package:uyoung_app/features/memory/presentation/widgets/change_day_sheet.dart';
-import 'package:uyoung_app/features/memory/presentation/widgets/comment_input_bar.dart';
 import 'package:uyoung_app/features/memory/presentation/widgets/comment_sheet.dart';
 import 'package:uyoung_app/features/memory/presentation/widgets/location_sheet.dart';
+import 'package:uyoung_app/features/memory/presentation/widgets/sticker_selector.dart';
 import 'package:uyoung_app/shared/services/asset_paths.dart';
 import 'package:uyoung_app/shared/widgets/app_headline_text.dart';
 
@@ -63,20 +63,30 @@ class _PhotoDetailPageState extends State<PhotoDetailPage> {
   final List<PhotoCommentItem> _comments = [];
 
   String? _pendingStickerAsset;
-  double _pendingDxRatio = 0.5;
-  double _pendingDyRatio = 0.6;
-  final double _pendingSize = 72;
   double _photoWidth = 0;
   double _photoHeight = 530;
   bool _isFavorite = false;
   bool _isTogglingFavorite = false;
   bool _isLoadingComments = false;
+  bool _isInputMode = false;
+  final TextEditingController _commentController = TextEditingController();
+  String? _adjustingStickerAsset;
+  String? _adjustingCommentText;
+  double _adjustingDxRatio = 0.12;
+  double _adjustingDyRatio = 0.14;
+  final double _adjustingSize = 88;
 
   @override
   void initState() {
     super.initState();
     _loadComments();
     _loadFavoriteState();
+  }
+
+  @override
+  void dispose() {
+    _commentController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadComments() async {
@@ -136,15 +146,6 @@ class _PhotoDetailPageState extends State<PhotoDetailPage> {
       backgroundColor: AppColors.white,
       appBar: _appBar(context),
       body: _body(context),
-      bottomNavigationBar: CommentInputBar(
-        selectedSticker: _pendingStickerAsset,
-        onStickerSelected: _onStickerSelected,
-        onStickerRemoved: _onStickerRemoved,
-        onOpenComments: _openCommentsSheet,
-        onSend: _onSend,
-        isFavorite: _isFavorite,
-        onToggleFavorite: _isTogglingFavorite ? () {} : _toggleFavorite,
-      ),
     );
   }
 
@@ -482,6 +483,7 @@ class _PhotoDetailPageState extends State<PhotoDetailPage> {
 
   Widget _body(BuildContext context) {
     return SingleChildScrollView(
+      padding: const EdgeInsets.only(bottom: 18),
       child: Column(
         children: [
           const SizedBox(height: 20),
@@ -500,40 +502,141 @@ class _PhotoDetailPageState extends State<PhotoDetailPage> {
             ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 18),
-            child: Row(
-              children: [
-                CircleAvatar(
-                  radius: 18,
-                  backgroundColor: AppColors.bg02,
-                  backgroundImage: _uploaderProfileImage(),
-                  child: widget.uploaderProfile == null ||
-                          widget.uploaderProfile!.isEmpty
-                      ? const Icon(Icons.person_outline, color: AppColors.g02)
-                      : null,
-                ),
-                const SizedBox(width: 10),
-                Text(
-                  '${widget.uploaderName} 업로드',
-                  style: AppFont.b8_14.copyWith(color: AppColors.g03),
-                ),
-                const Spacer(),
-                GestureDetector(
-                  onTap: _isTogglingFavorite ? null : _toggleFavorite,
-                  child: SvgPicture.asset(
-                    AssetPaths.icons.photoDetail.favorite,
-                    width: 28,
-                    height: 28,
-                    colorFilter: ColorFilter.mode(
-                      _isFavorite ? AppColors.b01 : AppColors.g03,
-                      BlendMode.srcIn,
-                    ),
-                  ),
-                ),
-              ],
-            ),
+            child: _isInputMode ? _inputComposer() : _defaultInfoRow(),
           ),
-          const SizedBox(height: 18),
+          const SizedBox(height: 14),
         ],
+      ),
+    );
+  }
+
+  Widget _defaultInfoRow() {
+    return Row(
+      children: [
+        CircleAvatar(
+          radius: 18,
+          backgroundColor: AppColors.bg02,
+          backgroundImage: _uploaderProfileImage(),
+          child: widget.uploaderProfile == null || widget.uploaderProfile!.isEmpty
+              ? const Icon(Icons.person_outline, color: AppColors.g02)
+              : null,
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(
+            '${widget.uploaderName} 업로드',
+            style: AppFont.b8_14.copyWith(color: AppColors.g03),
+          ),
+        ),
+        const SizedBox(width: 12),
+        _detailActionButton(
+          imagePath: 'assets/images/smile.png',
+          onTap: () => setState(() => _isInputMode = true),
+        ),
+        const SizedBox(width: 6),
+        _detailActionButton(
+          imagePath: 'assets/images/comment.png',
+          onTap: _openCommentsSheet,
+        ),
+        const SizedBox(width: 6),
+        _detailActionButton(
+          imagePath: 'assets/images/star.png',
+          onTap: _isTogglingFavorite ? null : _toggleFavorite,
+          tint: _isFavorite ? AppColors.b01 : null,
+        ),
+      ],
+    );
+  }
+
+  Widget _inputComposer() {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        StickerSelector(
+          selectedSticker: _pendingStickerAsset,
+          onSelect: _onStickerSelected,
+          onRemove: _onStickerRemoved,
+        ),
+        const SizedBox(height: 14),
+        Row(
+          children: [
+            CircleAvatar(
+              radius: 20,
+              backgroundColor: AppColors.bg02,
+              backgroundImage: _uploaderProfileImage(),
+              child: widget.uploaderProfile == null || widget.uploaderProfile!.isEmpty
+                  ? const Icon(Icons.person_outline, color: AppColors.g02)
+                  : null,
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Container(
+                height: 40,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: AppColors.bg02, width: 1.5),
+                ),
+                child: TextField(
+                  controller: _commentController,
+                  onChanged: (_) => setState(() {}),
+                  decoration: InputDecoration(
+                    hintText: '느끼는 감정을 적어 주세요!',
+                    hintStyle: AppFont.b8_14.copyWith(color: AppColors.g03),
+                    border: InputBorder.none,
+                  ),
+                  style: AppFont.b8_14,
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            GestureDetector(
+              onTap: (_pendingStickerAsset == null &&
+                      _commentController.text.trim().isEmpty)
+                  ? null
+                  : () => _onSend(_commentController.text.trim()),
+              child: Container(
+                width: 40,
+                height: 40,
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppColors.b03,
+                ),
+                child: const Icon(
+                  Icons.arrow_upward,
+                  size: 18,
+                  color: AppColors.b01,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _detailActionButton({
+    required String imagePath,
+    required VoidCallback? onTap,
+    Color? tint,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+        child: Container(
+          width: 60,
+          height: 40,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: AppColors.bg02, width: 2),
+          ),
+          child: Center(
+          child: tint == null
+              ? Image.asset(imagePath, width: 23, height: 23)
+              : ColorFiltered(
+                  colorFilter: ColorFilter.mode(tint, BlendMode.srcIn),
+                  child: Image.asset(imagePath, width: 23, height: 23),
+                ),
+        ),
       ),
     );
   }
@@ -588,8 +691,8 @@ class _PhotoDetailPageState extends State<PhotoDetailPage> {
                 _persistedStickerWidget(comment, _photoWidth, _photoHeight),
               for (final sticker in _stickers)
                 _placedStickerWidget(sticker, _photoWidth, _photoHeight),
-              if (_pendingStickerAsset != null)
-                _pendingStickerWidget(_photoWidth, _photoHeight),
+              if (_adjustingStickerAsset != null)
+                _adjustingStickerWidget(_photoWidth, _photoHeight),
             ],
           ),
         );
@@ -646,17 +749,37 @@ class _PhotoDetailPageState extends State<PhotoDetailPage> {
     return Positioned(
       left: left,
       top: top,
-      child: Image.asset(
-        comment.stickerAsset!,
-        width: size,
-        height: size,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Image.asset(
+            comment.stickerAsset!,
+            width: size,
+            height: size,
+          ),
+          if (comment.content.trim().isNotEmpty) ...[
+            const SizedBox(width: 8),
+            Container(
+              constraints: const BoxConstraints(maxWidth: 180),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(
+                color: AppColors.white,
+                borderRadius: BorderRadius.circular(22),
+              ),
+              child: Text(
+                comment.content,
+                style: AppFont.b8_14.copyWith(color: AppColors.black),
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }
 
-  Widget _pendingStickerWidget(double photoWidth, double photoHeight) {
-    final left = (photoWidth - _pendingSize) * _pendingDxRatio;
-    final top = (photoHeight - _pendingSize) * _pendingDyRatio;
+  Widget _adjustingStickerWidget(double photoWidth, double photoHeight) {
+    final left = (photoWidth - _adjustingSize - 180).clamp(0.0, photoWidth - _adjustingSize);
+    final top = (photoHeight - _adjustingSize) * _adjustingDyRatio;
 
     return Positioned(
       left: left,
@@ -664,34 +787,150 @@ class _PhotoDetailPageState extends State<PhotoDetailPage> {
       child: GestureDetector(
         onPanUpdate: (details) {
           setState(() {
-            final nextLeft = (left + details.delta.dx).clamp(
+            final nextLeft = ((photoWidth - _adjustingSize - 180) * _adjustingDxRatio + details.delta.dx).clamp(
               0.0,
-              photoWidth - _pendingSize,
+              photoWidth - _adjustingSize - 180,
             );
             final nextTop = (top + details.delta.dy).clamp(
               0.0,
-              photoHeight - _pendingSize,
+              photoHeight - _adjustingSize,
             );
-            _pendingDxRatio = (nextLeft / (photoWidth - _pendingSize)).clamp(
+            _adjustingDxRatio = (nextLeft / (photoWidth - _adjustingSize - 180)).clamp(
               0.0,
               1.0,
             );
-            _pendingDyRatio = (nextTop / (photoHeight - _pendingSize)).clamp(
+            _adjustingDyRatio = (nextTop / (photoHeight - _adjustingSize)).clamp(
               0.0,
               1.0,
             );
           });
         },
-        child: Opacity(
-          opacity: 0.92,
-          child: Image.asset(
-            _pendingStickerAsset!,
-            width: _pendingSize,
-            height: _pendingSize,
-          ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Column(
+              children: [
+                Row(
+                  children: [
+                    _adjustIcon(
+                      Icons.close,
+                      onTap: () {
+                        setState(() {
+                          _adjustingStickerAsset = null;
+                          _adjustingCommentText = null;
+                        });
+                      },
+                    ),
+                    const SizedBox(width: 6),
+                    _adjustIcon(
+                      Icons.check,
+                      onTap: _confirmAdjustedSticker,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Image.asset(
+                  _adjustingStickerAsset!,
+                  width: _adjustingSize,
+                  height: _adjustingSize,
+                ),
+              ],
+            ),
+            if ((_adjustingCommentText ?? '').trim().isNotEmpty) ...[
+              const SizedBox(width: 8),
+              Container(
+                constraints: const BoxConstraints(maxWidth: 180),
+                margin: const EdgeInsets.only(top: 26),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                decoration: BoxDecoration(
+                  color: AppColors.white,
+                  borderRadius: BorderRadius.circular(22),
+                ),
+                child: Text(
+                  _adjustingCommentText!.trim(),
+                  style: AppFont.b8_14.copyWith(color: AppColors.black),
+                ),
+              ),
+            ],
+          ],
         ),
       ),
     );
+  }
+
+  Widget _adjustIcon(IconData icon, {required VoidCallback onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 24,
+        height: 24,
+        decoration: const BoxDecoration(
+          color: AppColors.b02,
+          shape: BoxShape.circle,
+        ),
+        child: Icon(
+          icon,
+          size: 15,
+          color: AppColors.white,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _confirmAdjustedSticker() async {
+    final asset = _adjustingStickerAsset;
+    final text = _adjustingCommentText?.trim() ?? '';
+    if (asset == null) {
+      return;
+    }
+
+    final photoId = widget.photoId;
+    if (photoId == null || photoId.isEmpty) {
+      setState(() {
+        _stickers.add(
+          PlacedSticker(
+            assetPath: asset,
+            dxRatio: _adjustingDxRatio,
+            dyRatio: _adjustingDyRatio,
+            size: _adjustingSize,
+          ),
+        );
+        _adjustingStickerAsset = null;
+        _adjustingCommentText = null;
+      });
+      return;
+    }
+
+    try {
+      final comment = await _repository.createPhotoComment(
+        photoId: photoId,
+        content: text,
+        stickerAsset: asset,
+        stickerDxRatio: _adjustingDxRatio,
+        stickerDyRatio: _adjustingDyRatio,
+        stickerSize: _adjustingSize,
+      );
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _comments.insert(0, comment);
+        _adjustingStickerAsset = null;
+        _adjustingCommentText = null;
+      });
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(const SnackBar(content: Text('댓글을 남겼어요.')));
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(content: Text(error.toString().replaceFirst('Bad state: ', ''))),
+        );
+    }
   }
 
   void _onStickerSelected(String assetPath) {
@@ -737,39 +976,33 @@ class _PhotoDetailPageState extends State<PhotoDetailPage> {
       return;
     }
 
-    final photoId = widget.photoId;
-    if (photoId == null || photoId.isEmpty) {
-      if (_pendingStickerAsset != null) {
-        setState(() {
-          _stickers.add(
-            PlacedSticker(
-              assetPath: _pendingStickerAsset!,
-              dxRatio: _pendingDxRatio,
-              dyRatio: _pendingDyRatio,
-              size: _pendingSize,
-            ),
-          );
-          _pendingStickerAsset = null;
-        });
-      }
+    if (_pendingStickerAsset != null) {
+      setState(() {
+        _adjustingStickerAsset = _pendingStickerAsset;
+        _adjustingCommentText = commentText.trim();
+        _pendingStickerAsset = null;
+        _commentController.clear();
+        _isInputMode = false;
+      });
       return;
     }
 
     try {
+      final photoId = widget.photoId;
+      if (photoId == null || photoId.isEmpty) {
+        return;
+      }
       final comment = await _repository.createPhotoComment(
         photoId: photoId,
         content: commentText.trim(),
-        stickerAsset: _pendingStickerAsset,
-        stickerDxRatio: _pendingStickerAsset == null ? null : _pendingDxRatio,
-        stickerDyRatio: _pendingStickerAsset == null ? null : _pendingDyRatio,
-        stickerSize: _pendingStickerAsset == null ? null : _pendingSize,
       );
       if (!mounted) {
         return;
       }
       setState(() {
         _comments.insert(0, comment);
-        _pendingStickerAsset = null;
+        _commentController.clear();
+        _isInputMode = false;
       });
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
