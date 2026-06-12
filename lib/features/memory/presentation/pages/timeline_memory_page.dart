@@ -132,7 +132,7 @@ class _TimelineMemoryPageState extends State<TimelineMemoryPage> {
                   )
                 else ...[
                   for (final location in locationKeys) ...[
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 9),
                     Container(
                       key: _sectionKeys[location],
                       child: _locationLabel(
@@ -195,34 +195,24 @@ class _TimelineMemoryPageState extends State<TimelineMemoryPage> {
 
   Widget _dateDropdown(List<DateTime> dates) {
     return Container(
-      height: 56,
-      padding: const EdgeInsets.symmetric(horizontal: 20),
+      height: 44,
+      padding: const EdgeInsets.symmetric(horizontal: 14),
       decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(28),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.black.withValues(alpha: 0.06),
-            blurRadius: 16,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        border: Border.all(color: AppColors.bg03),
+        borderRadius: BorderRadius.circular(14),
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<DateTime>(
           value: _selectedDate,
           isExpanded: true,
-          alignment: Alignment.center,
-          icon: const Icon(Icons.keyboard_arrow_down_rounded, size: 28),
+          icon: const Icon(Icons.keyboard_arrow_down_rounded, size: 22),
           items: dates
               .map(
                 (date) => DropdownMenuItem(
                   value: date,
-                  child: Center(
-                    child: Text(
-                      _isToday(date) ? '오늘' : '${date.month}월 ${date.day}일',
-                      style: AppFont.h4_22,
-                    ),
+                  child: Text(
+                    '${date.year}년 ${date.month}월 ${date.day}일',
+                    style: AppFont.b8_14,
                   ),
                 ),
               )
@@ -374,12 +364,6 @@ class _TimelineMemoryPageState extends State<TimelineMemoryPage> {
     );
   }
 
-  bool _isToday(DateTime date) {
-    final now = DateTime.now();
-    return now.year == date.year &&
-        now.month == date.month &&
-        now.day == date.day;
-  }
 }
 
 class _TimelineMap extends StatelessWidget {
@@ -482,6 +466,7 @@ class _TimelineMap extends StatelessWidget {
       final location = indexedEntry.value.key;
       final photosAtPoint = indexedEntry.value.value;
       final first = photosAtPoint.first;
+      final second = photosAtPoint.length > 1 ? photosAtPoint[1] : null;
       final latLng = LatLng(first.latitude!, first.longitude!);
       final isActive = activeLocation == location;
 
@@ -497,28 +482,10 @@ class _TimelineMap extends StatelessWidget {
             children: [
               Positioned(
                 top: isActive ? 8 : 16,
-                child: Container(
-                  width: isActive ? 102 : 78,
-                  height: isActive ? 102 : 78,
-                  decoration: BoxDecoration(
-                    color: AppColors.white,
-                    borderRadius: BorderRadius.circular(isActive ? 22 : 18),
-                    border: Border.all(
-                      color: isActive ? AppColors.subYellow02 : AppColors.white,
-                      width: isActive ? 5 : 2.5,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.black.withValues(alpha: 0.22),
-                        blurRadius: 14,
-                        offset: const Offset(0, 6),
-                      ),
-                    ],
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(isActive ? 16 : 14),
-                    child: MemoryPhotoThumbnail(photo: first),
-                  ),
+                child: _MarkerPhotoStack(
+                  primary: first,
+                  secondary: second,
+                  isActive: isActive,
                 ),
               ),
               Positioned(
@@ -572,6 +539,102 @@ class _TimelineMap extends StatelessWidget {
         (a, b) => (a.takenAt ?? a.createdAt).compareTo(b.takenAt ?? b.createdAt),
       );
     return sorted.first.takenAt ?? sorted.first.createdAt;
+  }
+}
+
+class _MarkerPhotoStack extends StatelessWidget {
+  const _MarkerPhotoStack({
+    required this.primary,
+    required this.secondary,
+    required this.isActive,
+  });
+
+  final MemoryLocalPhoto primary;
+  final MemoryLocalPhoto? secondary;
+  final bool isActive;
+
+  @override
+  Widget build(BuildContext context) {
+    final size = isActive ? 102.0 : 78.0;
+    final borderRadius = BorderRadius.circular(isActive ? 22 : 18);
+    final innerRadius = BorderRadius.circular(isActive ? 16 : 14);
+    final borderColor = isActive ? AppColors.subYellow02 : AppColors.white;
+
+    return SizedBox(
+      width: isActive ? 110 : 90,
+      height: isActive ? 108 : 86,
+      child: Stack(
+        clipBehavior: Clip.none,
+        alignment: Alignment.center,
+        children: [
+          if (secondary != null)
+            Positioned(
+              left: 0,
+              top: isActive ? 10 : 12,
+              child: Transform.rotate(
+                angle: -0.18,
+                child: _MarkerPhotoCard(
+                  photo: secondary!,
+                  size: size * 0.9,
+                  borderRadius: BorderRadius.circular(isActive ? 18 : 16),
+                  innerRadius: BorderRadius.circular(isActive ? 13 : 12),
+                  borderColor: borderColor,
+                ),
+              ),
+            ),
+          Positioned(
+            right: 0,
+            child: _MarkerPhotoCard(
+              photo: primary,
+              size: size,
+              borderRadius: borderRadius,
+              innerRadius: innerRadius,
+              borderColor: borderColor,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MarkerPhotoCard extends StatelessWidget {
+  const _MarkerPhotoCard({
+    required this.photo,
+    required this.size,
+    required this.borderRadius,
+    required this.innerRadius,
+    required this.borderColor,
+  });
+
+  final MemoryLocalPhoto photo;
+  final double size;
+  final BorderRadius borderRadius;
+  final BorderRadius innerRadius;
+  final Color borderColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: borderRadius,
+        border: Border.all(color: borderColor, width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.black.withValues(alpha: 0.22),
+            blurRadius: 14,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: innerRadius,
+        child: MemoryPhotoThumbnail(photo: photo),
+      ),
+    );
   }
 }
 
