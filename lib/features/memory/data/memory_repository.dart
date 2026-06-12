@@ -569,6 +569,56 @@ class MemoryRepository {
     }
   }
 
+  Future<PhotoCommentItem> updatePhotoComment({
+    required String commentId,
+    double? stickerDxRatio,
+    double? stickerDyRatio,
+    double? stickerSize,
+  }) async {
+    try {
+      final row = await service.updatePhotoComment(
+        commentId: commentId,
+        stickerDxRatio: stickerDxRatio,
+        stickerDyRatio: stickerDyRatio,
+        stickerSize: stickerSize,
+      );
+
+      final userId = row['user_id']?.toString() ?? '';
+      final profileRows = await service.fetchProfilesByIds(
+        userId.isEmpty ? const [] : [userId],
+      );
+      final profile = profileRows.isEmpty
+          ? const <String, dynamic>{}
+          : profileRows.first;
+
+      return PhotoCommentItem(
+        id: (row['id'] ?? '').toString(),
+        photoId: (row['photo_id'] ?? '').toString(),
+        userId: userId,
+        nickname: (profile['nickname'] ?? '버블 메이트').toString(),
+        avatarUrl: profile['avatar_url']?.toString(),
+        content: (row['content'] ?? '').toString(),
+        createdAt:
+            DateTime.tryParse((row['created_at'] ?? '').toString()) ??
+            DateTime.now(),
+        stickerAsset: row['sticker_asset']?.toString(),
+        stickerDxRatio: _toDouble(row['sticker_dx_ratio']),
+        stickerDyRatio: _toDouble(row['sticker_dy_ratio']),
+        stickerSize: _toDouble(row['sticker_size']),
+      );
+    } catch (error) {
+      throw StateError('스티커 위치를 저장하지 못했어요. $error');
+    }
+  }
+
+  Future<void> deletePhotoComment(String commentId) async {
+    try {
+      await service.deletePhotoComment(commentId);
+    } catch (error) {
+      throw StateError('댓글을 삭제하지 못했어요. $error');
+    }
+  }
+
   Future<Map<String, List<MemoryMemberPreview>>> _groupMembersByIsland(
     List<Map<String, dynamic>> rows,
   ) async {

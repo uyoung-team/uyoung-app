@@ -706,6 +706,46 @@ class MemoryService {
     return Map<String, dynamic>.from(response);
   }
 
+  Future<Map<String, dynamic>> updatePhotoComment({
+    required String commentId,
+    double? stickerDxRatio,
+    double? stickerDyRatio,
+    double? stickerSize,
+  }) async {
+    final client = _clientProvider.client;
+    if (client == null || commentId.isEmpty) {
+      throw StateError('로그인이 필요합니다.');
+    }
+
+    final response = await client
+        .from('photo_comments')
+        .update({
+          ...?stickerDxRatio == null
+              ? null
+              : {'sticker_dx_ratio': stickerDxRatio},
+          ...?stickerDyRatio == null
+              ? null
+              : {'sticker_dy_ratio': stickerDyRatio},
+          ...?stickerSize == null ? null : {'sticker_size': stickerSize},
+        })
+        .eq('id', commentId)
+        .select(
+          'id, photo_id, user_id, content, sticker_asset, sticker_dx_ratio, sticker_dy_ratio, sticker_size, created_at',
+        )
+        .single();
+
+    return Map<String, dynamic>.from(response);
+  }
+
+  Future<void> deletePhotoComment(String commentId) async {
+    final client = _clientProvider.client;
+    if (client == null || commentId.isEmpty) {
+      throw StateError('로그인이 필요합니다.');
+    }
+
+    await client.from('photo_comments').delete().eq('id', commentId);
+  }
+
   String _contentTypeFor(String fileName) {
     final extension = fileName.split('.').last.toLowerCase();
     switch (extension) {

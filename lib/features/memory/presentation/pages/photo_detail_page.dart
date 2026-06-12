@@ -70,11 +70,13 @@ class _PhotoDetailPageState extends State<PhotoDetailPage> {
   bool _isLoadingComments = false;
   bool _isInputMode = false;
   final TextEditingController _commentController = TextEditingController();
-  String? _adjustingStickerAsset;
-  String? _adjustingCommentText;
-  double _adjustingDxRatio = 0.12;
-  double _adjustingDyRatio = 0.14;
-  final double _adjustingSize = 88;
+  String? _editingCommentId;
+  int? _editingLocalStickerIndex;
+  String? _editingStickerAsset;
+  double _editingDxRatio = 0.12;
+  double _editingDyRatio = 0.14;
+  double _editingSize = 88;
+  bool _isSavingStickerPosition = false;
 
   @override
   void initState() {
@@ -511,38 +513,47 @@ class _PhotoDetailPageState extends State<PhotoDetailPage> {
   }
 
   Widget _defaultInfoRow() {
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        CircleAvatar(
-          radius: 18,
-          backgroundColor: AppColors.bg02,
-          backgroundImage: _uploaderProfileImage(),
-          child: widget.uploaderProfile == null || widget.uploaderProfile!.isEmpty
-              ? const Icon(Icons.person_outline, color: AppColors.g02)
-              : null,
+        Row(
+          children: [
+            CircleAvatar(
+              radius: 18,
+              backgroundColor: AppColors.bg02,
+              backgroundImage: _uploaderProfileImage(),
+              child: widget.uploaderProfile == null || widget.uploaderProfile!.isEmpty
+                  ? const Icon(Icons.person_outline, color: AppColors.g02)
+                  : null,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                '${widget.uploaderName} 업로드',
+                style: AppFont.b8_14.copyWith(color: AppColors.g03),
+              ),
+            ),
+          ],
         ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Text(
-            '${widget.uploaderName} 업로드',
-            style: AppFont.b8_14.copyWith(color: AppColors.g03),
-          ),
-        ),
-        const SizedBox(width: 12),
-        _detailActionButton(
-          imagePath: 'assets/images/smile.png',
-          onTap: () => setState(() => _isInputMode = true),
-        ),
-        const SizedBox(width: 6),
-        _detailActionButton(
-          imagePath: 'assets/images/comment.png',
-          onTap: _openCommentsSheet,
-        ),
-        const SizedBox(width: 6),
-        _detailActionButton(
-          imagePath: 'assets/images/star.png',
-          onTap: _isTogglingFavorite ? null : _toggleFavorite,
-          tint: _isFavorite ? AppColors.b01 : null,
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            _detailActionButton(
+              imagePath: 'assets/images/smile.png',
+              onTap: () => setState(() => _isInputMode = true),
+            ),
+            const SizedBox(width: 6),
+            _detailActionButton(
+              imagePath: 'assets/images/comment.png',
+              onTap: _openCommentsSheet,
+            ),
+            const SizedBox(width: 6),
+            _detailActionButton(
+              imagePath: 'assets/images/star.png',
+              onTap: _isTogglingFavorite ? null : _toggleFavorite,
+              tint: _isFavorite ? AppColors.b01 : null,
+            ),
+          ],
         ),
       ],
     );
@@ -683,17 +694,22 @@ class _PhotoDetailPageState extends State<PhotoDetailPage> {
         return SizedBox(
           width: double.infinity,
           height: _photoHeight,
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              _buildImage(widget.imagePath),
-              for (final comment in _comments.where((item) => item.hasSticker))
-                _persistedStickerWidget(comment, _photoWidth, _photoHeight),
-              for (final sticker in _stickers)
-                _placedStickerWidget(sticker, _photoWidth, _photoHeight),
-              if (_adjustingStickerAsset != null)
-                _adjustingStickerWidget(_photoWidth, _photoHeight),
-            ],
+          child: GestureDetector(
+            onTap: _clearStickerEditing,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                _buildImage(widget.imagePath),
+                for (final comment in _comments.where((item) => item.hasSticker))
+                  if (_editingCommentId != comment.id)
+                    _persistedStickerWidget(comment, _photoWidth, _photoHeight),
+                for (int index = 0; index < _stickers.length; index++)
+                  if (_editingLocalStickerIndex != index)
+                    _placedStickerWidget(index, _stickers[index], _photoWidth, _photoHeight),
+                if (_editingStickerAsset != null)
+                  _editingStickerWidget(_photoWidth, _photoHeight),
+              ],
+            ),
           ),
         );
       },
@@ -717,6 +733,7 @@ class _PhotoDetailPageState extends State<PhotoDetailPage> {
   }
 
   Widget _placedStickerWidget(
+    int index,
     PlacedSticker sticker,
     double photoWidth,
     double photoHeight,
@@ -727,10 +744,13 @@ class _PhotoDetailPageState extends State<PhotoDetailPage> {
     return Positioned(
       left: left,
       top: top,
-      child: Image.asset(
-        sticker.assetPath,
-        width: sticker.size,
-        height: sticker.size,
+      child: GestureDetector(
+        onLongPress: () => _startEditingLocalSticker(index, sticker),
+        child: Image.asset(
+          sticker.assetPath,
+          width: sticker.size,
+          height: sticker.size,
+        ),
       ),
     );
   }
@@ -749,109 +769,87 @@ class _PhotoDetailPageState extends State<PhotoDetailPage> {
     return Positioned(
       left: left,
       top: top,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Image.asset(
-            comment.stickerAsset!,
-            width: size,
-            height: size,
-          ),
-          if (comment.content.trim().isNotEmpty) ...[
-            const SizedBox(width: 8),
-            Container(
-              constraints: const BoxConstraints(maxWidth: 180),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-              decoration: BoxDecoration(
-                color: AppColors.white,
-                borderRadius: BorderRadius.circular(22),
-              ),
-              child: Text(
-                comment.content,
-                style: AppFont.b8_14.copyWith(color: AppColors.black),
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _adjustingStickerWidget(double photoWidth, double photoHeight) {
-    final left = (photoWidth - _adjustingSize - 180).clamp(0.0, photoWidth - _adjustingSize);
-    final top = (photoHeight - _adjustingSize) * _adjustingDyRatio;
-
-    return Positioned(
-      left: left,
-      top: top,
       child: GestureDetector(
-        onPanUpdate: (details) {
-          setState(() {
-            final nextLeft = ((photoWidth - _adjustingSize - 180) * _adjustingDxRatio + details.delta.dx).clamp(
-              0.0,
-              photoWidth - _adjustingSize - 180,
-            );
-            final nextTop = (top + details.delta.dy).clamp(
-              0.0,
-              photoHeight - _adjustingSize,
-            );
-            _adjustingDxRatio = (nextLeft / (photoWidth - _adjustingSize - 180)).clamp(
-              0.0,
-              1.0,
-            );
-            _adjustingDyRatio = (nextTop / (photoHeight - _adjustingSize)).clamp(
-              0.0,
-              1.0,
-            );
-          });
-        },
+        onLongPress: () => _startEditingPersistedSticker(comment),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Column(
-              children: [
-                Row(
-                  children: [
-                    _adjustIcon(
-                      Icons.close,
-                      onTap: () {
-                        setState(() {
-                          _adjustingStickerAsset = null;
-                          _adjustingCommentText = null;
-                        });
-                      },
-                    ),
-                    const SizedBox(width: 6),
-                    _adjustIcon(
-                      Icons.check,
-                      onTap: _confirmAdjustedSticker,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                Image.asset(
-                  _adjustingStickerAsset!,
-                  width: _adjustingSize,
-                  height: _adjustingSize,
-                ),
-              ],
+            Image.asset(
+              comment.stickerAsset!,
+              width: size,
+              height: size,
             ),
-            if ((_adjustingCommentText ?? '').trim().isNotEmpty) ...[
+            if (comment.content.trim().isNotEmpty) ...[
               const SizedBox(width: 8),
               Container(
                 constraints: const BoxConstraints(maxWidth: 180),
-                margin: const EdgeInsets.only(top: 26),
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                 decoration: BoxDecoration(
                   color: AppColors.white,
                   borderRadius: BorderRadius.circular(22),
                 ),
                 child: Text(
-                  _adjustingCommentText!.trim(),
+                  comment.content,
                   style: AppFont.b8_14.copyWith(color: AppColors.black),
                 ),
               ),
             ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _editingStickerWidget(double photoWidth, double photoHeight) {
+    final left = (photoWidth - _editingSize) * _editingDxRatio;
+    final top = (photoHeight - _editingSize) * _editingDyRatio;
+
+    return Positioned(
+      left: left,
+      top: top,
+      child: GestureDetector(
+        onLongPressStart: (_) {},
+        onPanUpdate: (details) {
+          setState(() {
+            final nextLeft = (left + details.delta.dx).clamp(
+              0.0,
+              photoWidth - _editingSize,
+            );
+            final nextTop = (top + details.delta.dy).clamp(
+              0.0,
+              photoHeight - _editingSize,
+            );
+            _editingDxRatio = (nextLeft / (photoWidth - _editingSize)).clamp(
+              0.0,
+              1.0,
+            );
+            _editingDyRatio = (nextTop / (photoHeight - _editingSize)).clamp(
+              0.0,
+              1.0,
+            );
+          });
+        },
+        onPanEnd: (_) => _persistStickerEditing(),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Column(
+              children: [
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: _adjustIcon(
+                    Icons.close,
+                    onTap: _deleteEditingSticker,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Image.asset(
+                  _editingStickerAsset!,
+                  width: _editingSize,
+                  height: _editingSize,
+                ),
+              ],
+            ),
           ],
         ),
       ),
@@ -877,50 +875,107 @@ class _PhotoDetailPageState extends State<PhotoDetailPage> {
     );
   }
 
-  Future<void> _confirmAdjustedSticker() async {
-    final asset = _adjustingStickerAsset;
-    final text = _adjustingCommentText?.trim() ?? '';
-    if (asset == null) {
+  void _clearStickerEditing() {
+    if (_editingCommentId == null && _editingLocalStickerIndex == null) {
+      return;
+    }
+    setState(() {
+      _editingCommentId = null;
+      _editingLocalStickerIndex = null;
+      _editingStickerAsset = null;
+      _isSavingStickerPosition = false;
+    });
+  }
+
+  void _startEditingPersistedSticker(PhotoCommentItem comment) {
+    setState(() {
+      _editingCommentId = comment.id;
+      _editingLocalStickerIndex = null;
+      _editingStickerAsset = comment.stickerAsset;
+      _editingDxRatio = comment.stickerDxRatio ?? 0.5;
+      _editingDyRatio = comment.stickerDyRatio ?? 0.6;
+      _editingSize = comment.stickerSize ?? 72;
+    });
+  }
+
+  void _startEditingLocalSticker(int index, PlacedSticker sticker) {
+    setState(() {
+      _editingCommentId = null;
+      _editingLocalStickerIndex = index;
+      _editingStickerAsset = sticker.assetPath;
+      _editingDxRatio = sticker.dxRatio;
+      _editingDyRatio = sticker.dyRatio;
+      _editingSize = sticker.size;
+    });
+  }
+
+  Future<void> _persistStickerEditing() async {
+    if (_editingCommentId == null || _isSavingStickerPosition) {
+      if (_editingLocalStickerIndex != null &&
+          _editingLocalStickerIndex! >= 0 &&
+          _editingLocalStickerIndex! < _stickers.length) {
+        setState(() {
+          _stickers[_editingLocalStickerIndex!].dxRatio = _editingDxRatio;
+          _stickers[_editingLocalStickerIndex!].dyRatio = _editingDyRatio;
+          _stickers[_editingLocalStickerIndex!].size = _editingSize;
+        });
+      }
       return;
     }
 
-    final photoId = widget.photoId;
-    if (photoId == null || photoId.isEmpty) {
-      setState(() {
-        _stickers.add(
-          PlacedSticker(
-            assetPath: asset,
-            dxRatio: _adjustingDxRatio,
-            dyRatio: _adjustingDyRatio,
-            size: _adjustingSize,
-          ),
-        );
-        _adjustingStickerAsset = null;
-        _adjustingCommentText = null;
-      });
-      return;
-    }
-
+    setState(() => _isSavingStickerPosition = true);
     try {
-      final comment = await _repository.createPhotoComment(
-        photoId: photoId,
-        content: text,
-        stickerAsset: asset,
-        stickerDxRatio: _adjustingDxRatio,
-        stickerDyRatio: _adjustingDyRatio,
-        stickerSize: _adjustingSize,
+      final updated = await _repository.updatePhotoComment(
+        commentId: _editingCommentId!,
+        stickerDxRatio: _editingDxRatio,
+        stickerDyRatio: _editingDyRatio,
+        stickerSize: _editingSize,
       );
       if (!mounted) {
         return;
       }
+      final index = _comments.indexWhere((item) => item.id == updated.id);
+      if (index != -1) {
+        setState(() {
+          _comments[index] = updated;
+          _isSavingStickerPosition = false;
+        });
+      }
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+      setState(() => _isSavingStickerPosition = false);
+    }
+  }
+
+  Future<void> _deleteEditingSticker() async {
+    if (_editingLocalStickerIndex != null &&
+        _editingLocalStickerIndex! >= 0 &&
+        _editingLocalStickerIndex! < _stickers.length) {
       setState(() {
-        _comments.insert(0, comment);
-        _adjustingStickerAsset = null;
-        _adjustingCommentText = null;
+        _stickers.removeAt(_editingLocalStickerIndex!);
+        _editingLocalStickerIndex = null;
+        _editingStickerAsset = null;
       });
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(const SnackBar(content: Text('댓글을 남겼어요.')));
+      return;
+    }
+
+    final commentId = _editingCommentId;
+    if (commentId == null) {
+      return;
+    }
+
+    try {
+      await _repository.deletePhotoComment(commentId);
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _comments.removeWhere((item) => item.id == commentId);
+        _editingCommentId = null;
+        _editingStickerAsset = null;
+      });
     } catch (error) {
       if (!mounted) {
         return;
@@ -976,31 +1031,40 @@ class _PhotoDetailPageState extends State<PhotoDetailPage> {
       return;
     }
 
-    if (_pendingStickerAsset != null) {
-      setState(() {
-        _adjustingStickerAsset = _pendingStickerAsset;
-        _adjustingCommentText = commentText.trim();
-        _pendingStickerAsset = null;
-        _commentController.clear();
-        _isInputMode = false;
-      });
-      return;
-    }
-
     try {
       final photoId = widget.photoId;
       if (photoId == null || photoId.isEmpty) {
+        if (_pendingStickerAsset != null) {
+          setState(() {
+            _stickers.add(
+              PlacedSticker(
+                assetPath: _pendingStickerAsset!,
+                dxRatio: 0.5,
+                dyRatio: 0.6,
+                size: 72,
+              ),
+            );
+            _pendingStickerAsset = null;
+            _commentController.clear();
+            _isInputMode = false;
+          });
+        }
         return;
       }
       final comment = await _repository.createPhotoComment(
         photoId: photoId,
         content: commentText.trim(),
+        stickerAsset: _pendingStickerAsset,
+        stickerDxRatio: _pendingStickerAsset == null ? null : 0.5,
+        stickerDyRatio: _pendingStickerAsset == null ? null : 0.6,
+        stickerSize: _pendingStickerAsset == null ? null : 72,
       );
       if (!mounted) {
         return;
       }
       setState(() {
         _comments.insert(0, comment);
+        _pendingStickerAsset = null;
         _commentController.clear();
         _isInputMode = false;
       });

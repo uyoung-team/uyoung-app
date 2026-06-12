@@ -40,3 +40,16 @@ with check (
       and im.user_id = auth.uid()
   )
 );
+
+create policy "photo_comments update"
+on public.photo_comments
+for update
+to authenticated
+using (user_id = auth.uid())
+with check (user_id = auth.uid());
+
+create policy "photo_comments delete"
+on public.photo_comments
+for delete
+to authenticated
+using (user_id = auth.uid());
