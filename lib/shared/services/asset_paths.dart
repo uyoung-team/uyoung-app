@@ -100,6 +100,8 @@ class PhotoDetailIcons {
   final String carouselOn = 'assets/icons/photodetail/icon_carousel_on.svg';
   final String comment = 'assets/icons/photodetail/icon_comment.svg';
   final String favorite = 'assets/icons/photodetail/icon_favorite.svg';
+  final String imageLocationSpot =
+      'assets/icons/photodetail/image_location_spot.png';
   final String imoji = 'assets/icons/photodetail/icon_imoji.svg';
   final String warning = 'assets/icons/photodetail/icon_warning.svg';
 }

@@ -1,3 +1,5 @@
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
@@ -7,6 +9,7 @@ import 'package:uyoung_app/features/memory/data/memory_location_dummy.dart';
 import 'package:uyoung_app/features/memory/presentation/pages/memory_local_photo.dart';
 import 'package:uyoung_app/features/memory/presentation/pages/photo_detail_page.dart';
 import 'package:uyoung_app/features/memory/presentation/widgets/memory_photo_thumbnail.dart';
+import 'package:uyoung_app/shared/services/asset_paths.dart';
 
 class TimelineMemoryPage extends StatefulWidget {
   const TimelineMemoryPage({
@@ -192,23 +195,34 @@ class _TimelineMemoryPageState extends State<TimelineMemoryPage> {
 
   Widget _dateDropdown(List<DateTime> dates) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
+      height: 56,
+      padding: const EdgeInsets.symmetric(horizontal: 20),
       decoration: BoxDecoration(
-        border: Border.all(color: const Color(0xFFE5E5E5)),
-        borderRadius: BorderRadius.circular(12),
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(28),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.black.withValues(alpha: 0.06),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<DateTime>(
           value: _selectedDate,
           isExpanded: true,
-          icon: const Icon(Icons.keyboard_arrow_down_rounded),
+          alignment: Alignment.center,
+          icon: const Icon(Icons.keyboard_arrow_down_rounded, size: 28),
           items: dates
               .map(
                 (date) => DropdownMenuItem(
                   value: date,
-                  child: Text(
-                    '${date.month}월 ${date.day}일',
-                    style: AppFont.b8_14,
+                  child: Center(
+                    child: Text(
+                      _isToday(date) ? '오늘' : '${date.month}월 ${date.day}일',
+                      style: AppFont.h4_22,
+                    ),
                   ),
                 ),
               )
@@ -232,27 +246,48 @@ class _TimelineMemoryPageState extends State<TimelineMemoryPage> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 18),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 20,
-            height: 20,
-            decoration: BoxDecoration(
-              color: isActive ? AppColors.subYellow02 : AppColors.bg03,
-              shape: BoxShape.circle,
-            ),
-            alignment: Alignment.center,
-            child: Text(
-              '$order',
-              style: AppFont.b9_12.copyWith(
-                color: isActive ? AppColors.black : AppColors.g02,
+          Column(
+            children: [
+              isActive
+                  ? Image.asset(
+                      AssetPaths.icons.photoDetail.imageLocationSpot,
+                      width: 26,
+                      height: 32,
+                      fit: BoxFit.contain,
+                    )
+                  : Container(
+                      width: 24,
+                      height: 24,
+                      decoration: const BoxDecoration(
+                        color: AppColors.bg03,
+                        shape: BoxShape.circle,
+                      ),
+                      alignment: Alignment.center,
+                      child: Text(
+                        '$order',
+                        style: AppFont.b9_12.copyWith(color: AppColors.g02),
+                      ),
+                    ),
+              Container(
+                width: 1,
+                height: 64,
+                margin: const EdgeInsets.only(top: 6),
+                color: AppColors.bg03,
               ),
-            ),
+            ],
           ),
-          const SizedBox(width: 6),
-          Text(
-            title,
-            style: AppFont.b8_14.copyWith(
-              color: isActive ? AppColors.black : AppColors.g02,
+          const SizedBox(width: 10),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.only(top: 2),
+              child: Text(
+                title,
+                style: AppFont.b7_16.copyWith(
+                  color: isActive ? AppColors.black : AppColors.g02,
+                ),
+              ),
             ),
           ),
         ],
@@ -337,6 +372,13 @@ class _TimelineMemoryPageState extends State<TimelineMemoryPage> {
         padding: const EdgeInsets.all(36),
       ),
     );
+  }
+
+  bool _isToday(DateTime date) {
+    final now = DateTime.now();
+    return now.year == date.year &&
+        now.month == date.month &&
+        now.day == date.day;
   }
 }
 
@@ -445,58 +487,75 @@ class _TimelineMap extends StatelessWidget {
 
       return Marker(
         point: latLng,
-        width: 72,
-        height: 78,
+        width: isActive ? 118 : 86,
+        height: isActive ? 132 : 106,
         child: GestureDetector(
           onTap: () => onLocationTap(location),
           child: Stack(
             clipBehavior: Clip.none,
-            alignment: Alignment.center,
+            alignment: Alignment.topCenter,
             children: [
-              Container(
-                decoration: BoxDecoration(
-                  color: AppColors.white,
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: isActive ? AppColors.subYellow02 : AppColors.b02,
-                    width: isActive ? 4 : 3,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.black.withValues(alpha: 0.18),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
+              Positioned(
+                top: isActive ? 8 : 16,
+                child: Container(
+                  width: isActive ? 102 : 78,
+                  height: isActive ? 102 : 78,
+                  decoration: BoxDecoration(
+                    color: AppColors.white,
+                    borderRadius: BorderRadius.circular(isActive ? 22 : 18),
+                    border: Border.all(
+                      color: isActive ? AppColors.subYellow02 : AppColors.white,
+                      width: isActive ? 5 : 2.5,
                     ),
-                  ],
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.black.withValues(alpha: 0.22),
+                        blurRadius: 14,
+                        offset: const Offset(0, 6),
+                      ),
+                    ],
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(isActive ? 16 : 14),
+                    child: MemoryPhotoThumbnail(photo: first),
+                  ),
                 ),
-                alignment: Alignment.center,
-                child: photosAtPoint.length == 1
-                    ? ClipOval(
-                        child: SizedBox(
-                          width: 50,
-                          height: 50,
-                          child: MemoryPhotoThumbnail(photo: first),
-                        ),
+              ),
+              Positioned(
+                top: isActive ? 0 : 10,
+                right: isActive ? 6 : 2,
+                child: isActive
+                    ? Image.asset(
+                        AssetPaths.icons.photoDetail.imageLocationSpot,
+                        width: 30,
+                        height: 36,
+                        fit: BoxFit.contain,
                       )
-                    : Text(
-                        '${photosAtPoint.length}',
-                        style: AppFont.b7_16.copyWith(color: AppColors.b02),
+                    : Container(
+                        width: 28,
+                        height: 28,
+                        decoration: const BoxDecoration(
+                          color: AppColors.white,
+                          shape: BoxShape.circle,
+                        ),
+                        alignment: Alignment.center,
+                        child: Text(
+                          '$order',
+                          style: AppFont.b5_20.copyWith(color: AppColors.g01),
+                        ),
                       ),
               ),
               Positioned(
-                top: 0,
-                right: 4,
+                bottom: isActive ? 8 : 12,
                 child: Container(
-                  width: 22,
-                  height: 22,
-                  decoration: const BoxDecoration(
-                    color: AppColors.subYellow02,
-                    shape: BoxShape.circle,
-                  ),
-                  alignment: Alignment.center,
-                  child: Text(
-                    '$order',
-                    style: AppFont.b9_12.copyWith(color: AppColors.black),
+                  width: 0,
+                  height: 0,
+                  decoration: const BoxDecoration(),
+                  child: CustomPaint(
+                    size: const Size(18, 14),
+                    painter: _MarkerTailPainter(
+                      color: isActive ? AppColors.subYellow02 : AppColors.white,
+                    ),
                   ),
                 ),
               ),
@@ -513,5 +572,27 @@ class _TimelineMap extends StatelessWidget {
         (a, b) => (a.takenAt ?? a.createdAt).compareTo(b.takenAt ?? b.createdAt),
       );
     return sorted.first.takenAt ?? sorted.first.createdAt;
+  }
+}
+
+class _MarkerTailPainter extends CustomPainter {
+  const _MarkerTailPainter({required this.color});
+
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()..color = color;
+    final path = ui.Path()
+      ..moveTo(size.width / 2, size.height)
+      ..lineTo(0, 0)
+      ..lineTo(size.width, 0)
+      ..close();
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _MarkerTailPainter oldDelegate) {
+    return oldDelegate.color != color;
   }
 }
