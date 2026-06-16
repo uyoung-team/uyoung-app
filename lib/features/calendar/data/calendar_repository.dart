@@ -50,6 +50,8 @@ class CalendarRepository {
 
       final events = rows.map((row) {
         final eventDate = row['event_date']?.toString();
+        final takenAtRaw = row['taken_at']?.toString();
+        final createdAtRaw = row['created_at']?.toString();
         return CalendarEvent(
           id: row['id']?.toString() ?? '',
           islandId: row['island_id']?.toString() ?? '',
@@ -59,6 +61,12 @@ class CalendarRepository {
               ? month
               : DateTime.tryParse(eventDate) ?? month,
           imageUrl: row['image_url']?.toString(),
+          description: row['description']?.toString(),
+          takenAt: takenAtRaw == null || takenAtRaw.isEmpty ? null : DateTime.tryParse(takenAtRaw),
+          createdAt: createdAtRaw == null || createdAtRaw.isEmpty ? null : DateTime.tryParse(createdAtRaw),
+          latitude: (row['latitude'] as num?)?.toDouble(),
+          longitude: (row['longitude'] as num?)?.toDouble(),
+          locationName: row['location_name']?.toString(),
           type: row['type']?.toString() ?? 'memory',
         );
       }).toList();

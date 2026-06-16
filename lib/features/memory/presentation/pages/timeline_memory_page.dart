@@ -66,7 +66,11 @@ class _TimelineMemoryPageState extends State<TimelineMemoryPage> {
 
     final groupedByLocation = _groupByLocation(filteredPhotos);
     final locationKeys = groupedByLocation.keys.toList()
-      ..sort((a, b) => _firstTakenAt(groupedByLocation[b]!).compareTo(_firstTakenAt(groupedByLocation[a]!)));
+      ..sort(
+        (a, b) => _firstTakenAt(groupedByLocation[a]!).compareTo(
+          _firstTakenAt(groupedByLocation[b]!),
+        ),
+      );
 
     if (_activeLocation != null && !locationKeys.contains(_activeLocation)) {
       _activeLocation = null;
@@ -98,95 +102,98 @@ class _TimelineMemoryPageState extends State<TimelineMemoryPage> {
             mapController: _mapController,
             photos: filteredPhotos,
             activeLocation: _activeLocation,
-            onLocationTap: _focusLocation,
+            onLocationTap: (location) => _focusLocation(
+              location,
+              groupedByLocation[location] ?? const <MemoryLocalPhoto>[],
+            ),
           ),
         ),
+        const SizedBox(height: 14),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 18),
+          child: _dateDropdown(dates),
+        ),
+        const SizedBox(height: 14),
         Expanded(
-          child: SingleChildScrollView(
+          child: ListView(
             controller: _scrollController,
             padding: const EdgeInsets.only(bottom: 120),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 14),
+            children: [
+              if (_selectedDate == null || dates.isEmpty)
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 18),
-                  child: _dateDropdown(dates),
-                ),
-                const SizedBox(height: 14),
-                if (_selectedDate == null || dates.isEmpty)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 18),
-                    child: Text(
-                      '선택할 날짜가 없어요.',
-                      style: AppFont.b8_14,
-                    ),
-                  )
-                else if (filteredPhotos.isEmpty)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 18),
-                    child: Text(
-                      '이 날짜에는 저장된 사진이 없어요.',
-                      style: AppFont.b8_14,
-                    ),
-                  )
-                else ...[
-                  for (final location in locationKeys) ...[
-                    const SizedBox(height: 9),
-                    Container(
-                      key: _sectionKeys[location],
-                      child: _locationLabel(
+                  child: Text(
+                    '선택할 날짜가 없어요.',
+                    style: AppFont.b8_14,
+                  ),
+                )
+              else if (filteredPhotos.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 18),
+                  child: Text(
+                    '이 날짜에는 저장된 사진이 없어요.',
+                    style: AppFont.b8_14,
+                  ),
+                )
+              else
+                for (final location in locationKeys) ...[
+                  const SizedBox(height: 9),
+                  Container(
+                    key: _sectionKeys[location],
+                    child: _locationLabel(
+                      location,
+                      order: locationKeys.indexOf(location) + 1,
+                      isActive: _activeLocation == location,
+                      onTap: () => _focusLocation(
                         location,
-                        order: locationKeys.indexOf(location) + 1,
-                        isActive: _activeLocation == location,
+                        groupedByLocation[location] ?? const <MemoryLocalPhoto>[],
                       ),
                     ),
-                    const SizedBox(height: 4),
-                    GridView.builder(
-                      padding: const EdgeInsets.symmetric(horizontal: 18),
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: groupedByLocation[location]!.length,
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 3,
-                            mainAxisSpacing: 8,
-                            crossAxisSpacing: 8,
-                            childAspectRatio: 1,
-                          ),
-                      itemBuilder: (_, i) {
-                        final photo = groupedByLocation[location]![i];
-                        return GestureDetector(
-                          onTap: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute<void>(
-                                builder: (_) => PhotoDetailPage(
-                                  islandId: widget.islandId,
-                                  photoId: photo.id,
-                                  imagePath: photo.path,
-                                  uploaderName: photo.uploaderName,
-                                  description: photo.description,
-                                  uploaderProfile: photo.uploaderProfile,
-                                  takenAt: photo.takenAt ?? photo.createdAt,
-                                  latitude: photo.latitude,
-                                  longitude: photo.longitude,
-                                  locationName: photo.locationName,
-                                ),
+                  ),
+                  const SizedBox(height: 4),
+                  GridView.builder(
+                    padding: const EdgeInsets.symmetric(horizontal: 18),
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: groupedByLocation[location]!.length,
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 3,
+                          mainAxisSpacing: 8,
+                          crossAxisSpacing: 8,
+                          childAspectRatio: 1,
+                        ),
+                    itemBuilder: (_, i) {
+                      final photo = groupedByLocation[location]![i];
+                      return GestureDetector(
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute<void>(
+                              builder: (_) => PhotoDetailPage(
+                                islandId: widget.islandId,
+                                photoId: photo.id,
+                                imagePath: photo.path,
+                                uploaderName: photo.uploaderName,
+                                description: photo.description,
+                                uploaderProfile: photo.uploaderProfile,
+                                takenAt: photo.takenAt ?? photo.createdAt,
+                                latitude: photo.latitude,
+                                longitude: photo.longitude,
+                                locationName: photo.locationName,
                               ),
-                            );
-                          },
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
-                            child: MemoryPhotoThumbnail(photo: photo),
-                          ),
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 18),
-                  ],
+                            ),
+                          );
+                        },
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: MemoryPhotoThumbnail(photo: photo),
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 18),
                 ],
-              ],
-            ),
+            ],
           ),
         ),
       ],
@@ -232,56 +239,103 @@ class _TimelineMemoryPageState extends State<TimelineMemoryPage> {
     String title, {
     required int order,
     required bool isActive,
+    required VoidCallback onTap,
   }) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 18),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Column(
-            children: [
-              isActive
-                  ? Image.asset(
-                      AssetPaths.icons.photoDetail.imageLocationSpot,
-                      width: 26,
-                      height: 32,
-                      fit: BoxFit.contain,
-                    )
-                  : Container(
-                      width: 24,
-                      height: 24,
-                      decoration: const BoxDecoration(
-                        color: AppColors.bg03,
-                        shape: BoxShape.circle,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Column(
+              children: [
+                isActive
+                    ? Image.asset(
+                        AssetPaths.icons.photoDetail.imageLocationSpot,
+                        width: 26,
+                        height: 32,
+                        fit: BoxFit.contain,
+                      )
+                    : Container(
+                        width: 24,
+                        height: 24,
+                        decoration: const BoxDecoration(
+                          color: AppColors.bg03,
+                          shape: BoxShape.circle,
+                        ),
+                        alignment: Alignment.center,
+                        child: Text(
+                          '$order',
+                          style: AppFont.b9_12.copyWith(color: AppColors.g02),
+                        ),
                       ),
-                      alignment: Alignment.center,
-                      child: Text(
-                        '$order',
-                        style: AppFont.b9_12.copyWith(color: AppColors.g02),
-                      ),
-                    ),
-              Container(
-                width: 1,
-                height: 10,
-                margin: const EdgeInsets.only(top: 4),
-                color: AppColors.bg03,
-              ),
-            ],
-          ),
-          const SizedBox(width: 9),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.only(top: 2),
-              child: Text(
-                title,
-                style: AppFont.b7_16.copyWith(
-                  color: isActive ? AppColors.black : AppColors.g02,
+                Container(
+                  width: 1,
+                  height: 10,
+                  margin: const EdgeInsets.only(top: 4),
+                  color: AppColors.bg03,
+                ),
+              ],
+            ),
+            const SizedBox(width: 9),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.only(top: 2),
+                child: Text(
+                  title,
+                  style: AppFont.b7_16.copyWith(
+                    color: isActive ? AppColors.black : AppColors.g02,
+                  ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
+    );
+  }
+
+  Future<void> _focusLocation(
+    String location,
+    List<MemoryLocalPhoto> photosAtLocation,
+  ) async {
+    final key = _sectionKeys[location];
+    if (key?.currentContext == null) {
+      return;
+    }
+
+    setState(() {
+      _activeLocation = location;
+    });
+
+    final locatedPhotos = photosAtLocation
+        .where((photo) => photo.latitude != null && photo.longitude != null)
+        .toList();
+    if (locatedPhotos.isNotEmpty) {
+      if (locatedPhotos.length == 1) {
+        final photo = locatedPhotos.first;
+        _mapController.move(LatLng(photo.latitude!, photo.longitude!), 15);
+      } else {
+        final bounds = LatLngBounds.fromPoints([
+          for (final photo in locatedPhotos)
+            LatLng(photo.latitude!, photo.longitude!),
+        ]);
+        _mapController.fitCamera(
+          CameraFit.bounds(
+            bounds: bounds,
+            padding: const EdgeInsets.all(42),
+          ),
+        );
+      }
+    }
+
+    await Scrollable.ensureVisible(
+      key!.currentContext!,
+      duration: const Duration(milliseconds: 300),
+      alignment: 0.05,
+      curve: Curves.easeInOut,
     );
   }
 
@@ -315,24 +369,6 @@ class _TimelineMemoryPageState extends State<TimelineMemoryPage> {
     final sorted = [...photos]
       ..sort((a, b) => (a.takenAt ?? a.createdAt).compareTo(b.takenAt ?? b.createdAt));
     return sorted.first.takenAt ?? sorted.first.createdAt;
-  }
-
-  Future<void> _focusLocation(String location) async {
-    final key = _sectionKeys[location];
-    if (key?.currentContext == null) {
-      return;
-    }
-
-    setState(() {
-      _activeLocation = location;
-    });
-
-    await Scrollable.ensureVisible(
-      key!.currentContext!,
-      duration: const Duration(milliseconds: 300),
-      alignment: 0.05,
-      curve: Curves.easeInOut,
-    );
   }
 
   void _fitMapToPhotos(List<MemoryLocalPhoto> photos) {
@@ -461,10 +497,24 @@ class _TimelineMap extends StatelessWidget {
   }
 
   List<Marker> _buildMarkers(List<MapEntry<String, List<MemoryLocalPhoto>>> orderedGroups) {
-    return orderedGroups.asMap().entries.map((indexedEntry) {
-      final order = indexedEntry.key + 1;
-      final location = indexedEntry.value.key;
-      final photosAtPoint = indexedEntry.value.value;
+    final orderByLocation = <String, int>{
+      for (var i = 0; i < orderedGroups.length; i++) orderedGroups[i].key: i + 1,
+    };
+
+    final renderEntries = [...orderedGroups]
+      ..sort((a, b) {
+        final aActive = activeLocation == a.key;
+        final bActive = activeLocation == b.key;
+        if (aActive == bActive) {
+          return 0;
+        }
+        return aActive ? 1 : -1;
+      });
+
+    return renderEntries.map((entry) {
+      final location = entry.key;
+      final order = orderByLocation[location] ?? 1;
+      final photosAtPoint = entry.value;
       final first = photosAtPoint.first;
       final second = photosAtPoint.length > 1 ? photosAtPoint[1] : null;
       final latLng = LatLng(first.latitude!, first.longitude!);

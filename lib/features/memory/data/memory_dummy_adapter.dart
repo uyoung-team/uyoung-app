@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:uyoung_app/core/theme/app_colors.dart';
 import 'package:uyoung_app/features/calendar/data/calendar_models.dart';
+import 'package:uyoung_app/features/memory/data/memory_location_dummy.dart';
 import 'package:uyoung_app/features/memory/data/memory_models.dart';
 import 'package:uyoung_app/features/memory/data/memory_post_dummy.dart';
 import 'package:uyoung_app/features/memory/data/memory_post_model.dart';
@@ -129,13 +130,18 @@ class MemoryDummyAdapter {
         final projectedDate = DateTime(month.year, month.month, projectedDay);
 
         for (var index = 0; index < post.images.length; index += 1) {
+          final imagePath = post.images[index];
+          final location = MemoryLocationDummy.get(imagePath);
           events.add(
             CalendarEvent(
               id: '$islandId-${post.name}-${projectedDate.day}-$index',
               islandId: islandId,
               title: title,
               date: projectedDate,
-              imageUrl: post.images[index],
+              imageUrl: imagePath,
+              takenAt: projectedDate,
+              createdAt: projectedDate,
+              locationName: location?.label,
             ),
           );
         }

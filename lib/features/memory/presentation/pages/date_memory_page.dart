@@ -72,7 +72,7 @@ class _DateMemoryPageState extends State<DateMemoryPage> {
         Column(
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(18, 12, 18, 8),
+              padding: const EdgeInsets.fromLTRB(18, 2, 18, 2),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
@@ -90,9 +90,9 @@ class _DateMemoryPageState extends State<DateMemoryPage> {
               child: ListView.builder(
                 padding: EdgeInsets.fromLTRB(
                   18,
-                  8,
+                  0,
                   18,
-                  _isSelectionMode ? 180 : 120,
+                  (_isSelectionMode && _selectedKeys.isNotEmpty) ? 250 : 120,
                 ),
                 itemCount: dates.length,
                 itemBuilder: (context, index) {
@@ -108,7 +108,7 @@ class _DateMemoryPageState extends State<DateMemoryPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(_formatKoreanDate(date), style: AppFont.b8_14),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 8),
                       GridView.builder(
                         itemCount: dayPhotos.length,
                         shrinkWrap: true,
@@ -170,7 +170,7 @@ class _DateMemoryPageState extends State<DateMemoryPage> {
                           );
                         },
                       ),
-                      const SizedBox(height: 22),
+                      const SizedBox(height: 14),
                     ],
                   );
                 },
@@ -178,11 +178,11 @@ class _DateMemoryPageState extends State<DateMemoryPage> {
             ),
           ],
         ),
-        if (_isSelectionMode)
+        if (_isSelectionMode && _selectedKeys.isNotEmpty)
           Align(
             alignment: Alignment.bottomCenter,
             child: SafeArea(
-              minimum: const EdgeInsets.fromLTRB(18, 0, 18, 18),
+              minimum: const EdgeInsets.fromLTRB(18, 0, 18, 104),
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                 decoration: BoxDecoration(
