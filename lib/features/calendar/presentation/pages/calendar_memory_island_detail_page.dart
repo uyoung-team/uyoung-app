@@ -5,6 +5,7 @@ import 'package:uyoung_app/core/theme/app_font.dart';
 import 'package:uyoung_app/features/calendar/data/calendar_models.dart';
 import 'package:uyoung_app/features/memory/presentation/pages/photo_detail_page.dart';
 import 'package:uyoung_app/shared/services/asset_paths.dart';
+import 'package:uyoung_app/shared/widgets/app_top_bar_icon_button.dart';
 
 class CalendarMemoryIslandDetailPage extends StatefulWidget {
   const CalendarMemoryIslandDetailPage({
@@ -136,7 +137,7 @@ class _CalendarMemoryIslandDetailPageState
         child: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 12),
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
               child: SizedBox(
                 height: 56,
                 child: Stack(
@@ -159,12 +160,12 @@ class _CalendarMemoryIslandDetailPageState
                     ),
                     Align(
                       alignment: Alignment.centerLeft,
-                      child: IconButton(
-                        icon: const Icon(
+                      child: AppTopBarIconButton(
+                        onTap: () => Navigator.of(context).pop(),
+                        child: const Icon(
                           Icons.arrow_back_ios_new_rounded,
                           size: 20,
                         ),
-                        onPressed: () => Navigator.of(context).pop(),
                       ),
                     ),
                     Align(
@@ -187,13 +188,9 @@ class _CalendarMemoryIslandDetailPageState
                                 ),
                               ),
                             )
-                          : IconButton(
-                              onPressed: _toggleSelectionMode,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 18,
-                              ),
-                              constraints: const BoxConstraints(),
-                              icon: SvgPicture.asset(
+                          : AppTopBarIconButton(
+                              onTap: _toggleSelectionMode,
+                              child: SvgPicture.asset(
                                 AssetPaths.icons.common.check,
                                 width: 20,
                                 height: 20,

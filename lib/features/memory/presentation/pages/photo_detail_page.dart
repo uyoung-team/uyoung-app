@@ -11,6 +11,7 @@ import 'package:uyoung_app/features/memory/presentation/widgets/location_sheet.d
 import 'package:uyoung_app/features/memory/presentation/widgets/sticker_selector.dart';
 import 'package:uyoung_app/shared/services/asset_paths.dart';
 import 'package:uyoung_app/shared/widgets/app_headline_text.dart';
+import 'package:uyoung_app/shared/widgets/app_top_bar_icon_button.dart';
 
 class PlacedSticker {
   PlacedSticker({
@@ -158,9 +159,13 @@ class _PhotoDetailPageState extends State<PhotoDetailPage> {
       backgroundColor: AppColors.white,
       surfaceTintColor: Colors.transparent,
       elevation: 0,
-      leading: IconButton(
-        icon: const Icon(Icons.arrow_back_ios, color: AppColors.black),
-        onPressed: () => Navigator.pop(context),
+      leadingWidth: 60,
+      leading: Padding(
+        padding: const EdgeInsets.only(left: 16),
+        child: AppTopBarIconButton(
+          onTap: () => Navigator.pop(context),
+          child: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.black, size: 20),
+        ),
       ),
       centerTitle: true,
       title: Column(
@@ -175,10 +180,10 @@ class _PhotoDetailPageState extends State<PhotoDetailPage> {
       ),
       actions: [
         Padding(
-          padding: const EdgeInsets.only(right: 4),
-          child: IconButton(
-            onPressed: () {},
-            icon: SvgPicture.asset(
+          padding: const EdgeInsets.only(right: 16),
+          child: AppTopBarIconButton(
+            onTap: () {},
+            child: SvgPicture.asset(
               AssetPaths.icons.common.download,
               width: 24,
               height: 24,
@@ -186,14 +191,16 @@ class _PhotoDetailPageState extends State<PhotoDetailPage> {
           ),
         ),
         Padding(
-          padding: const EdgeInsets.only(right: 14),
-          child: GestureDetector(
+          padding: const EdgeInsets.only(right: 16),
+          child: KeyedSubtree(
             key: moreKey,
-            onTap: () => _showMorePopup(context, moreKey),
-            child: SvgPicture.asset(
-              AssetPaths.icons.common.meatball,
-              width: 22,
-              height: 22,
+            child: AppTopBarIconButton(
+              onTap: () => _showMorePopup(context, moreKey),
+              child: SvgPicture.asset(
+                AssetPaths.icons.common.meatball,
+                width: 24,
+                height: 24,
+              ),
             ),
           ),
         ),

@@ -18,6 +18,7 @@ import 'package:uyoung_app/features/memory/presentation/pages/memory_post_edit_p
 import 'package:uyoung_app/features/memory/presentation/pages/memory_upload_page.dart';
 import 'package:uyoung_app/features/memory/presentation/pages/timeline_memory_page.dart';
 import 'package:uyoung_app/shared/services/asset_paths.dart';
+import 'package:uyoung_app/shared/widgets/app_top_bar_icon_button.dart';
 
 class MemoryDetailPage extends StatefulWidget {
   const MemoryDetailPage({
@@ -253,31 +254,37 @@ class _MemoryDetailPageState extends State<MemoryDetailPage> {
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
-        leading: IconButton(
-          icon: SvgPicture.asset(
-            AssetPaths.icons.common.previous,
-            width: 24,
-            height: 24,
+        leadingWidth: 60,
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 16),
+          child: AppTopBarIconButton(
+            onTap: () => Navigator.pop(context),
+            child: SvgPicture.asset(
+              AssetPaths.icons.common.previous,
+              width: 24,
+              height: 24,
+            ),
           ),
-          onPressed: () => Navigator.pop(context),
         ),
         title: Text(widget.item.title, style: AppFont.b5_20),
         actions: [
-          IconButton(
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute<void>(
-                  builder: (_) => MemberInquiryPage(islandId: widget.item.id),
-                ),
-              );
-            },
-            icon: SvgPicture.asset(
-              AssetPaths.icons.common.hamburger,
-              width: 22,
-              height: 22,
+          Padding(
+            padding: const EdgeInsets.only(right: 16),
+            child: AppTopBarIconButton(
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => MemberInquiryPage(islandId: widget.item.id),
+                  ),
+                );
+              },
+              child: SvgPicture.asset(
+                AssetPaths.icons.common.hamburger,
+                width: 24,
+                height: 24,
+              ),
             ),
           ),
-          const SizedBox(width: 8),
         ],
       ),
       body: Stack(

@@ -10,6 +10,7 @@ import 'package:uyoung_app/features/attendance/presentation/viewmodels/attendanc
 import 'package:uyoung_app/features/attendance/presentation/widgets/attendance_entry_step.dart';
 import 'package:uyoung_app/features/attendance/presentation/widgets/attendance_reveal_step.dart';
 import 'package:uyoung_app/shared/services/asset_paths.dart';
+import 'package:uyoung_app/shared/widgets/app_top_bar_icon_button.dart';
 
 class AttendancePage extends StatefulWidget {
   const AttendancePage({super.key});
@@ -64,11 +65,10 @@ class _AttendancePageState extends State<AttendancePage> {
               ),
               Positioned(
                 top: safeTop + 8,
-                left: 18,
-                child: IconButton(
-                  onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.chevron_left_rounded, size: 32),
-                  color: AppColors.black,
+                left: 16,
+                child: AppTopBarIconButton(
+                  onTap: () => Navigator.pop(context),
+                  child: const Icon(Icons.chevron_left_rounded, size: 24, color: AppColors.black),
                 ),
               ),
               Positioned(
