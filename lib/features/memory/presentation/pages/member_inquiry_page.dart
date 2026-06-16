@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -14,12 +16,10 @@ import 'package:uyoung_app/features/memory/presentation/viewmodels/island_detail
 import 'package:uyoung_app/features/my_page/data/my_page_models.dart';
 import 'package:uyoung_app/features/my_page/presentation/pages/friend_profile_page.dart';
 import 'package:uyoung_app/shared/services/asset_paths.dart';
+import 'package:uyoung_app/shared/widgets/app_top_bar_icon_button.dart';
 
 class MemberInquiryPage extends StatelessWidget {
-  const MemberInquiryPage({
-    super.key,
-    required this.islandId,
-  });
+  const MemberInquiryPage({super.key, required this.islandId});
 
   final String islandId;
 
@@ -37,6 +37,13 @@ class MemberInquiryPage extends StatelessWidget {
 
 class _MemberInquiryView extends StatelessWidget {
   const _MemberInquiryView();
+
+  static const double _designWidth = 390;
+  static const double _designHeight = 770;
+  static const double _contentWidth = 354;
+    static const double _actionRowHeight = 46;
+  static const double _bubbleCardHeight = 300;
+  static const double _leaveHeight = 52;
 
   @override
   Widget build(BuildContext context) {
@@ -74,183 +81,226 @@ class _MemberInquiryView extends StatelessWidget {
               );
             }
 
-            return ListView(
-              padding: const EdgeInsets.fromLTRB(18, 16, 18, 28),
-              children: [
-                _Header(
-                  onBack: () => Navigator.of(context).pop(),
-                  onExport: () async {
-                    final inviteCode = island.inviteCode;
-                    if (inviteCode == null || inviteCode.isEmpty) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('공유할 초대 코드가 없어요.')),
-                      );
-                      return;
-                    }
-                    await Clipboard.setData(ClipboardData(text: inviteCode));
-                    if (!context.mounted) {
-                      return;
-                    }
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('초대 코드가 복사되었어요.')),
-                    );
-                  },
-                  onSettings: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('설정 기능은 준비 중이에요.')),
-                    );
-                  },
-                ),
-                const SizedBox(height: 26),
-                _CoverImage(imagePath: island.imagePath),
-                const SizedBox(height: 24),
-                Text(
-                  island.title,
-                  textAlign: TextAlign.center,
-                  style: AppFont.h3_24.copyWith(color: AppColors.black),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  '${_estimatedStorageMb(viewModel.members.length)} MB',
-                  textAlign: TextAlign.center,
-                  style: AppFont.b6_18.copyWith(color: AppColors.g02),
-                ),
-                const SizedBox(height: 22),
-                _SectionCard(
-                  child: Column(
-                    children: [
-                      _ActionRow(
-                        icon: AssetPaths.icons.islandDetail.calendar,
-                        label: '캘린더',
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute<void>(
-                              builder: (_) => CalendarPage(
-                                showBackButton: true,
-                                initiallySelectedIslandIds: {island.id},
+            return LayoutBuilder(
+              builder: (context, constraints) {
+                return Align(
+                  alignment: Alignment.topCenter,
+                  child: SizedBox(
+                    width: constraints.maxWidth,
+                    height: constraints.maxHeight,
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.topCenter,
+                      child: SizedBox(
+                        width: _designWidth,
+                        height: _designHeight,
+                        child: Column(
+                          children: [
+                            const SizedBox(height: 16),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 18),
+                              child: _Header(
+                                onBack: () => Navigator.of(context).pop(),
+                                onExport: () async {
+                                  final inviteCode = island.inviteCode;
+                                  if (inviteCode == null || inviteCode.isEmpty) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(content: Text('공유할 초대 코드가 없어요.')),
+                                    );
+                                    return;
+                                  }
+                                  await Clipboard.setData(ClipboardData(text: inviteCode));
+                                  if (!context.mounted) {
+                                    return;
+                                  }
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('초대 코드가 복사되었어요.')),
+                                  );
+                                },
+                                onSettings: () {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('설정 기능은 준비 중이에요.')),
+                                  );
+                                },
                               ),
                             ),
-                          );
-                        },
-                      ),
-                      const Divider(height: 1, color: AppColors.bg02),
-                      _ActionRow(
-                        icon: AssetPaths.icons.islandDetail.favorite,
-                        label: '즐겨찾는 사진',
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute<void>(
-                              builder: (_) => FavoritePhotosPage(islandId: island.id),
+                            const SizedBox(height: 14),
+                            _CoverImage(imagePath: island.imagePath),
+                            const SizedBox(height: 18),
+                            Text(
+                              island.title,
+                              textAlign: TextAlign.center,
+                              style: AppFont.h3_24.copyWith(color: AppColors.black),
                             ),
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 12),
-                _SectionCard(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 10),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '버블 메이트 ${viewModel.members.length}',
-                          style: AppFont.b7_16.copyWith(color: AppColors.black),
-                        ),
-                        const SizedBox(height: 14),
-                        _MemberRow(
-                          avatar: Container(
-                            width: 44,
-                            height: 44,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(color: AppColors.bg02),
-                              image: DecorationImage(
-                                image: AssetImage(AssetPaths.icons.islandDetail.character),
-                                fit: BoxFit.cover,
-                              ),
+                            const SizedBox(height: 6),
+                            Text(
+                              '${_estimatedStorageMb(viewModel.members.length)} MB',
+                              textAlign: TextAlign.center,
+                              style: AppFont.b6_18.copyWith(color: AppColors.g02),
                             ),
-                          ),
-                          name: '초대하기',
-                          onTap: () async {
-                            final invited = await Navigator.push<bool>(
-                              context,
-                              MaterialPageRoute<bool>(
-                                builder: (_) => IslandInvitePage(
-                                  islandId: island.id,
-                                  existingMemberIds: viewModel.members
-                                      .map((member) => member.id)
-                                      .toSet(),
+                            const SizedBox(height: 18),
+                            SizedBox(
+                              width: _contentWidth,
+                              height: _actionRowHeight,
+                              child: _SectionCard(
+                                child: _ActionRow(
+                                  height: _actionRowHeight,
+                                  icon: AssetPaths.icons.islandDetail.calendar,
+                                  label: '캘린더',
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute<void>(
+                                        builder: (_) => CalendarPage(
+                                          showBackButton: true,
+                                          initiallySelectedIslandIds: {island.id},
+                                        ),
+                                      ),
+                                    );
+                                  },
                                 ),
                               ),
-                            );
-
-                            if (invited == true && context.mounted) {
-                              await context.read<IslandDetailViewModel>().load();
-                            }
-                          },
-                        ),
-                        if (viewModel.members.isEmpty)
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(4, 14, 4, 10),
-                            child: Text(
-                              '아직 함께한 멤버가 없어요.',
-                              style: AppFont.b8_14.copyWith(color: AppColors.g03),
                             ),
-                          )
-                        else
-                          ...viewModel.members.map(
-                            (member) => _MemberRow(
-                              avatar: _MemberAvatar(member: member),
-                              name: member.nickname.trim().isEmpty
-                                  ? '이름 없음'
-                                  : member.nickname.trim(),
-                              onTap: () {
-                                final displayName = member.nickname.trim().isEmpty
-                                    ? '이름 없음'
-                                    : member.nickname.trim();
-                                Navigator.of(context).push(
-                                  MaterialPageRoute<void>(
-                                    builder: (_) => FriendProfilePage(
-                                      friend: FriendItem(
-                                        id: member.id,
-                                        nickname: displayName,
-                                        userCode: member.id,
-                                        profileImageUrl: member.avatarUrl,
+                            const SizedBox(height: 8),
+                            SizedBox(
+                              width: _contentWidth,
+                              height: _actionRowHeight,
+                              child: _SectionCard(
+                                child: _ActionRow(
+                                  height: _actionRowHeight,
+                                  icon: AssetPaths.icons.islandDetail.favorite,
+                                  label: '즐겨찾는 사진',
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute<void>(
+                                        builder: (_) => FavoritePhotosPage(islandId: island.id),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            SizedBox(
+                              width: _contentWidth,
+                              height: _bubbleCardHeight,
+                              child: _SectionCard(
+                                child: Padding(
+                                  padding: const EdgeInsets.fromLTRB(18, 14, 18, 10),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        '버블 메이트 ${viewModel.members.length}',
+                                        style: AppFont.b7_16.copyWith(color: AppColors.black),
+                                      ),
+                                      const SizedBox(height: 10),
+                                      _MemberRow(
+                                        avatar: Container(
+                                          width: 44,
+                                          height: 44,
+                                          decoration: BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            border: Border.all(color: AppColors.bg02),
+                                            image: DecorationImage(
+                                              image: AssetImage(AssetPaths.icons.islandDetail.character),
+                                              fit: BoxFit.cover,
+                                            ),
+                                          ),
+                                        ),
+                                        name: '초대하기',
+                                        onTap: () async {
+                                          final invited = await Navigator.push<bool>(
+                                            context,
+                                            MaterialPageRoute<bool>(
+                                              builder: (_) => IslandInvitePage(
+                                                islandId: island.id,
+                                                existingMemberIds: viewModel.members.map((member) => member.id).toSet(),
+                                              ),
+                                            ),
+                                          );
+                                          if (invited == true && context.mounted) {
+                                            await context.read<IslandDetailViewModel>().load();
+                                          }
+                                        },
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Expanded(
+                                        child: viewModel.members.isEmpty
+                                            ? Padding(
+                                                padding: const EdgeInsets.fromLTRB(4, 10, 4, 10),
+                                                child: Text(
+                                                  '아직 함께한 멤버가 없어요.',
+                                                  style: AppFont.b8_14.copyWith(color: AppColors.g03),
+                                                ),
+                                              )
+                                            : Column(
+                                                children: [
+                                                  for (final member in viewModel.members.take(4))
+                                                    _MemberRow(
+                                                      avatar: _MemberAvatar(member: member),
+                                                      name: member.nickname.trim().isEmpty
+                                                          ? '이름 없음'
+                                                          : member.nickname.trim(),
+                                                      onTap: () {
+                                                        final displayName = member.nickname.trim().isEmpty
+                                                            ? '이름 없음'
+                                                            : member.nickname.trim();
+                                                        Navigator.of(context).push(
+                                                          MaterialPageRoute<void>(
+                                                            builder: (_) => FriendProfilePage(
+                                                              friend: FriendItem(
+                                                                id: member.id,
+                                                                nickname: displayName,
+                                                                userCode: member.id,
+                                                                profileImageUrl: member.avatarUrl,
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        );
+                                                      },
+                                                    ),
+                                                ],
+                                              ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            SizedBox(
+                              width: _contentWidth,
+                              height: _leaveHeight,
+                              child: _SectionCard(
+                                child: InkWell(
+                                  borderRadius: BorderRadius.circular(18),
+                                  onTap: () {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(content: Text('기억섬 나가기 기능은 준비 중이에요.')),
+                                    );
+                                  },
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 18),
+                                    child: Align(
+                                      alignment: Alignment.centerLeft,
+                                      child: Text(
+                                        '기억섬 나가기',
+                                        style: AppFont.b7_16.copyWith(color: AppColors.subRed03),
                                       ),
                                     ),
                                   ),
-                                );
-                              },
+                                ),
+                              ),
                             ),
-                          ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                _SectionCard(
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(18),
-                    onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('기억섬 나가기 기능은 준비 중이에요.')),
-                      );
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
-                      child: Text(
-                        '기억섬 나가기',
-                        style: AppFont.b7_16.copyWith(color: AppColors.subRed03),
+                          ],
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ],
+                );
+              },
             );
           },
         ),
@@ -259,8 +309,7 @@ class _MemberInquiryView extends StatelessWidget {
   }
 
   int _estimatedStorageMb(int memberCount) {
-    final base = memberCount * 200 + 131;
-    return base < 131 ? 131 : base;
+    return math.max(131, memberCount * 200 + 131);
   }
 }
 
@@ -279,49 +328,33 @@ class _Header extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        _IconButtonShell(
+        AppTopBarIconButton(
           onTap: onBack,
           child: SvgPicture.asset(
             AssetPaths.icons.common.previous,
-            width: 26,
-            height: 26,
+            width: 24,
+            height: 24,
           ),
         ),
         const Spacer(),
-        _IconButtonShell(
+        AppTopBarIconButton(
           onTap: onExport,
           child: SvgPicture.asset(
             AssetPaths.icons.common.export,
-            width: 26,
-            height: 26,
+            width: 24,
+            height: 24,
           ),
         ),
         const SizedBox(width: 8),
-        _IconButtonShell(
+        AppTopBarIconButton(
           onTap: onSettings,
           child: SvgPicture.asset(
             AssetPaths.icons.common.setting,
-            width: 26,
-            height: 26,
+            width: 24,
+            height: 24,
           ),
         ),
       ],
-    );
-  }
-}
-
-class _IconButtonShell extends StatelessWidget {
-  const _IconButtonShell({required this.onTap, required this.child});
-
-  final VoidCallback onTap;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(22),
-      child: SizedBox(width: 44, height: 44, child: Center(child: child)),
     );
   }
 }
@@ -337,45 +370,38 @@ class _CoverImage extends StatelessWidget {
 
     return Center(
       child: Container(
-        width: 238,
-        height: 164,
+        width: 230,
+        height: 152,
         decoration: BoxDecoration(
           color: const Color(0xFFFDFCF6),
-          borderRadius: BorderRadius.circular(28),
+          borderRadius: BorderRadius.circular(24),
           border: Border.all(color: const Color(0xFF767490), width: 3),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x10000000),
-              blurRadius: 18,
-              offset: Offset(0, 8),
-            ),
-          ],
         ),
         clipBehavior: Clip.antiAlias,
         child: hasImage
             ? Image.network(
                 imagePath!,
                 fit: BoxFit.cover,
-                errorBuilder: (_, _, _) => _CoverFallback(),
+                errorBuilder: (context, error, stackTrace) => const _CoverFallback(),
               )
-            : _CoverFallback(),
+            : const _CoverFallback(),
       ),
     );
   }
 }
 
 class _CoverFallback extends StatelessWidget {
+  const _CoverFallback();
+
   @override
   Widget build(BuildContext context) {
     return DecoratedBox(
-      decoration: const BoxDecoration(
-        color: Color(0xFFFDFCF6),
-      ),
+      decoration: const BoxDecoration(color: Color(0xFFFDFCF6)),
       child: Center(
         child: Image.asset(
           AssetPaths.icons.islandDetail.character,
-          width: 170,
-          height: 110,
+          width: 164,
+          height: 104,
           fit: BoxFit.contain,
         ),
       ),
@@ -403,11 +429,13 @@ class _SectionCard extends StatelessWidget {
 
 class _ActionRow extends StatelessWidget {
   const _ActionRow({
+    required this.height,
     required this.icon,
     required this.label,
     required this.onTap,
   });
 
+  final double height;
   final String icon;
   final String label;
   final VoidCallback onTap;
@@ -417,17 +445,20 @@ class _ActionRow extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(18),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
-        child: Row(
-          children: [
-            Image.asset(icon, width: 28, height: 28),
-            const SizedBox(width: 14),
-            Text(
-              label,
-              style: AppFont.b7_16.copyWith(color: AppColors.black),
-            ),
-          ],
+      child: SizedBox(
+        height: height,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 18),
+          child: Row(
+            children: [
+              Image.asset(icon, width: 24, height: 24),
+              const SizedBox(width: 12),
+              Text(
+                label,
+                style: AppFont.b7_16.copyWith(color: AppColors.black),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -451,7 +482,7 @@ class _MemberRow extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(16),
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 10),
+        padding: const EdgeInsets.symmetric(vertical: 8),
         child: Row(
           children: [
             avatar,
