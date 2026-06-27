@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import 'package:uyoung_app/core/theme/app_colors.dart';
 import 'package:uyoung_app/core/theme/app_font.dart';
@@ -68,7 +69,11 @@ class _AttendancePageState extends State<AttendancePage> {
                 left: 16,
                 child: AppTopBarIconButton(
                   onTap: () => Navigator.pop(context),
-                  child: const Icon(Icons.chevron_left_rounded, size: 24, color: AppColors.black),
+                  child: SvgPicture.asset(
+                  AssetPaths.icons.common.previous,
+                  width: kAppTopBarIconVisualSize,
+                  height: kAppTopBarIconVisualSize,
+                ),
                 ),
               ),
               Positioned(

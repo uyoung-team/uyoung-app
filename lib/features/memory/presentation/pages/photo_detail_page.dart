@@ -164,7 +164,11 @@ class _PhotoDetailPageState extends State<PhotoDetailPage> {
         padding: const EdgeInsets.only(left: 16),
         child: AppTopBarIconButton(
           onTap: () => Navigator.pop(context),
-          child: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.black, size: kAppTopBarIconVisualSize),
+          child: SvgPicture.asset(
+            AssetPaths.icons.common.previous,
+            width: kAppTopBarIconVisualSize,
+            height: kAppTopBarIconVisualSize,
+          ),
         ),
       ),
       centerTitle: true,

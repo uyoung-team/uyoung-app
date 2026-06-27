@@ -162,9 +162,10 @@ class _CalendarMemoryIslandDetailPageState
                       alignment: Alignment.centerLeft,
                       child: AppTopBarIconButton(
                         onTap: () => Navigator.of(context).pop(),
-                        child: const Icon(
-                          Icons.arrow_back_ios_new_rounded,
-                          size: kAppTopBarIconVisualSize,
+                        child: SvgPicture.asset(
+                          AssetPaths.icons.common.previous,
+                          width: kAppTopBarIconVisualSize,
+                          height: kAppTopBarIconVisualSize,
                         ),
                       ),
                     ),
