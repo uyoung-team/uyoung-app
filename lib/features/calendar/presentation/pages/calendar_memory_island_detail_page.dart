@@ -164,7 +164,7 @@ class _CalendarMemoryIslandDetailPageState
                         onTap: () => Navigator.of(context).pop(),
                         child: const Icon(
                           Icons.arrow_back_ios_new_rounded,
-                          size: 20,
+                          size: kAppTopBarIconVisualSize,
                         ),
                       ),
                     ),
@@ -192,8 +192,8 @@ class _CalendarMemoryIslandDetailPageState
                               onTap: _toggleSelectionMode,
                               child: SvgPicture.asset(
                                 AssetPaths.icons.common.check,
-                                width: 20,
-                                height: 20,
+                                width: kAppTopBarIconVisualSize,
+                                height: kAppTopBarIconVisualSize,
                               ),
                             ),
                     ),
@@ -259,8 +259,8 @@ class _CalendarMemoryIslandDetailPageState
                                 right: 6,
                                 child: SvgPicture.asset(
                                   AssetPaths.icons.common.check,
-                                  width: 20,
-                                  height: 20,
+                                  width: kAppTopBarIconVisualSize,
+                                height: kAppTopBarIconVisualSize,
                                 ),
                               ),
                           ],

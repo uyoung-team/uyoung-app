@@ -7,6 +7,7 @@ import 'package:uyoung_app/core/theme/app_font.dart';
 import 'package:uyoung_app/features/calendar/data/calendar_models.dart';
 import 'package:uyoung_app/features/calendar/presentation/viewmodels/calendar_view_model.dart';
 import 'package:uyoung_app/shared/services/asset_paths.dart';
+import 'package:uyoung_app/shared/widgets/app_top_bar_icon_button.dart';
 
 class CalendarMemoryIslandSettingsPage extends StatelessWidget {
   const CalendarMemoryIslandSettingsPage({
@@ -37,14 +38,21 @@ class CalendarMemoryIslandSettingsPage extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(5, 8, 5, 5),
+              padding: const EdgeInsets.fromLTRB(
+                kAppTopBarHorizontalPadding,
+                8,
+                kAppTopBarHorizontalPadding,
+                5,
+              ),
               child: Row(
                 children: [
-                  IconButton(
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                    onPressed: () => Navigator.of(context).pop(),
-                    icon: const Icon(Icons.close, size: 26),
+                  AppTopBarIconButton(
+                    onTap: () => Navigator.of(context).pop(),
+                    child: const Icon(
+                      Icons.close,
+                      size: kAppTopBarIconVisualSize,
+                      color: AppColors.black,
+                    ),
                   ),
                   const Spacer(),
                   Text(
@@ -52,7 +60,10 @@ class CalendarMemoryIslandSettingsPage extends StatelessWidget {
                     style: AppFont.b5_20.copyWith(color: AppColors.black),
                   ),
                   const Spacer(),
-                  const SizedBox(width: 40),
+                  const SizedBox(
+                    width: kAppTopBarIconButtonSize,
+                    height: kAppTopBarIconButtonSize,
+                  ),
                 ],
               ),
             ),
@@ -114,9 +125,9 @@ class CalendarMemoryIslandSettingsPage extends StatelessWidget {
                       value: island.alertEnabled,
                       onChanged: (value) {
                         context.read<CalendarViewModel>().toggleAlert(
-                          island.id,
-                          value,
-                        );
+                              island.id,
+                              value,
+                            );
                       },
                     ),
                   ),

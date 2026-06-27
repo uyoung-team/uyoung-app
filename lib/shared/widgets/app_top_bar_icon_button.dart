@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 
+const double kAppTopBarIconButtonSize = 44;
+const double kAppTopBarIconVisualSize = 24;
+const double kAppTopBarHorizontalPadding = 16;
+
 class AppTopBarIconButton extends StatelessWidget {
   const AppTopBarIconButton({
     super.key,
     required this.onTap,
     required this.child,
-    this.size = 44,
-    this.borderRadius = 22,
+    this.size = kAppTopBarIconButtonSize,
+    this.borderRadius = kAppTopBarIconButtonSize / 2,
   });
 
   final VoidCallback? onTap;
