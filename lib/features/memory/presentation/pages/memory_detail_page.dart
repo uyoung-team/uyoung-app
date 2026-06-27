@@ -261,8 +261,8 @@ class _MemoryDetailPageState extends State<MemoryDetailPage> {
             onTap: () => Navigator.pop(context),
             child: SvgPicture.asset(
               AssetPaths.icons.common.previous,
-              width: 24,
-              height: 24,
+              width: kAppTopBarIconVisualSize,
+              height: kAppTopBarIconVisualSize,
             ),
           ),
         ),
@@ -280,8 +280,8 @@ class _MemoryDetailPageState extends State<MemoryDetailPage> {
               },
               child: SvgPicture.asset(
                 AssetPaths.icons.common.hamburger,
-                width: 24,
-                height: 24,
+                width: kAppTopBarIconVisualSize,
+                height: kAppTopBarIconVisualSize,
               ),
             ),
           ),

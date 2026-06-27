@@ -332,8 +332,8 @@ class _Header extends StatelessWidget {
           onTap: onBack,
           child: SvgPicture.asset(
             AssetPaths.icons.common.previous,
-            width: 24,
-            height: 24,
+            width: kAppTopBarIconVisualSize,
+            height: kAppTopBarIconVisualSize,
           ),
         ),
         const Spacer(),
@@ -341,8 +341,8 @@ class _Header extends StatelessWidget {
           onTap: onExport,
           child: SvgPicture.asset(
             AssetPaths.icons.common.export,
-            width: 24,
-            height: 24,
+            width: kAppTopBarIconVisualSize,
+            height: kAppTopBarIconVisualSize,
           ),
         ),
         const SizedBox(width: 8),
@@ -350,8 +350,8 @@ class _Header extends StatelessWidget {
           onTap: onSettings,
           child: SvgPicture.asset(
             AssetPaths.icons.common.setting,
-            width: 24,
-            height: 24,
+            width: kAppTopBarIconVisualSize,
+            height: kAppTopBarIconVisualSize,
           ),
         ),
       ],

@@ -189,8 +189,8 @@ class _PhotoDetailPageState extends State<PhotoDetailPage> {
             onTap: () {},
             child: SvgPicture.asset(
               AssetPaths.icons.common.download,
-              width: 24,
-              height: 24,
+              width: kAppTopBarIconVisualSize,
+              height: kAppTopBarIconVisualSize,
             ),
           ),
         ),
@@ -202,8 +202,8 @@ class _PhotoDetailPageState extends State<PhotoDetailPage> {
               onTap: () => _showMorePopup(context, moreKey),
               child: SvgPicture.asset(
                 AssetPaths.icons.common.meatball,
-                width: 24,
-                height: 24,
+                width: kAppTopBarIconVisualSize,
+                height: kAppTopBarIconVisualSize,
               ),
             ),
           ),
@@ -480,8 +480,8 @@ class _PhotoDetailPageState extends State<PhotoDetailPage> {
           children: [
             SvgPicture.asset(
               iconPath,
-              width: kAppTopBarIconVisualSize,
-                                height: kAppTopBarIconVisualSize,
+              width: 24,
+              height: 24,
               colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
             ),
             const SizedBox(width: 12),
