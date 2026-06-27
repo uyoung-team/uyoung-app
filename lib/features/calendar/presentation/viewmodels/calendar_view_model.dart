@@ -226,25 +226,28 @@ class CalendarViewModel extends ChangeNotifier {
     );
 
     // 섬별로 그룹화
-    final Map<String, List<String>> grouped = {};
+    final Map<String, List<CalendarEvent>> groupedEvents = {};
     for (final m in dayMemories) {
-      if (m.imageUrl != null) {
-        grouped.update(
+      if (m.imageUrl != null && m.imageUrl!.isNotEmpty) {
+        groupedEvents.update(
           m.islandId,
-          (list) => list..add(m.imageUrl!),
-          ifAbsent: () => [m.imageUrl!],
+          (list) => list..add(m),
+          ifAbsent: () => [m],
         );
       }
     }
 
     return selectedIslands
-        .where((island) => grouped.containsKey(island.id))
+        .where((island) => groupedEvents.containsKey(island.id))
         .map((island) {
+          final events = groupedEvents[island.id] ?? const <CalendarEvent>[];
           return CalendarDayMemoryGroup(
             islandId: island.id,
             islandName: island.name,
             color: island.color,
-            thumbnailPaths: grouped[island.id] ?? const [],
+            thumbnailPaths: events.map((event) => event.imageUrl!).toList(),
+            photoIds: events.map((event) => event.id).toList(),
+            events: events,
           );
         })
         .toList();

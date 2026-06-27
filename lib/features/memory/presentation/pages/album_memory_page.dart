@@ -267,35 +267,18 @@ class _AlbumMemoryPageState extends State<AlbumMemoryPage> {
 
         return Column(
           children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(18, 12, 18, 8),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      '기억섬 안에서 사진을 분류하고 함께 공유해보세요.',
-                      style: AppFont.b9_12.copyWith(color: AppColors.g02),
-                    ),
-                  ),
-                  TextButton(
-                    onPressed: _createAlbum,
-                    child: Text('새 앨범', style: AppFont.b8_14),
-                  ),
-                ],
-              ),
-            ),
             Expanded(
               child: albums.isEmpty
                   ? _EmptyAlbumState(onCreateAlbum: _createAlbum)
                   : GridView.builder(
-                      padding: const EdgeInsets.fromLTRB(18, 8, 18, 120),
+                      padding: const EdgeInsets.fromLTRB(18, 18, 18, 120),
                       itemCount: albums.length,
                       gridDelegate:
                           const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2,
+                            crossAxisCount: 3,
                             crossAxisSpacing: 14,
-                            mainAxisSpacing: 14,
-                            childAspectRatio: 0.92,
+                            mainAxisSpacing: 18,
+                            mainAxisExtent: 154,
                           ),
                       itemBuilder: (context, index) {
                         final album = albums[index];
@@ -343,7 +326,9 @@ class _AlbumCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
+          SizedBox(
+            width: 112,
+            height: 112,
             child: ClipRRect(
               borderRadius: BorderRadius.circular(22),
               child: Container(
@@ -353,17 +338,22 @@ class _AlbumCard extends StatelessWidget {
                     ? Image.network(
                         cover,
                         fit: BoxFit.cover,
-                        errorBuilder: (_, _, _) => _AlbumPlaceholder(),
+                        errorBuilder: (_, _, _) => const _AlbumPlaceholder(),
                       )
                     : const _AlbumPlaceholder(),
               ),
             ),
           ),
-          const SizedBox(height: 10),
-          Text(album.name, style: AppFont.b7_16, maxLines: 1, overflow: TextOverflow.ellipsis),
-          const SizedBox(height: 4),
+          const SizedBox(height: 8),
           Text(
-            '사진 ${album.photoCount}장',
+            album.name,
+            style: AppFont.b7_16,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 3),
+          Text(
+            '${album.photoCount}개',
             style: AppFont.b9_12.copyWith(color: AppColors.g02),
           ),
         ],
@@ -378,11 +368,10 @@ class _AlbumPlaceholder extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: Image.asset(
-        AssetPaths.images.calendar.character,
-        width: 72,
-        height: 72,
-        fit: BoxFit.contain,
+      child: Icon(
+        Icons.favorite,
+        size: 26,
+        color: AppColors.black,
       ),
     );
   }

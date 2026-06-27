@@ -7,6 +7,7 @@ import 'package:uyoung_app/features/calendar/data/calendar_models.dart';
 import 'package:uyoung_app/features/calendar/presentation/pages/calendar_memory_island_settings_page.dart';
 import 'package:uyoung_app/features/calendar/presentation/viewmodels/calendar_view_model.dart';
 import 'package:uyoung_app/shared/services/asset_paths.dart';
+import 'package:uyoung_app/shared/widgets/app_top_bar_icon_button.dart';
 
 class CalendarMemoryIslandManagePage extends StatefulWidget {
   const CalendarMemoryIslandManagePage({super.key});
@@ -32,14 +33,21 @@ class _CalendarMemoryIslandManagePageState
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(5, 8, 5, 5),
+              padding: const EdgeInsets.fromLTRB(
+                kAppTopBarHorizontalPadding,
+                8,
+                kAppTopBarHorizontalPadding,
+                5,
+              ),
               child: Row(
                 children: [
-                  IconButton(
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                    onPressed: () => Navigator.of(context).pop(),
-                    icon: const Icon(Icons.close, size: 26),
+                  AppTopBarIconButton(
+                    onTap: () => Navigator.of(context).pop(),
+                    child: const Icon(
+                      Icons.close,
+                      size: kAppTopBarIconVisualSize,
+                      color: AppColors.black,
+                    ),
                   ),
                   const Spacer(),
                   Text(
@@ -47,16 +55,14 @@ class _CalendarMemoryIslandManagePageState
                     style: AppFont.b5_20.copyWith(color: AppColors.black),
                   ),
                   const Spacer(),
-                  IconButton(
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                    onPressed: () {
+                  AppTopBarIconButton(
+                    onTap: () {
                       setState(() => _isSortMode = !_isSortMode);
                     },
-                    icon: SvgPicture.asset(
+                    child: SvgPicture.asset(
                       AssetPaths.icons.common.reorder,
-                      width: 40,
-                      height: 40,
+                      width: kAppTopBarIconVisualSize,
+                      height: kAppTopBarIconVisualSize,
                     ),
                   ),
                 ],
@@ -152,9 +158,9 @@ class _CalendarMemoryIslandManagePageState
     required Widget trailing,
   }) {
     return SizedBox(
-              height: 25,
-              child: Row(
-                children: [
+      height: 25,
+      child: Row(
+        children: [
           Container(
             width: 14,
             height: 14,
@@ -164,13 +170,13 @@ class _CalendarMemoryIslandManagePageState
             ),
           ),
           const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      island.name,
-                      style: AppFont.b7_16.copyWith(color: AppColors.g01),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
+          Expanded(
+            child: Text(
+              island.name,
+              style: AppFont.b7_16.copyWith(color: AppColors.g01),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
           trailing,
         ],
       ),

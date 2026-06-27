@@ -8,6 +8,12 @@ class CalendarEvent {
     required this.title,
     required this.date,
     this.imageUrl,
+    this.description,
+    this.takenAt,
+    this.createdAt,
+    this.latitude,
+    this.longitude,
+    this.locationName,
     this.type = 'memory',
   });
 
@@ -16,6 +22,12 @@ class CalendarEvent {
   final String title;
   final DateTime date;
   final String? imageUrl;
+  final String? description;
+  final DateTime? takenAt;
+  final DateTime? createdAt;
+  final double? latitude;
+  final double? longitude;
+  final String? locationName;
   final String type;
 }
 
@@ -57,10 +69,14 @@ class CalendarDayMemoryGroup {
     required this.islandName,
     required this.color,
     required this.thumbnailPaths,
+    required this.photoIds,
+    required this.events,
   });
 
   final String islandId;
   final String islandName;
   final Color color;
   final List<String> thumbnailPaths;
+  final List<String> photoIds;
+  final List<CalendarEvent> events;
 }

@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:uyoung_app/core/theme/app_colors.dart';
@@ -16,6 +18,7 @@ import 'package:uyoung_app/features/memory/presentation/pages/memory_post_edit_p
 import 'package:uyoung_app/features/memory/presentation/pages/memory_upload_page.dart';
 import 'package:uyoung_app/features/memory/presentation/pages/timeline_memory_page.dart';
 import 'package:uyoung_app/shared/services/asset_paths.dart';
+import 'package:uyoung_app/shared/widgets/app_top_bar_icon_button.dart';
 
 class MemoryDetailPage extends StatefulWidget {
   const MemoryDetailPage({
@@ -251,31 +254,37 @@ class _MemoryDetailPageState extends State<MemoryDetailPage> {
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
-        leading: IconButton(
-          icon: SvgPicture.asset(
-            AssetPaths.icons.common.previous,
-            width: 24,
-            height: 24,
+        leadingWidth: 60,
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 16),
+          child: AppTopBarIconButton(
+            onTap: () => Navigator.pop(context),
+            child: SvgPicture.asset(
+              AssetPaths.icons.common.previous,
+              width: kAppTopBarIconVisualSize,
+              height: kAppTopBarIconVisualSize,
+            ),
           ),
-          onPressed: () => Navigator.pop(context),
         ),
         title: Text(widget.item.title, style: AppFont.b5_20),
         actions: [
-          IconButton(
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute<void>(
-                  builder: (_) => MemberInquiryPage(islandId: widget.item.id),
-                ),
-              );
-            },
-            icon: SvgPicture.asset(
-              AssetPaths.icons.common.hamburger,
-              width: 22,
-              height: 22,
+          Padding(
+            padding: const EdgeInsets.only(right: 16),
+            child: AppTopBarIconButton(
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => MemberInquiryPage(islandId: widget.item.id),
+                  ),
+                );
+              },
+              child: SvgPicture.asset(
+                AssetPaths.icons.common.hamburger,
+                width: kAppTopBarIconVisualSize,
+                height: kAppTopBarIconVisualSize,
+              ),
             ),
           ),
-          const SizedBox(width: 8),
         ],
       ),
       body: Stack(
@@ -318,25 +327,35 @@ class _MemoryDetailPageState extends State<MemoryDetailPage> {
                   Expanded(
                     child: SizedBox(
                       height: _tabBarHeight,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppColors.white,
-                          borderRadius: BorderRadius.circular(36),
-                        ),
-                        child: Row(
-                          children: [
-                            Expanded(child: _modeButton('전체', 0)),
-                            const SizedBox(width: 6),
-                            Expanded(child: _modeButton('일자별', 1)),
-                            const SizedBox(width: 6),
-                            Expanded(child: _modeButton('타임라인', 2)),
-                            const SizedBox(width: 6),
-                            Expanded(child: _modeButton('앨범', 3)),
-                          ],
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(36),
+                        child: BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.white.withValues(alpha: 0.82),
+                              borderRadius: BorderRadius.circular(36),
+                              border: Border.all(
+                                color: AppColors.bg03,
+                                width: 1.2,
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Expanded(child: _modeButton('전체', 0)),
+                                const SizedBox(width: 6),
+                                Expanded(child: _modeButton('일자별', 1)),
+                                const SizedBox(width: 6),
+                                Expanded(child: _modeButton('타임라인', 2)),
+                                const SizedBox(width: 6),
+                                Expanded(child: _modeButton('앨범', 3)),
+                              ],
+                            ),
+                          ),
                         ),
                       ),
                     ),
@@ -345,24 +364,25 @@ class _MemoryDetailPageState extends State<MemoryDetailPage> {
                   GestureDetector(
                     onTap: _openUploadPage,
                     child: Container(
-                      width: 46,
-                      height: 46,
+                      width: 58,
+                      height: 58,
                       decoration: BoxDecoration(
-                        color: AppColors.b02,
+                        color: const Color(0xFF7DB5FF),
                         shape: BoxShape.circle,
+                        border: Border.all(color: AppColors.white, width: 2),
                         boxShadow: [
                           BoxShadow(
-                            color: AppColors.black.withValues(alpha: 0.15),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
+                            color: AppColors.black.withValues(alpha: 0.12),
+                            blurRadius: 18,
+                            offset: const Offset(0, 8),
                           ),
                         ],
                       ),
                       child: Center(
                         child: SvgPicture.asset(
                           AssetPaths.icons.common.addPhotoPlus,
-                          width: 26,
-                          height: 26,
+                          width: 30,
+                          height: 30,
                         ),
                       ),
                     ),
@@ -395,15 +415,17 @@ class _MemoryDetailPageState extends State<MemoryDetailPage> {
           curve: Curves.easeInOut,
         );
       },
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        height: double.infinity,
-        alignment: Alignment.center,
-        padding: const EdgeInsets.symmetric(horizontal: 10),
-        decoration: BoxDecoration(
-          color: isSelected ? AppColors.b03 : AppColors.white,
-          borderRadius: BorderRadius.circular(24),
-        ),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          height: double.infinity,
+          alignment: Alignment.center,
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          decoration: BoxDecoration(
+            color: isSelected
+                ? const Color(0xFFD6E8FF)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(24),
+          ),
         child: FittedBox(
           fit: BoxFit.scaleDown,
           child: Text(

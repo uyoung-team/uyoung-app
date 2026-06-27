@@ -54,10 +54,8 @@ class CalendarService {
 
     final response = await client
         .from('friend_photos')
-        .select('id, island_id, uploader_id, image_url, description, created_at')
+        .select('id, island_id, uploader_id, image_url, description, created_at, taken_at, latitude, longitude, location_name')
         .inFilter('island_id', islandIds)
-        .gte('created_at', firstDay.toIso8601String())
-        .lt('created_at', nextMonth.toIso8601String())
         .order('created_at', ascending: true);
 
     final islandMetaById = <String, Map<String, dynamic>>{
@@ -67,7 +65,7 @@ class CalendarService {
         ),
     };
 
-    return List<Map<String, dynamic>>.from(
+    final allRows = List<Map<String, dynamic>>.from(
       (response as List<dynamic>).map((raw) {
         final row = Map<String, dynamic>.from(raw as Map);
         final islandId = row['island_id']?.toString() ?? '';
@@ -80,6 +78,15 @@ class CalendarService {
         };
       }),
     );
+
+    return allRows.where((row) {
+      final rawDate = row['taken_at'] ?? row['created_at'];
+      final parsed = rawDate == null ? null : DateTime.tryParse(rawDate.toString());
+      if (parsed == null) {
+        return false;
+      }
+      return !parsed.isBefore(firstDay) && parsed.isBefore(nextMonth);
+    }).toList();
   }
 
   static Color colorFromHex(String? value) {

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import 'package:uyoung_app/core/theme/app_colors.dart';
 import 'package:uyoung_app/core/theme/app_font.dart';
@@ -10,6 +11,7 @@ import 'package:uyoung_app/features/attendance/presentation/viewmodels/attendanc
 import 'package:uyoung_app/features/attendance/presentation/widgets/attendance_entry_step.dart';
 import 'package:uyoung_app/features/attendance/presentation/widgets/attendance_reveal_step.dart';
 import 'package:uyoung_app/shared/services/asset_paths.dart';
+import 'package:uyoung_app/shared/widgets/app_top_bar_icon_button.dart';
 
 class AttendancePage extends StatefulWidget {
   const AttendancePage({super.key});
@@ -64,11 +66,14 @@ class _AttendancePageState extends State<AttendancePage> {
               ),
               Positioned(
                 top: safeTop + 8,
-                left: 18,
-                child: IconButton(
-                  onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.chevron_left_rounded, size: 32),
-                  color: AppColors.black,
+                left: 16,
+                child: AppTopBarIconButton(
+                  onTap: () => Navigator.pop(context),
+                  child: SvgPicture.asset(
+                  AssetPaths.icons.common.previous,
+                  width: kAppTopBarIconVisualSize,
+                  height: kAppTopBarIconVisualSize,
+                ),
                 ),
               ),
               Positioned(

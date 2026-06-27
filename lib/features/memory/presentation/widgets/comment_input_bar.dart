@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:uyoung_app/core/theme/app_colors.dart';
 import 'package:uyoung_app/core/theme/app_font.dart';
 import 'package:uyoung_app/features/memory/presentation/widgets/sticker_selector.dart';
-import 'package:uyoung_app/shared/services/asset_paths.dart';
 
 class CommentInputBar extends StatefulWidget {
   const CommentInputBar({
@@ -55,21 +53,21 @@ class _CommentInputBarState extends State<CommentInputBar> {
     return Row(
       children: [
         _circleButton(
-          assetPath: AssetPaths.icons.photoDetail.imoji,
+          imagePath: 'assets/images/smile.png',
           onTap: () {
             setState(() => _isInputMode = true);
           },
         ),
         const SizedBox(width: 6),
         _circleButton(
-          assetPath: AssetPaths.icons.photoDetail.comment,
+          imagePath: 'assets/images/comment.png',
           onTap: widget.onOpenComments,
         ),
         const SizedBox(width: 6),
         _circleButton(
-          assetPath: AssetPaths.icons.photoDetail.favorite,
+          imagePath: 'assets/images/star.png',
           onTap: widget.onToggleFavorite,
-          color: widget.isFavorite ? AppColors.b01 : AppColors.black,
+          color: widget.isFavorite ? AppColors.b01 : null,
         ),
       ],
     );
@@ -144,9 +142,9 @@ class _CommentInputBarState extends State<CommentInputBar> {
   }
 
   Widget _circleButton({
-    required String assetPath,
+    required String imagePath,
     VoidCallback? onTap,
-    Color color = AppColors.black,
+    Color? color,
   }) {
     return GestureDetector(
       onTap: onTap,
@@ -158,12 +156,20 @@ class _CommentInputBarState extends State<CommentInputBar> {
           border: Border.all(color: AppColors.bg02, width: 1.5),
         ),
         child: Center(
-          child: SvgPicture.asset(
-            assetPath,
-            width: 24,
-            height: 24,
-            colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-          ),
+          child: color == null
+              ? Image.asset(
+                  imagePath,
+                  width: 23,
+                  height: 23,
+                )
+              : ColorFiltered(
+                  colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
+                  child: Image.asset(
+                    imagePath,
+                    width: 23,
+                    height: 23,
+                  ),
+                ),
         ),
       ),
     );

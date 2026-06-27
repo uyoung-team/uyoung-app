@@ -3,7 +3,9 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:uyoung_app/core/theme/app_colors.dart';
 import 'package:uyoung_app/core/theme/app_font.dart';
 import 'package:uyoung_app/features/calendar/data/calendar_models.dart';
+import 'package:uyoung_app/features/memory/presentation/pages/photo_detail_page.dart';
 import 'package:uyoung_app/shared/services/asset_paths.dart';
+import 'package:uyoung_app/shared/widgets/app_top_bar_icon_button.dart';
 
 class CalendarMemoryIslandDetailPage extends StatefulWidget {
   const CalendarMemoryIslandDetailPage({
@@ -22,7 +24,15 @@ class CalendarMemoryIslandDetailPage extends StatefulWidget {
 
 class _CalendarMemoryIslandDetailPageState
     extends State<CalendarMemoryIslandDetailPage> {
+  ImageProvider<Object> _imageProviderFor(String path) {
+    if (path.startsWith('http://') || path.startsWith('https://')) {
+      return NetworkImage(path);
+    }
+    return AssetImage(path);
+  }
+
   late List<String> _thumbnailPaths;
+  late List<CalendarEvent> _events;
   bool _isSelectionMode = false;
   final Set<int> _selectedIndexes = <int>{};
 
@@ -30,6 +40,7 @@ class _CalendarMemoryIslandDetailPageState
   void initState() {
     super.initState();
     _thumbnailPaths = List<String>.from(widget.group.thumbnailPaths);
+    _events = List<CalendarEvent>.from(widget.group.events);
   }
 
   void _toggleSelectionMode() {
@@ -68,6 +79,7 @@ class _CalendarMemoryIslandDetailPageState
       for (final index in sortedIndexes) {
         if (index >= 0 && index < _thumbnailPaths.length) {
           _thumbnailPaths.removeAt(index);
+          _events.removeAt(index);
         }
       }
       _selectedIndexes.clear();
@@ -125,9 +137,9 @@ class _CalendarMemoryIslandDetailPageState
         child: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 12),
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
               child: SizedBox(
-                height: 40,
+                height: 56,
                 child: Stack(
                   alignment: Alignment.center,
                   children: [
@@ -148,12 +160,13 @@ class _CalendarMemoryIslandDetailPageState
                     ),
                     Align(
                       alignment: Alignment.centerLeft,
-                      child: IconButton(
-                        icon: const Icon(
-                          Icons.arrow_back_ios_new_rounded,
-                          size: 20,
+                      child: AppTopBarIconButton(
+                        onTap: () => Navigator.of(context).pop(),
+                        child: SvgPicture.asset(
+                          AssetPaths.icons.common.previous,
+                          width: kAppTopBarIconVisualSize,
+                          height: kAppTopBarIconVisualSize,
                         ),
-                        onPressed: () => Navigator.of(context).pop(),
                       ),
                     ),
                     Align(
@@ -176,16 +189,12 @@ class _CalendarMemoryIslandDetailPageState
                                 ),
                               ),
                             )
-                          : IconButton(
-                              onPressed: _toggleSelectionMode,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 18,
-                              ),
-                              constraints: const BoxConstraints(),
-                              icon: SvgPicture.asset(
+                          : AppTopBarIconButton(
+                              onTap: _toggleSelectionMode,
+                              child: SvgPicture.asset(
                                 AssetPaths.icons.common.check,
-                                width: 20,
-                                height: 20,
+                                width: kAppTopBarIconVisualSize,
+                                height: kAppTopBarIconVisualSize,
                               ),
                             ),
                     ),
@@ -209,14 +218,35 @@ class _CalendarMemoryIslandDetailPageState
                     final isSelected = _selectedIndexes.contains(index);
 
                     return GestureDetector(
-                      onTap: () => _onTapThumb(index),
+                      onTap: () {
+                        if (_isSelectionMode) {
+                          _onTapThumb(index);
+                          return;
+                        }
+
+                        Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) => PhotoDetailPage(
+                              islandId: widget.group.islandId,
+                              photoId: _events[index].id,
+                              imagePath: path,
+                              uploaderName: widget.group.islandName,
+                              description: _events[index].description,
+                              takenAt: _events[index].takenAt ?? _events[index].createdAt ?? widget.date,
+                              latitude: _events[index].latitude,
+                              longitude: _events[index].longitude,
+                              locationName: _events[index].locationName,
+                            ),
+                          ),
+                        );
+                      },
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(12),
                         child: Stack(
                           fit: StackFit.expand,
                           children: [
-                            Image.asset(
-                              path,
+                            Image(
+                              image: _imageProviderFor(path),
                               fit: BoxFit.cover,
                               errorBuilder: (_, _, _) => const ColoredBox(
                                 color: AppColors.bg03,
@@ -230,8 +260,8 @@ class _CalendarMemoryIslandDetailPageState
                                 right: 6,
                                 child: SvgPicture.asset(
                                   AssetPaths.icons.common.check,
-                                  width: 20,
-                                  height: 20,
+                                  width: kAppTopBarIconVisualSize,
+                                height: kAppTopBarIconVisualSize,
                                 ),
                               ),
                           ],

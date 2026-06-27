@@ -1,3 +1,5 @@
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
@@ -7,6 +9,7 @@ import 'package:uyoung_app/features/memory/data/memory_location_dummy.dart';
 import 'package:uyoung_app/features/memory/presentation/pages/memory_local_photo.dart';
 import 'package:uyoung_app/features/memory/presentation/pages/photo_detail_page.dart';
 import 'package:uyoung_app/features/memory/presentation/widgets/memory_photo_thumbnail.dart';
+import 'package:uyoung_app/shared/services/asset_paths.dart';
 
 class TimelineMemoryPage extends StatefulWidget {
   const TimelineMemoryPage({
@@ -63,7 +66,11 @@ class _TimelineMemoryPageState extends State<TimelineMemoryPage> {
 
     final groupedByLocation = _groupByLocation(filteredPhotos);
     final locationKeys = groupedByLocation.keys.toList()
-      ..sort((a, b) => _firstTakenAt(groupedByLocation[b]!).compareTo(_firstTakenAt(groupedByLocation[a]!)));
+      ..sort(
+        (a, b) => _firstTakenAt(groupedByLocation[a]!).compareTo(
+          _firstTakenAt(groupedByLocation[b]!),
+        ),
+      );
 
     if (_activeLocation != null && !locationKeys.contains(_activeLocation)) {
       _activeLocation = null;
@@ -95,95 +102,98 @@ class _TimelineMemoryPageState extends State<TimelineMemoryPage> {
             mapController: _mapController,
             photos: filteredPhotos,
             activeLocation: _activeLocation,
-            onLocationTap: _focusLocation,
+            onLocationTap: (location) => _focusLocation(
+              location,
+              groupedByLocation[location] ?? const <MemoryLocalPhoto>[],
+            ),
           ),
         ),
+        const SizedBox(height: 14),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 18),
+          child: _dateDropdown(dates),
+        ),
+        const SizedBox(height: 14),
         Expanded(
-          child: SingleChildScrollView(
+          child: ListView(
             controller: _scrollController,
             padding: const EdgeInsets.only(bottom: 120),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 14),
+            children: [
+              if (_selectedDate == null || dates.isEmpty)
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 18),
-                  child: _dateDropdown(dates),
-                ),
-                const SizedBox(height: 14),
-                if (_selectedDate == null || dates.isEmpty)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 18),
-                    child: Text(
-                      '선택할 날짜가 없어요.',
-                      style: AppFont.b8_14,
-                    ),
-                  )
-                else if (filteredPhotos.isEmpty)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 18),
-                    child: Text(
-                      '이 날짜에는 저장된 사진이 없어요.',
-                      style: AppFont.b8_14,
-                    ),
-                  )
-                else ...[
-                  for (final location in locationKeys) ...[
-                    const SizedBox(height: 10),
-                    Container(
-                      key: _sectionKeys[location],
-                      child: _locationLabel(
+                  child: Text(
+                    '선택할 날짜가 없어요.',
+                    style: AppFont.b8_14,
+                  ),
+                )
+              else if (filteredPhotos.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 18),
+                  child: Text(
+                    '이 날짜에는 저장된 사진이 없어요.',
+                    style: AppFont.b8_14,
+                  ),
+                )
+              else
+                for (final location in locationKeys) ...[
+                  const SizedBox(height: 9),
+                  Container(
+                    key: _sectionKeys[location],
+                    child: _locationLabel(
+                      location,
+                      order: locationKeys.indexOf(location) + 1,
+                      isActive: _activeLocation == location,
+                      onTap: () => _focusLocation(
                         location,
-                        order: locationKeys.indexOf(location) + 1,
-                        isActive: _activeLocation == location,
+                        groupedByLocation[location] ?? const <MemoryLocalPhoto>[],
                       ),
                     ),
-                    const SizedBox(height: 10),
-                    GridView.builder(
-                      padding: const EdgeInsets.symmetric(horizontal: 18),
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: groupedByLocation[location]!.length,
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 3,
-                            mainAxisSpacing: 8,
-                            crossAxisSpacing: 8,
-                            childAspectRatio: 1,
-                          ),
-                      itemBuilder: (_, i) {
-                        final photo = groupedByLocation[location]![i];
-                        return GestureDetector(
-                          onTap: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute<void>(
-                                builder: (_) => PhotoDetailPage(
-                                  islandId: widget.islandId,
-                                  photoId: photo.id,
-                                  imagePath: photo.path,
-                                  uploaderName: photo.uploaderName,
-                                  description: photo.description,
-                                  uploaderProfile: photo.uploaderProfile,
-                                  takenAt: photo.takenAt ?? photo.createdAt,
-                                  latitude: photo.latitude,
-                                  longitude: photo.longitude,
-                                  locationName: photo.locationName,
-                                ),
+                  ),
+                  const SizedBox(height: 4),
+                  GridView.builder(
+                    padding: const EdgeInsets.symmetric(horizontal: 18),
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: groupedByLocation[location]!.length,
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 3,
+                          mainAxisSpacing: 8,
+                          crossAxisSpacing: 8,
+                          childAspectRatio: 1,
+                        ),
+                    itemBuilder: (_, i) {
+                      final photo = groupedByLocation[location]![i];
+                      return GestureDetector(
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute<void>(
+                              builder: (_) => PhotoDetailPage(
+                                islandId: widget.islandId,
+                                photoId: photo.id,
+                                imagePath: photo.path,
+                                uploaderName: photo.uploaderName,
+                                description: photo.description,
+                                uploaderProfile: photo.uploaderProfile,
+                                takenAt: photo.takenAt ?? photo.createdAt,
+                                latitude: photo.latitude,
+                                longitude: photo.longitude,
+                                locationName: photo.locationName,
                               ),
-                            );
-                          },
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
-                            child: MemoryPhotoThumbnail(photo: photo),
-                          ),
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 18),
-                  ],
+                            ),
+                          );
+                        },
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: MemoryPhotoThumbnail(photo: photo),
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 18),
                 ],
-              ],
-            ),
+            ],
           ),
         ),
       ],
@@ -192,22 +202,23 @@ class _TimelineMemoryPageState extends State<TimelineMemoryPage> {
 
   Widget _dateDropdown(List<DateTime> dates) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
+      height: 44,
+      padding: const EdgeInsets.symmetric(horizontal: 14),
       decoration: BoxDecoration(
-        border: Border.all(color: const Color(0xFFE5E5E5)),
-        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.bg03),
+        borderRadius: BorderRadius.circular(14),
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<DateTime>(
           value: _selectedDate,
           isExpanded: true,
-          icon: const Icon(Icons.keyboard_arrow_down_rounded),
+          icon: const Icon(Icons.keyboard_arrow_down_rounded, size: 22),
           items: dates
               .map(
                 (date) => DropdownMenuItem(
                   value: date,
                   child: Text(
-                    '${date.month}월 ${date.day}일',
+                    '${date.year}년 ${date.month}월 ${date.day}일',
                     style: AppFont.b8_14,
                   ),
                 ),
@@ -228,35 +239,103 @@ class _TimelineMemoryPageState extends State<TimelineMemoryPage> {
     String title, {
     required int order,
     required bool isActive,
+    required VoidCallback onTap,
   }) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 18),
-      child: Row(
-        children: [
-          Container(
-            width: 20,
-            height: 20,
-            decoration: BoxDecoration(
-              color: isActive ? AppColors.subYellow02 : AppColors.bg03,
-              shape: BoxShape.circle,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Column(
+              children: [
+                isActive
+                    ? Image.asset(
+                        AssetPaths.icons.photoDetail.imageLocationSpot,
+                        width: 26,
+                        height: 32,
+                        fit: BoxFit.contain,
+                      )
+                    : Container(
+                        width: 24,
+                        height: 24,
+                        decoration: const BoxDecoration(
+                          color: AppColors.bg03,
+                          shape: BoxShape.circle,
+                        ),
+                        alignment: Alignment.center,
+                        child: Text(
+                          '$order',
+                          style: AppFont.b9_12.copyWith(color: AppColors.g02),
+                        ),
+                      ),
+                Container(
+                  width: 1,
+                  height: 10,
+                  margin: const EdgeInsets.only(top: 4),
+                  color: AppColors.bg03,
+                ),
+              ],
             ),
-            alignment: Alignment.center,
-            child: Text(
-              '$order',
-              style: AppFont.b9_12.copyWith(
-                color: isActive ? AppColors.black : AppColors.g02,
+            const SizedBox(width: 9),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.only(top: 2),
+                child: Text(
+                  title,
+                  style: AppFont.b7_16.copyWith(
+                    color: isActive ? AppColors.black : AppColors.g02,
+                  ),
+                ),
               ),
             ),
-          ),
-          const SizedBox(width: 6),
-          Text(
-            title,
-            style: AppFont.b8_14.copyWith(
-              color: isActive ? AppColors.black : AppColors.g02,
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
+    );
+  }
+
+  Future<void> _focusLocation(
+    String location,
+    List<MemoryLocalPhoto> photosAtLocation,
+  ) async {
+    final key = _sectionKeys[location];
+    if (key?.currentContext == null) {
+      return;
+    }
+
+    setState(() {
+      _activeLocation = location;
+    });
+
+    final locatedPhotos = photosAtLocation
+        .where((photo) => photo.latitude != null && photo.longitude != null)
+        .toList();
+    if (locatedPhotos.isNotEmpty) {
+      if (locatedPhotos.length == 1) {
+        final photo = locatedPhotos.first;
+        _mapController.move(LatLng(photo.latitude!, photo.longitude!), 15);
+      } else {
+        final bounds = LatLngBounds.fromPoints([
+          for (final photo in locatedPhotos)
+            LatLng(photo.latitude!, photo.longitude!),
+        ]);
+        _mapController.fitCamera(
+          CameraFit.bounds(
+            bounds: bounds,
+            padding: const EdgeInsets.all(42),
+          ),
+        );
+      }
+    }
+
+    await Scrollable.ensureVisible(
+      key!.currentContext!,
+      duration: const Duration(milliseconds: 300),
+      alignment: 0.05,
+      curve: Curves.easeInOut,
     );
   }
 
@@ -292,24 +371,6 @@ class _TimelineMemoryPageState extends State<TimelineMemoryPage> {
     return sorted.first.takenAt ?? sorted.first.createdAt;
   }
 
-  Future<void> _focusLocation(String location) async {
-    final key = _sectionKeys[location];
-    if (key?.currentContext == null) {
-      return;
-    }
-
-    setState(() {
-      _activeLocation = location;
-    });
-
-    await Scrollable.ensureVisible(
-      key!.currentContext!,
-      duration: const Duration(milliseconds: 300),
-      alignment: 0.05,
-      curve: Curves.easeInOut,
-    );
-  }
-
   void _fitMapToPhotos(List<MemoryLocalPhoto> photos) {
     final locatedPhotos = photos
         .where((photo) => photo.latitude != null && photo.longitude != null)
@@ -338,6 +399,7 @@ class _TimelineMemoryPageState extends State<TimelineMemoryPage> {
       ),
     );
   }
+
 }
 
 class _TimelineMap extends StatelessWidget {
@@ -435,68 +497,82 @@ class _TimelineMap extends StatelessWidget {
   }
 
   List<Marker> _buildMarkers(List<MapEntry<String, List<MemoryLocalPhoto>>> orderedGroups) {
-    return orderedGroups.asMap().entries.map((indexedEntry) {
-      final order = indexedEntry.key + 1;
-      final location = indexedEntry.value.key;
-      final photosAtPoint = indexedEntry.value.value;
+    final orderByLocation = <String, int>{
+      for (var i = 0; i < orderedGroups.length; i++) orderedGroups[i].key: i + 1,
+    };
+
+    final renderEntries = [...orderedGroups]
+      ..sort((a, b) {
+        final aActive = activeLocation == a.key;
+        final bActive = activeLocation == b.key;
+        if (aActive == bActive) {
+          return 0;
+        }
+        return aActive ? 1 : -1;
+      });
+
+    return renderEntries.map((entry) {
+      final location = entry.key;
+      final order = orderByLocation[location] ?? 1;
+      final photosAtPoint = entry.value;
       final first = photosAtPoint.first;
+      final second = photosAtPoint.length > 1 ? photosAtPoint[1] : null;
       final latLng = LatLng(first.latitude!, first.longitude!);
       final isActive = activeLocation == location;
 
       return Marker(
         point: latLng,
-        width: 72,
-        height: 78,
+        width: isActive ? 90 : 72,
+        height: isActive ? 102 : 84,
         child: GestureDetector(
           onTap: () => onLocationTap(location),
           child: Stack(
             clipBehavior: Clip.none,
-            alignment: Alignment.center,
+            alignment: Alignment.topCenter,
             children: [
-              Container(
-                decoration: BoxDecoration(
-                  color: AppColors.white,
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: isActive ? AppColors.subYellow02 : AppColors.b02,
-                    width: isActive ? 4 : 3,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.black.withValues(alpha: 0.18),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
+              Positioned(
+                top: isActive ? 8 : 14,
+                child: _MarkerPhotoStack(
+                  primary: first,
+                  secondary: second,
+                  isActive: isActive,
                 ),
-                alignment: Alignment.center,
-                child: photosAtPoint.length == 1
-                    ? ClipOval(
-                        child: SizedBox(
-                          width: 50,
-                          height: 50,
-                          child: MemoryPhotoThumbnail(photo: first),
-                        ),
+              ),
+              Positioned(
+                top: isActive ? 0 : 8,
+                right: isActive ? 4 : 0,
+                child: isActive
+                    ? Image.asset(
+                        AssetPaths.icons.photoDetail.imageLocationSpot,
+                        width: 30,
+                        height: 36,
+                        fit: BoxFit.contain,
                       )
-                    : Text(
-                        '${photosAtPoint.length}',
-                        style: AppFont.b7_16.copyWith(color: AppColors.b02),
+                    : Container(
+                        width: 28,
+                        height: 28,
+                        decoration: const BoxDecoration(
+                          color: AppColors.white,
+                          shape: BoxShape.circle,
+                        ),
+                        alignment: Alignment.center,
+                        child: Text(
+                          '$order',
+                          style: AppFont.b5_20.copyWith(color: AppColors.g01),
+                        ),
                       ),
               ),
               Positioned(
-                top: 0,
-                right: 4,
+                bottom: isActive ? 8 : 12,
                 child: Container(
-                  width: 22,
-                  height: 22,
-                  decoration: const BoxDecoration(
-                    color: AppColors.subYellow02,
-                    shape: BoxShape.circle,
-                  ),
-                  alignment: Alignment.center,
-                  child: Text(
-                    '$order',
-                    style: AppFont.b9_12.copyWith(color: AppColors.black),
+                  width: 0,
+                  height: 0,
+                  decoration: const BoxDecoration(),
+                  child: CustomPaint(
+                    size: const Size(18, 14),
+                    painter: _MarkerTailPainter(
+                      color: isActive ? AppColors.subYellow02 : AppColors.white,
+                    ),
                   ),
                 ),
               ),
@@ -513,5 +589,123 @@ class _TimelineMap extends StatelessWidget {
         (a, b) => (a.takenAt ?? a.createdAt).compareTo(b.takenAt ?? b.createdAt),
       );
     return sorted.first.takenAt ?? sorted.first.createdAt;
+  }
+}
+
+class _MarkerPhotoStack extends StatelessWidget {
+  const _MarkerPhotoStack({
+    required this.primary,
+    required this.secondary,
+    required this.isActive,
+  });
+
+  final MemoryLocalPhoto primary;
+  final MemoryLocalPhoto? secondary;
+  final bool isActive;
+
+  @override
+  Widget build(BuildContext context) {
+    final size = isActive ? 72.0 : 54.0;
+    final borderRadius = BorderRadius.circular(isActive ? 16 : 14);
+    final innerRadius = BorderRadius.circular(isActive ? 12 : 10);
+    final borderColor = isActive ? AppColors.subYellow02 : AppColors.white;
+
+    return SizedBox(
+      width: isActive ? 80 : 62,
+      height: isActive ? 80 : 62,
+      child: Stack(
+        clipBehavior: Clip.none,
+        alignment: Alignment.center,
+        children: [
+          if (secondary != null)
+            Positioned(
+              left: 0,
+              top: isActive ? 7 : 8,
+              child: Transform.rotate(
+                angle: -0.18,
+                child: _MarkerPhotoCard(
+                  photo: secondary!,
+                  size: size * 0.88,
+                  borderRadius: BorderRadius.circular(isActive ? 14 : 12),
+                  innerRadius: BorderRadius.circular(isActive ? 10 : 9),
+                  borderColor: borderColor,
+                ),
+              ),
+            ),
+          Positioned(
+            right: 0,
+            child: _MarkerPhotoCard(
+              photo: primary,
+              size: size,
+              borderRadius: borderRadius,
+              innerRadius: innerRadius,
+              borderColor: borderColor,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MarkerPhotoCard extends StatelessWidget {
+  const _MarkerPhotoCard({
+    required this.photo,
+    required this.size,
+    required this.borderRadius,
+    required this.innerRadius,
+    required this.borderColor,
+  });
+
+  final MemoryLocalPhoto photo;
+  final double size;
+  final BorderRadius borderRadius;
+  final BorderRadius innerRadius;
+  final Color borderColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: borderRadius,
+        border: Border.all(color: borderColor, width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.black.withValues(alpha: 0.22),
+            blurRadius: 14,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: innerRadius,
+        child: MemoryPhotoThumbnail(photo: photo),
+      ),
+    );
+  }
+}
+
+class _MarkerTailPainter extends CustomPainter {
+  const _MarkerTailPainter({required this.color});
+
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()..color = color;
+    final path = ui.Path()
+      ..moveTo(size.width / 2, size.height)
+      ..lineTo(0, 0)
+      ..lineTo(size.width, 0)
+      ..close();
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _MarkerTailPainter oldDelegate) {
+    return oldDelegate.color != color;
   }
 }

@@ -12,6 +12,7 @@ import 'package:uyoung_app/features/calendar/presentation/viewmodels/calendar_vi
 import 'package:uyoung_app/features/calendar/presentation/widgets/calendar_day_cell.dart';
 import 'package:uyoung_app/features/calendar/presentation/widgets/calendar_memory_bottom_sheet.dart';
 import 'package:uyoung_app/shared/services/asset_paths.dart';
+import 'package:uyoung_app/shared/widgets/app_top_bar_icon_button.dart';
 
 class CalendarPage extends StatelessWidget {
   const CalendarPage({
@@ -110,22 +111,21 @@ class _CalendarTopBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 4),
+      padding: const EdgeInsets.fromLTRB(kAppTopBarHorizontalPadding, 4, kAppTopBarHorizontalPadding, 4),
       child: Row(
         children: [
           if (showBackButton)
-            IconButton(
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints.tightFor(width: 44, height: 44),
-              onPressed: () => Navigator.of(context).pop(),
-              icon: SvgPicture.asset(
+            AppTopBarIconButton(
+              onTap: () => Navigator.of(context).pop(),
+              child: SvgPicture.asset(
                 AssetPaths.icons.common.previous,
-                width: 44,
-                height: 44,
+                width: kAppTopBarIconVisualSize,
+                height: kAppTopBarIconVisualSize,
               ),
             )
           else
-            const SizedBox(width: 8),
+            const SizedBox(width: kAppTopBarIconButtonSize),
+          const SizedBox(width: 8),
           Text(
             '캘린더',
             style: AppFont.h3_24.copyWith(color: AppColors.black),
@@ -133,26 +133,22 @@ class _CalendarTopBar extends StatelessWidget {
           const Spacer(),
           Builder(
             builder: (context) {
-              return IconButton(
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints.tightFor(width: 44, height: 44),
-                onPressed: () => Scaffold.of(context).openEndDrawer(),
-                icon: SvgPicture.asset(
+              return AppTopBarIconButton(
+                onTap: () => Scaffold.of(context).openEndDrawer(),
+                child: SvgPicture.asset(
                   AssetPaths.icons.common.filter,
-                  width: 44,
-                  height: 44,
+                  width: kAppTopBarIconVisualSize,
+                  height: kAppTopBarIconVisualSize,
                 ),
               );
             },
           ),
-          IconButton(
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints.tightFor(width: 44, height: 44),
-            onPressed: viewModel.jumpToToday,
-            icon: SvgPicture.asset(
+          AppTopBarIconButton(
+            onTap: viewModel.jumpToToday,
+            child: SvgPicture.asset(
               AssetPaths.icons.common.today,
-              width: 44,
-              height: 44,
+              width: kAppTopBarIconVisualSize,
+              height: kAppTopBarIconVisualSize,
             ),
           ),
         ],

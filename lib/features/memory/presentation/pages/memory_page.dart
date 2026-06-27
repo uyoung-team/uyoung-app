@@ -13,6 +13,7 @@ import 'package:uyoung_app/features/memory/presentation/pages/memory_search_page
 import 'package:uyoung_app/features/memory/presentation/viewmodels/memory_view_model.dart';
 import 'package:uyoung_app/shared/services/asset_paths.dart';
 import 'package:uyoung_app/shared/widgets/app_headline_text.dart';
+import 'package:uyoung_app/shared/widgets/app_top_bar_icon_button.dart';
 
 class MemoryPage extends StatelessWidget {
   const MemoryPage({super.key});
@@ -240,37 +241,38 @@ class _MemoryViewState extends State<_MemoryView> {
         centerTitle: false,
         title: AppHeadlineText('기억섬', style: AppFont.h3_24),
         actions: [
-          IconButton(
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints.tightFor(width: 44, height: 44),
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute<void>(
-                  builder: (_) => MemorySearchPage(items: viewModel.items),
+          Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: AppTopBarIconButton(
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => MemorySearchPage(items: viewModel.items),
+                  ),
+                );
+              },
+              child: SvgPicture.asset(
+                AssetPaths.icons.common.search,
+                width: kAppTopBarIconVisualSize,
+                height: kAppTopBarIconVisualSize,
+                colorFilter: const ColorFilter.mode(
+                  AppColors.black,
+                  BlendMode.srcIn,
                 ),
-              );
-            },
-            icon: SvgPicture.asset(
-              AssetPaths.icons.common.search,
-              width: 44,
-              height: 44,
-              colorFilter: const ColorFilter.mode(
-                AppColors.black,
-                BlendMode.srcIn,
               ),
             ),
           ),
-          IconButton(
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints.tightFor(width: 44, height: 44),
-            onPressed: () => _openCreatePage(context),
-            icon: SvgPicture.asset(
-              AssetPaths.icons.common.chatPlus,
-              width: 44,
-              height: 44,
+          Padding(
+            padding: const EdgeInsets.only(right: kAppTopBarHorizontalPadding),
+            child: AppTopBarIconButton(
+              onTap: () => _openCreatePage(context),
+              child: SvgPicture.asset(
+                AssetPaths.icons.common.chatPlus,
+                width: kAppTopBarIconVisualSize,
+                height: kAppTopBarIconVisualSize,
+              ),
             ),
           ),
-          const SizedBox(width: 12),
         ],
       ),
       body: SafeArea(
